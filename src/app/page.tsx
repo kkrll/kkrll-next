@@ -1,7 +1,8 @@
 "use client";
 
 import Header from "@/components/header";
-import { useState } from "react";
+import { useNavigationStore } from "@/stores/useNavigationStore";
+import { Key, useEffect, useState } from "react";
 
 const ListItemSelector = ({
   item,
@@ -15,7 +16,7 @@ const ListItemSelector = ({
   return (
     <button
       onClick={onClick}
-      className={`py-2 px-4 hover:pointer ${
+      className={`py-2 px-4 hover:pointer text-left ${
         isSelected
           ? "bg-foreground text-background"
           : "bg-background text-foreground hover:bg-foreground hover:text-background"
@@ -26,27 +27,39 @@ const ListItemSelector = ({
   );
 };
 
-const List = ({ title, list }: { title: string; list: ListItemProps[] }) => {
-  const [isSelected, setIsSelected] = useState("1");
+type ListProps = {
+  title: string;
+  list: ListItemProps[];
+  selectedItemId: string | null;
+  onSelect: (id: string) => void;
+  category: "project" | "writing" | "poster";
+};
+
+const List = ({
+  title,
+  list,
+  selectedItemId,
+  onSelect,
+  category,
+}: ListProps) => {
   return (
     <section className="border-t-1 border-t-foreground py-8 ">
       <div>
         <h2>{title}</h2>
         <div className="flex gap-1 flex-col">
-          {list.map((item, index) => (
-            <ListItemSelector
-              key={index}
-              item={item}
-              isSelected={isSelected === item.id}
-              onClick={() => {
-                setIsSelected(item.id);
-                console.log("selectedOne:" + isSelected);
-              }}
-            />
-          ))}
+          {list.map((item, index) => {
+            const globalId = `${category}-${item.id}`;
+            return (
+              <ListItemSelector
+                key={index}
+                item={item}
+                isSelected={selectedItemId === globalId}
+                onClick={() => onSelect(globalId)}
+              />
+            );
+          })}
         </div>
       </div>
-      <div>{isSelected && <div>Selected Item Details</div>}</div>
     </section>
   );
 };
@@ -84,6 +97,52 @@ const dummyList: ListItemProps[] = [
 ];
 
 export default function Home() {
+  const { selectedItemId, setSelectedItemId, selectNext, selectPrevious } =
+    useNavigationStore();
+
+  const allItems = [
+    ...dummyList.map((item) => ({
+      ...item,
+      type: "project",
+      globalId: "project-" + item.id,
+    })),
+    ...dummyList.map((item) => ({
+      ...item,
+      type: "writing",
+      globalId: "writing-" + item.id,
+    })),
+    ...dummyList.map((item) => ({
+      ...item,
+      type: "poster",
+      globalId: "poster-" + item.id,
+    })),
+  ];
+  const allItemsIds = allItems.map((item) => item.globalId);
+
+  useEffect(() => {
+    if (!selectedItemId && allItemsIds.length > 0) {
+      setSelectedItemId(allItemsIds[0]);
+    }
+  }, [selectedItemId, setSelectedItemId, allItemsIds]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        selectNext(allItemsIds);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        selectPrevious(allItemsIds);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectNext, selectPrevious, allItemsIds]);
+
+  const selectedItem = allItems.find(
+    (item) => item.globalId === selectedItemId
+  );
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between  max-w-[1200px] mx-auto">
       <Header />
@@ -96,13 +155,31 @@ export default function Home() {
         </p>
         <p>Welcome.</p>
       </section>
-      <section className="grid grid-cols-[1fr 2fr] gap-6 border-t-1 border-t-foreground py-8 ">
+      <section className="grid grid-cols-[1fr_2fr] gap-6 border-t-1 border-t-foreground py-8 ">
         <div>
-          <List title="projects" list={dummyList} />
-          <List title="writings" list={dummyList} />
-          <List title="posters" list={dummyList} />
+          {["projects", "writings", "posters"].map((category, index) => (
+            <List
+              key={index}
+              title={category}
+              list={dummyList}
+              selectedItemId={selectedItemId}
+              category={
+                category.slice(0, -1) as "project" | "writing" | "poster"
+              }
+              onSelect={(id) => setSelectedItemId(id)}
+            />
+          ))}
         </div>
-        <div>details of selected item</div>
+        <div>
+          {selectedItem ? (
+            <div>
+              <h3>{selectedItem.title}</h3>
+              <p>{selectedItem.description}</p>
+            </div>
+          ) : (
+            "select from the list"
+          )}
+        </div>
       </section>
     </main>
   );

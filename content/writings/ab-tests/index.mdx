@@ -1,0 +1,130 @@
+---
+title: Understanding A/B Testing
+date: "2023-07-07"
+cover: ./ab-cover.png
+publisher: LogRocket
+link: https://blog.logrocket.com/ux-design/understanding-ab-testing-ux-research/
+---
+
+In general, A/B Testing is a pretty clear concept: you create several versions of something, let your users interact with them, and observe the real-life usage. Each version is displayed to a separate part of the targeted audience so that you can compare the performance of A against B.
+
+As a result, you get a "winner" backed up with data. Sounds nice, right? It significantly helps to reduce ambiguity and guesswork.
+
+Since A/B testing can take the burden of making a hard decision between options and provide you with straightforward evidence, it is easy to get addicted to this practice and blindly test every new feature. Despite the apparent simplicity of the approach, it may give you convincing but actually misleading results.
+
+Several simple rules and best practices can help you to introduce A/B testing into your process. Let's briefly overview the steps involved.
+
+- Prepare the hypothesis for your A/B test
+- Shape the experiment
+- Design the experiment
+- Define the audience
+- Process the result
+
+---
+
+<br />
+
+![Prepare the hypothesis](./ab-hypothesis.png)
+
+## Prepare the hypothesis for your A/B test
+
+Every test requires a clear idea of the purpose, so first of all:
+
+### 1. Define a goal
+
+_What do we want to achieve?_ <br />
+For example, we might aim to increase upsell or stop audience loss, or start working on a completely new service — the goal will help you to define the success of the versions you are testing against the priorities. In case your new variation breaks the conversion but creates more recurring users, is it a disaster or a success?
+
+### 2. Prepare a hypothesis we would like to test
+
+_How can we achieve it?_ <br />
+In simple form, it is something like "If we do "A" we expect an increase of "X." The hypotheses vary in scale or maturity — it might be a slight improvement of the current version, a search for the most efficient feature introduction, or the next big idea validation.
+
+### 3. Decide on the metric
+
+_How are we going to measure the success?_ <br />
+Your variations should have valid comparison criteria — conversion from Action A to Action B, user engagement, feature adoption, bounce rate, etc.
+
+---
+
+![Shape the experiment](./ab-shape.png)
+
+## Shape the experiment
+
+Experiments can take different shapes; let's review some general examples:
+
+1. **Introduce additional** communication channels: you can introduce a new type of notification, but will it be useful or might it create an overload?
+2. **Manipulate the content:** some of your product functionality requires a subscription, how would you tell it to your users?
+   - Should you focus on what the features under the paywall are?
+   - Or how they are improving the productivity of the users?
+   - Or maybe THERE ARE ONLY 7 MINUTES LEFT OF THE 97 PERCENT DISCOUNT (please don't)?
+3. **Update layout:** there is a low adoption level for a new feature. What about redesigning it so that the value proposition is more clear?
+4. **Change the tone of voice or adjust the branding:** what about being more playful in our UX copy? A little joke never hurt anyone…or has it?
+5. **Update user flow:** The supply of your goods differs by the city area — what should we do?
+   - Ask for the exact address at the beginning of the session to provide better but modest listings?
+   - Or ask later and boast a rich inventory? One day it might be all available
+6. **Discrepancy test:** A discrepancy test is a form of A/B test where you completely remove something to evaluate its impact — instead of building a strenuous variation, you just temporarily hide the functionality
+   For example, we believe that our sophisticated recommendation engine is a killer feature, but it requires a lot of time and effort to maintain and adjust it. So, are we sure we are ready to invest in it? Let's try hiding the recommendations section completely to see the damage it might bring.
+
+---
+
+![Design the experiment](./ab-design.png)
+
+## Design the experiment
+
+A/B tests can be valuable only if done correctly. In this section, I’ll give the rules of thumb for experiment preparation.
+While designing the experiment, try to focus on a single aspect you want to test to isolate its impact. Otherwise, it would be hard to understand the value of each change
+
+Try to avoid running several experiments that can affect each other simultaneously because otherwise, once again, it would be unclear what specifically affected the metrics you observe. Or be ready for the multiplication of the variations, for example:
+
+- You already have launched a variation with a new discount system in test, so now you have DiscountsA and DiscountsB;
+- You decide to try a new payment flow variation, that gives you PaymentA and PaymentB;
+- So now to track the performance of the new payment flow, you have to split the traffic into four groups:
+  1. DiscountsA + PaymentA
+  2. DiscountsA + PaymentB
+  3. DiscountsB + PaymentA
+  4. DiscountsB + PaymentB
+
+The same applies to your discounts test, where the data may become corrupted unless you take a new payment flow into account.
+
+Additionally, the change should be bold if we want the result to be observable. We will talk about it a bit more in the audience section.
+
+Since we use an A/B test to validate the hypothesis, we don't have a hundred percent confidence in the variation we are going to introduce. So in order to shorten iteration cycle time, try to find the cheapest way to test it — anything that helps to reduce the implementation time without corrupting the hypothesis. Often, this means an imitation of the functionality, rather dirty hardcoded elements that pass by the design system or vice versa, building something using exclusively ready design system components or third-party tools.
+
+---
+
+![Prepare the hypothesis](./ab-audience.png)
+
+## Define the audience
+
+When we talk about the audience, we cannot skip statistical significance — how likely are the results you get to be reliable and not just coming from random chance? I won't mention the formulae here, you can find a pile of articles about this topic alone, and today's analytics systems usually can highlight the significant results.
+
+But before starting an experiment, you should check if you can allocate enough traffic. Simply put, the lower change in performance you expect, the higher the audience should be — a 2 percent conversion difference is much more likely to be an accident than a 20 percent one. By the way, that's the reason I've recommended being bold while designing an experiment.
+
+But you have to care not only about the amount of traffic but about the quality of the traffic as well. Try to eliminate the users who are not the direct targets for your experiment, so that their actions won't bring the noise into your experiment dashboard. For example, if you test infinite scroll, include only those who have a significant list of items to evaluate the effect properly.
+As was mentioned above, often the goal is to reduce the experimentation cycle time. You can save some time implementing the experiment for a limited number of regions (so that you don't have to adjust it based on region or wait for translations) and/or limited categories (so that you can hardcode the content without sophisticated automation and database manipulations).
+
+---
+
+![Prepare the hypothesis](./ab-measure.png)
+
+## Process the result
+
+Generally, there are two types of user research methods:
+
+1. Qualitative — is mostly focused on understanding users' motives and the context. In this case, you usually focus on a relatively small group of participants. It can be user interviews, focus groups, usability tests, and others
+2. Quantitative — is more about statistics, translating the actual users' behavior into numbers. These methods require a large audience to collect a significant amount of data. It includes surveys, experiments, longitudinal studies, and others
+
+A/B testing is mainly about quantitative data — usually, you track the performance of the variations by observing the metrics you've set up initially. Be aware that in the real world, some hypotheses may not behave as expected or may fail to make any significant difference in the results.
+
+While looking at quantitative data, it's important to remember that these numbers don't reveal the motivations behind user behavior. Numbers are not going to lie but can be misleading, so it is often helpful to interpret them as symptoms of underlying user needs or issues.
+
+And in case you are not sure about the diagnosis of the symptoms, the results you've got should be carefully examined — probably the losing idea is not a disaster, but it just wasn't shaped properly. Sometimes it is useful to interview your users or watch the session replays with different variations to understand the reasons for such variations' performance. Experiments often take several iterations to get better results.
+
+---
+
+## Conclusion
+
+A/B testing is a powerful tool that can significantly improve the performance of your product if used properly. As a quantitative research method, it displays the actual effectiveness of the design and business model, adding a safety gap and time to polish the solution. But don't go all in with A/B testing exclusively, and always combine it with other research methods to get the maximum results.
+
+And in case you were guessing, this is the only variation of this article.
