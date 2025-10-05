@@ -24,6 +24,18 @@ export default function WritingPage({ params }: { params: { slug: string } }) {
     <main className="max-w-[960px] mx-auto p-8">
       <article>
         <header className="mb-8 border-b border-foreground pb-6">
+          {writing.cover && (
+            <Image
+              src={`/writings/${params.slug}/${writing.cover.replace(
+                "./",
+                ""
+              )}`}
+              alt={writing.title}
+              width={800}
+              height={400}
+              className="w-full rounded-lg mb-6"
+            />
+          )}
           <h1 className="text-4xl font-bold mb-4">{writing.title}</h1>
           <time className="text-sm text-foreground/60">
             {new Date(writing.date).toLocaleDateString("en-US", {

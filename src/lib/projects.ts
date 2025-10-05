@@ -2,36 +2,37 @@ import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
 
-const writingsDirectory = path.join(process.cwd(), "content/writings");
+const projectsDirectory = path.join(process.cwd(), "content/projects");
 
-export type Writing = {
+export type Project = {
   slug: string;
   title: string;
   date: string;
   cover?: string;
   publisher?: string;
   description?: string;
+  projectType?: string;
   link?: string;
   content: string;
 };
 
-export type WritingMeta = {
+export type ProjectMeta = {
   slug: string;
   title: string;
   date: string;
   cover?: string;
-  publisher?: string;
   description?: string;
-  isExternal?: boolean;
+  projectType?: string;
   link?: string;
-  type: "writings";
+  isExternal?: boolean;
+  type: "projects";
   globalId: string;
 };
 
-export function getAllWritings(): Writing[] {
-  const folders = fs.readdirSync(writingsDirectory);
-  const writings = folders.map((folder) => {
-    const fullPath = path.join(writingsDirectory, folder, "index.mdx");
+export function getAllProjects(): Project[] {
+  const folders = fs.readdirSync(projectsDirectory);
+  const projects = folders.map((folder) => {
+    const fullPath = path.join(projectsDirectory, folder, "index.mdx");
     const fileContents = fs.readFileSync(fullPath, "utf8");
     const { data, content } = matter(fileContents);
     return {
@@ -39,21 +40,21 @@ export function getAllWritings(): Writing[] {
       title: data.title || "Untitled",
       date: data.date || "Unknown date",
       cover: data.cover || null,
-      publisher: data.publisher || null,
       description: data.description || null,
+      projectType: data.projectType,
       link: data.link || null,
       content,
-    } as Writing;
+    } as Project;
   });
-  return writings.sort((a, b) => {
+  return projects.sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
 }
 
-export function getAllWritingsMeta(): WritingMeta[] {
-  const folders = fs.readdirSync(writingsDirectory);
+export function getAllProjectsMeta(): ProjectMeta[] {
+  const folders = fs.readdirSync(projectsDirectory);
   const writingsMeta = folders.map((folder) => {
-    const fullPath = path.join(writingsDirectory, folder, "index.mdx");
+    const fullPath = path.join(projectsDirectory, folder, "index.mdx");
     const fileContents = fs.readFileSync(fullPath, "utf8");
     const { data } = matter(fileContents);
 
@@ -62,22 +63,22 @@ export function getAllWritingsMeta(): WritingMeta[] {
       title: data.title || "Untitled",
       date: data.date || "Unknown date",
       cover: data.cover || null,
-      publisher: data.publisher || null,
       description: data.description || null,
+      projectType: data.projectType,
       link: data.link || null,
       isExternal: data.isExternal,
-      type: "writings",
+      type: "projects",
       globalId: `writings-${folder}`,
-    } as WritingMeta;
+    } as ProjectMeta;
   });
   return writingsMeta.sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
 }
 
-export function getWritingBySlug(slug: string): Writing | null {
+export function getProjectBySlug(slug: string): Project | null {
   try {
-    const fullPath = path.join(writingsDirectory, slug, "index.mdx");
+    const fullPath = path.join(projectsDirectory, slug, "index.mdx");
     const fileContents = fs.readFileSync(fullPath, "utf8");
     const { data, content } = matter(fileContents);
 
@@ -87,6 +88,7 @@ export function getWritingBySlug(slug: string): Writing | null {
       date: data.date,
       cover: data.cover,
       publisher: data.publisher,
+      projectType: data.projectType,
       link: data.link,
       content,
     };
