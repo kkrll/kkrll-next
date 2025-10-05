@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware";
 interface NavigationStore {
   selectedItemId: string | null;
   setSelectedItemId: (id: string) => void;
-  selectNext: (allItems: string[]) => void; // arrow down
+  selectNext: (allItems: string[]) => void;
   selectPrevious: (allItems: string[]) => void;
 }
 
