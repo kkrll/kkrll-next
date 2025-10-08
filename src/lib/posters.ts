@@ -22,6 +22,16 @@ export type Poster = {
   content: string
 }
 
+export type PosterMeta = {
+  slug: string
+  title: string
+  date: string
+  description: string
+  cover: string
+  type: "posters"
+  globalId: string
+}
+
 // Get all posters with their frontmatter
 export function getAllPosters(): Poster[] {
   const folders = fs.readdirSync(postersDirectory)
@@ -58,6 +68,38 @@ export function getAllPosters(): Poster[] {
 
   // Sort by date, newest first
   return posters.sort((a, b) => {
+    return new Date(b.date).getTime() - new Date(a.date).getTime()
+  })
+}
+
+// Get all posters metadata (without content)
+export function getAllPostersMeta(): PosterMeta[] {
+  const folders = fs.readdirSync(postersDirectory)
+
+  const postersMeta = folders.map((folder) => {
+    const fullPath = path.join(postersDirectory, folder, 'index.mdx')
+
+    // Skip if index.mdx doesn't exist
+    if (!fs.existsSync(fullPath)) {
+      return null
+    }
+
+    const fileContents = fs.readFileSync(fullPath, 'utf8')
+    const { data } = matter(fileContents)
+
+    return {
+      slug: folder,
+      title: data.title || 'Untitled',
+      date: data.date || 'Unknown date',
+      description: data.description || '',
+      cover: data.cover || null,
+      type: 'posters',
+      globalId: `posters-${folder}`,
+    } as PosterMeta
+  }).filter(Boolean) as PosterMeta[]
+
+  // Sort by date, newest first
+  return postersMeta.sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime()
   })
 }

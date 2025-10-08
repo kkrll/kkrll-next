@@ -3,8 +3,11 @@
 :root {
   --background: #f1eadf;
   --background-07: #6b6a69;
+  --background-05: #4b4a49;
+
   --foreground: #171717;
   --foreground-07: #1f1f20;
+  --foreground-05: #323235;
   --font-geist-sans: "Geist Sans", -apple-system, BlinkMacSystemFont, Arial,
     sans-serif;
   --font-geist-mono: "Geist Mono", "SF Mono", "Fira Code", "Fira Mono",
@@ -13,9 +16,13 @@
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --color-background-07: var(--background-07);
+  --color-background-05: var(--background-05);
+
+  --color-foreground: var(--foreground);
   --color-foreground-07: var(--foreground-07);
+  --color-foreground-05: var(--foreground-05);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -23,9 +30,12 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
+    --background-07: #1f1f20;
+    --background-05: #3d3d3f;
+
     --foreground: #ededed;
     --foreground-07: #6b6a69;
-    --background-07: #1f1f20;
+    --foreground-05: #4b4a49;
   }
 }
 
@@ -42,4 +52,91 @@ section {
 h2 {
   text-transform: uppercase;
   font-family: var(--font-mono);
+}
+
+p {
+  line-height: 1.5;
+}
+
+.h-hero {
+  height: calc(100vh - 120px);
+}
+
+.min-h-hero {
+  min-height: calc(100vh - 120px);
+}
+
+@media (width >= 48rem /* 768px */) {
+  .h-hero {
+    height: calc(100vh - 88px);
+  }
+  .min-h-hero {
+    min-height: calc(100vh - 88px);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.99);
+  }
+}
+
+@keyframes fadeInToLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(24);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeOutToLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-24);
+  }
+}
+
+@keyframes fadeInToRight {
+  0% {
+    opacity: 0;
+    transform: translateX(-24);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeOutToRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(24);
+  }
 }

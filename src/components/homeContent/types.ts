@@ -1,5 +1,5 @@
 export type ListItemProps = {
-  slug?: string;
+  slug: string;
   title: string;
   publisher?: string;
   description?: string;

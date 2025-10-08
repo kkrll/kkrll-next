@@ -3,58 +3,29 @@
 import { useEffect } from "react";
 
 import { useNavigationStore } from "@/stores/useNavigationStore";
-import type { WritingMeta } from "@/lib/writings";
 
 import List from "@/components/homeContent/List";
-
-import type { ListItemProps } from "./types";
-import type { ProjectMeta } from "@/lib/projects";
 import ContentWindow from "./ContentWindow";
 import Divider from "../Divider";
 
-const dummyList = [
-  {
-    title: "Project 1",
-    description: "Description of project 1",
-    link: "#",
-    cover: "",
-    slug: "1",
-  },
-  {
-    title: "Project 2",
-    description: "Description of project 2",
-    link: "#",
-    cover: "",
-    slug: "2",
-  },
-  {
-    title: "Project 3",
-    description: "Description of project 3",
-    link: "#",
-    cover: "",
-    slug: "3",
-  },
-];
+import type { ListItemProps } from "./types";
+import type { WritingMeta } from "@/lib/writings";
+import type { ProjectMeta } from "@/lib/projects";
+import type { PosterMeta } from "@/lib/posters";
 
 const HomeContent = ({
   writings,
   projects,
+  posters,
 }: {
   writings: WritingMeta[];
   projects: ProjectMeta[];
+  posters: PosterMeta[];
 }) => {
   const { selectedItemId, setSelectedItemId, selectNext, selectPrevious } =
     useNavigationStore();
 
-  const allItems = [
-    ...projects,
-    ...writings,
-    ...dummyList.map((item) => ({
-      ...item,
-      type: "poster",
-      globalId: `posters-${item.slug}`,
-    })),
-  ];
+  const allItems = [...projects, ...writings, ...posters];
   const allItemsIds = allItems.map((item) => item.globalId);
 
   useEffect(() => {
@@ -85,6 +56,16 @@ const HomeContent = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectNext, selectPrevious, allItemsIds, selectedItemId]);
 
+  // Scroll selected item into view when it changes
+  useEffect(() => {
+    if (selectedItemId) {
+      const element = document.querySelector(
+        `[data-item-id="${selectedItemId}"]`
+      );
+      element?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [selectedItemId]);
+
   const selectedItem = allItems.find(
     (item) => item.globalId === selectedItemId
   );
@@ -113,16 +94,18 @@ const HomeContent = ({
               onSelect={(id) => setSelectedItemId(id)}
             />
           )}
-          <List
-            key="posters"
-            title="posters"
-            list={dummyList as ListItemProps[]}
-            selectedItemId={selectedItemId}
-            category="posters"
-            onSelect={(id) => setSelectedItemId(id)}
-          />
+          {posters && (
+            <List
+              key="posters"
+              title="posters"
+              list={posters as ListItemProps[]}
+              selectedItemId={selectedItemId}
+              category="posters"
+              onSelect={(id) => setSelectedItemId(id)}
+            />
+          )}
         </div>
-        <div className="flex-2 flex">
+        <div className="flex-2 motion-safe:animate-[fadeIn_200ms_ease-in-out] hidden md:flex">
           {selectedItem ? (
             <ContentWindow selectedItem={selectedItem} />
           ) : (
