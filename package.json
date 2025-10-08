@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "prebuild": "npm run copy-content",
+    "copy-content": "rm -f public/writings public/projects public/posters && cp -r content/writings public/ && cp -r content/projects public/ && cp -r content/posters public/",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "biome check",

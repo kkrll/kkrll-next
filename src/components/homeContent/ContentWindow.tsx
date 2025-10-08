@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import type { WritingMeta } from "@/lib/writings";
 import type { ProjectMeta } from "@/lib/projects";
@@ -14,13 +14,25 @@ const ContentWindow = ({
 }) => {
   const [newValue, setNewValue] = useState(selectedItem);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const lastChangeRef = useRef(Date.now());
 
   useEffect(() => {
+    const now = Date.now();
+    const timeSinceLastChange = now - lastChangeRef.current;
+    lastChangeRef.current = now;
+
+    if (timeSinceLastChange < 150) {
+      setNewValue(selectedItem);
+      setIsTransitioning(false);
+      return;
+    }
+
     setIsTransitioning(true);
     const timer = setTimeout(() => {
       setNewValue(selectedItem);
       setIsTransitioning(false);
-    }, 300); // Match your fade-out duration
+    }, 200);
+
     return () => clearTimeout(timer);
   }, [selectedItem]);
 
@@ -28,8 +40,8 @@ const ContentWindow = ({
     <div
       className={`sticky top-0 size-fit p-8 shadow-2xl w-full ${
         isTransitioning
-          ? "animate-[fadeOut_300ms_ease-in-out]"
-          : "animate-[fadeIn_300ms_ease-in-out]"
+          ? "animate-[fadeOut_200ms_ease-in-out]"
+          : "animate-[fadeIn_200ms_ease-in-out]"
       }`}
     >
       <div className="mb-8">
