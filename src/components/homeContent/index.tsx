@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 
 import { useNavigationStore } from "@/stores/useNavigationStore";
+import { useHomeTracking } from "@/hooks/useHomeTracking";
 
 import List from "@/components/homeContent/List";
 import ContentWindow from "./ContentWindow";
@@ -28,6 +29,16 @@ const HomeContent = ({
   const allItems = [...projects, ...writings, ...posters];
   const allItemsIds = allItems.map((item) => item.globalId);
 
+  const { trackSelection, trackNavigation, trackOpen } = useHomeTracking();
+
+  const handleSelect = (id: string, source: "click" | "keyboard") => {
+    const item = allItems.find((item) => item.globalId === id);
+    if (item) {
+      trackSelection(item, source);
+      setSelectedItemId(id);
+    }
+  };
+
   useEffect(() => {
     if (!selectedItemId && allItemsIds.length > 0) {
       setSelectedItemId(allItemsIds[0]);
@@ -38,12 +49,18 @@ const HomeContent = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowDown") {
         e.preventDefault();
+        trackNavigation('down');
         selectNext(allItemsIds);
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
+        trackNavigation('up');
         selectPrevious(allItemsIds);
       } else if (e.key === "Enter" && selectedItemId) {
         e.preventDefault();
+        const item = allItems.find(i => i.globalId === selectedItemId);
+        if (item) {
+          trackOpen(item, 'keyboard');
+        }
         const link = document
           .querySelector(`[data-item-id="${selectedItemId}"]`)
           ?.getAttribute("href");
@@ -54,7 +71,7 @@ const HomeContent = ({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectNext, selectPrevious, allItemsIds, selectedItemId]);
+  }, [selectNext, selectPrevious, allItemsIds, selectedItemId, trackNavigation, trackOpen, allItems]);
 
   // Scroll selected item into view when it changes
   useEffect(() => {
@@ -81,7 +98,7 @@ const HomeContent = ({
               list={projects as ListItemProps[]}
               selectedItemId={selectedItemId}
               category="projects"
-              onSelect={(id) => setSelectedItemId(id)}
+              onSelect={(id) => handleSelect(id, 'click')}
             />
           )}
           {writings && (
@@ -91,7 +108,7 @@ const HomeContent = ({
               list={writings as ListItemProps[]}
               selectedItemId={selectedItemId}
               category="writings"
-              onSelect={(id) => setSelectedItemId(id)}
+              onSelect={(id) => handleSelect(id, 'click')}
             />
           )}
           {posters && (
@@ -101,7 +118,7 @@ const HomeContent = ({
               list={posters as ListItemProps[]}
               selectedItemId={selectedItemId}
               category="posters"
-              onSelect={(id) => setSelectedItemId(id)}
+              onSelect={(id) => handleSelect(id, 'click')}
             />
           )}
         </div>

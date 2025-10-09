@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTracking } from "@/hooks/useTracking";
 
 const Bio = () => {
   const [isCopied, setIsCopied] = useState(false);
+  const { track } = useTracking();
 
   return (
     <section className="min-h-hero md:min-h-[70vh] pt-[50vh] px-8 md:px-4">
@@ -39,6 +41,7 @@ const Bio = () => {
           onClick={() => {
             navigator.clipboard.writeText("k_kov@hotmail.com");
             setIsCopied(true);
+            track("copy_email", { page: "home" });
             setTimeout(() => setIsCopied(false), 2000);
           }}
         >
