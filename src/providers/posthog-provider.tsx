@@ -14,9 +14,15 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
         posthog.init(key, {
           api_host: host,
           person_profiles: 'identified_only', // Recommended for GDPR compliance
+          autocapture: false, // Disable automatic click tracking
+          capture_pageview: true, // Keep pageview tracking
+          capture_pageleave: false, // Disable page leave tracking
+          disable_session_recording: true, // Disable session recordings
           loaded: (posthog) => {
             if (process.env.NODE_ENV === "development") {
-              posthog.debug();
+              // Only debug custom events, not everything
+              // posthog.debug(); // Comment out for less noise
+              console.log('[PostHog] Initialized successfully');
             }
           },
         });

@@ -21,19 +21,29 @@ const ContentWindow = ({
     const timeSinceLastChange = now - lastChangeRef.current;
     lastChangeRef.current = now;
 
+    // Debounce: if navigating quickly, wait for pause
     if (timeSinceLastChange < 150) {
-      setNewValue(selectedItem);
-      setIsTransitioning(false);
-      return;
+      // Wait 200ms to see if user stops navigating
+      const debounceTimer = setTimeout(() => {
+        setIsTransitioning(true);
+        const transitionTimer = setTimeout(() => {
+          setNewValue(selectedItem);
+          setIsTransitioning(false);
+        }, 200);
+        return () => clearTimeout(transitionTimer);
+      }, 200);
+
+      return () => clearTimeout(debounceTimer);
     }
 
+    // If enough time passed, update immediately with transition
     setIsTransitioning(true);
-    const timer = setTimeout(() => {
+    const transitionTimer = setTimeout(() => {
       setNewValue(selectedItem);
       setIsTransitioning(false);
     }, 200);
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(transitionTimer);
   }, [selectedItem]);
 
   return (
