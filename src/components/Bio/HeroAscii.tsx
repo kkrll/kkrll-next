@@ -1,0 +1,287 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+const ASCII_CHARS = [" ", "•", "∘", "∗", "※"];
+const ASCII_CHARS_DRAW = [" ", "•", "∘", "∗", "※", "░", "▒", "▓", "█"];
+
+interface CharCell {
+  baseLevel: number;
+  currentLevel: number;
+  opacity: number;
+  col: number;
+  row: number;
+}
+
+export default function HeroAscii({
+  isDrawingMode,
+  onToggleDrawingMode,
+}: {
+  isDrawingMode: boolean;
+  onToggleDrawingMode: () => void;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const gridRef = useRef<CharCell[]>([]);
+  const isDraggingRef = useRef(false);
+  const selectedSymbolRef = useRef<number>(4);
+  const [charWidth] = useState(20);
+  const [charHeight] = useState(20);
+  const [selectedSymbol, setSelectedSymbol] = useState<number>(4); // Default to "※"
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    selectedSymbolRef.current = selectedSymbol;
+  }, [selectedSymbol]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Set canvas size
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      // Re-initialize grid on resize
+      initGrid();
+    };
+
+    const initGrid = () => {
+      const cols = Math.ceil(canvas.width / charWidth);
+      const rows = Math.ceil(canvas.height / charHeight);
+
+      gridRef.current = [];
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          // Gradient from left (dark/0) to right (light/4) with randomness
+          const gradientProgress = col / (cols - 1);
+          const gradientLevel = gradientProgress * 4;
+          const randomOffset = (Math.random() - 0.5) * 2;
+          const baseLevel = Math.max(
+            0,
+            Math.min(4, Math.floor(gradientLevel + randomOffset))
+          );
+
+          gridRef.current.push({
+            baseLevel,
+            currentLevel: baseLevel,
+            opacity: isDrawingMode ? 0.7 : 0.1,
+            col,
+            row,
+          });
+        }
+      }
+    };
+
+    // Render function
+    const render = () => {
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.font = "12px 'IBM Plex Mono', monospace";
+      ctx.textBaseline = "top";
+
+      gridRef.current.forEach((cell) => {
+        const x = cell.col * charWidth;
+        const y = cell.row * charHeight;
+
+        ctx.fillStyle = `rgba(255, 255, 255, ${cell.opacity})`;
+        ctx.fillText(ASCII_CHARS_DRAW[cell.currentLevel], x, y);
+      });
+    };
+
+    // Get cell at mouse position
+    const getCellAtPosition = (x: number, y: number) => {
+      const col = Math.floor(x / charWidth);
+      const row = Math.floor(y / charHeight);
+      const cols = Math.ceil(canvas.width / charWidth);
+      const index = row * cols + col;
+      return gridRef.current[index];
+    };
+
+    // Handle drawing on cells
+    const handleDraw = (e: MouseEvent | TouchEvent) => {
+      if (!isDraggingRef.current) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x =
+        "touches" in e
+          ? e.touches[0].clientX - rect.left
+          : e.clientX - rect.left;
+      const y =
+        "touches" in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+
+      const cell = getCellAtPosition(x, y);
+      if (cell) {
+        // Set to selected symbol
+        cell.currentLevel = selectedSymbolRef.current;
+        render();
+      }
+    };
+
+    // Mouse/Touch event handlers
+    const handleStart = (e: MouseEvent | TouchEvent) => {
+      isDraggingRef.current = true;
+      handleDraw(e);
+    };
+
+    const handleEnd = () => {
+      isDraggingRef.current = false;
+    };
+
+    // Initial render
+    resizeCanvas();
+    render();
+
+    // Add event listeners
+    canvas.addEventListener("mousedown", handleStart);
+    canvas.addEventListener("mousemove", handleDraw);
+    canvas.addEventListener("mouseup", handleEnd);
+    canvas.addEventListener("mouseleave", handleEnd);
+
+    // Disable touch for now to prevent scroll interference
+    // canvas.addEventListener("touchstart", handleStart);
+    // canvas.addEventListener("touchmove", handleDraw);
+    // canvas.addEventListener("touchend", handleEnd);
+
+    window.addEventListener("resize", resizeCanvas);
+
+    return () => {
+      canvas.removeEventListener("mousedown", handleStart);
+      canvas.removeEventListener("mousemove", handleDraw);
+      canvas.removeEventListener("mouseup", handleEnd);
+      canvas.removeEventListener("mouseleave", handleEnd);
+      window.removeEventListener("resize", resizeCanvas);
+    };
+  }, [charWidth, charHeight, isDrawingMode]);
+
+  // Clear: Set all to blank
+  const handleClear = () => {
+    gridRef.current.forEach((cell) => {
+      cell.currentLevel = 0; // All spaces
+    });
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (ctx && canvas) {
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  };
+
+  // Reset: Back to original gradient
+  const handleReset = () => {
+    gridRef.current.forEach((cell) => {
+      cell.currentLevel = cell.baseLevel; // Back to gradient
+      cell.opacity = isDrawingMode ? 0.7 : 0.1; // Update opacity based on mode
+    });
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (ctx && canvas) {
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "12px 'IBM Plex Mono', monospace";
+      ctx.textBaseline = "top";
+      gridRef.current.forEach((cell) => {
+        const x = cell.col * charWidth;
+        const y = cell.row * charHeight;
+        ctx.fillStyle = `rgba(255, 255, 255, ${cell.opacity})`;
+        ctx.fillText(ASCII_CHARS_DRAW[cell.currentLevel], x, y);
+      });
+    }
+  };
+
+  // Toggle drawing mode
+  const handleToggleMode = () => {
+    onToggleDrawingMode();
+    // Update opacity for all cells
+    const newOpacity = !isDrawingMode ? 0.7 : 0.1;
+    gridRef.current.forEach((cell) => {
+      cell.opacity = newOpacity;
+    });
+    // Re-render
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (ctx && canvas) {
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "12px 'Geist Mono', monospace";
+      ctx.textBaseline = "top";
+      gridRef.current.forEach((cell) => {
+        const x = cell.col * charWidth;
+        const y = cell.row * charHeight;
+        ctx.fillStyle = `rgba(255, 255, 255, ${cell.opacity})`;
+        ctx.fillText(ASCII_CHARS_DRAW[cell.currentLevel], x, y);
+      });
+    }
+  };
+
+  return (
+    <div className="absolute t-0 l-0 w-full h-screen overflow-hidden">
+      <canvas
+        ref={canvasRef}
+        className={`absolute inset-0 ${
+          isDrawingMode ? "cursor-crosshair z-100" : "cursor-default"
+        }`}
+      />
+
+      {/* Drawing Mode Controls (visible when in drawing mode) */}
+      {isDrawingMode && (
+        <div className="absolute top-4 right-4 left-4 flex justify-between p-4 gap-2 z-200 bg-foreground/10 text-foreground rounded-xl backdrop-blur">
+          {/* Symbol Selector */}
+          <div className="flex gap-1">
+            {ASCII_CHARS_DRAW.map((char, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedSymbol(index)}
+                className={`w-8 h-8 text-sm font-mono rounded transition-colors ${
+                  selectedSymbol === index
+                    ? "bg-background/100 text-foreground"
+                    : "bg-background/30 hover:bg-background/70 text-foreground"
+                }`}
+                title={`Draw with: ${char || "space"}`}
+              >
+                {char || "∅"}
+              </button>
+            ))}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={handleClear}
+              className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded transition-colors"
+            >
+              Clear
+            </button>
+            <button
+              onClick={handleReset}
+              className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded transition-colors"
+            >
+              Reset
+            </button>
+            <button
+              onClick={handleToggleMode}
+              className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded transition-colors"
+            >
+              Exit
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Mode Toggle (visible when NOT in drawing mode) */}
+      {!isDrawingMode && (
+        <button
+          onClick={handleToggleMode}
+          className="absolute top-4 right-4 px-3 py-1 z-200 text-xs font-mono bg-white/10 hover:bg-white/20 text-white rounded transition-colors z-10"
+        >
+          Draw
+        </button>
+      )}
+    </div>
+  );
+}
