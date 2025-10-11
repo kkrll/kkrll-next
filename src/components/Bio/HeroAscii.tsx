@@ -2,13 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const ASCII_CHARS = [" ", "•", "∘", "∗", "※"];
 const ASCII_CHARS_DRAW = [" ", "•", "∘", "∗", "※", "░", "▒", "▓", "█"];
 
 interface CharCell {
   baseLevel: number;
   currentLevel: number;
-  opacity: number;
   col: number;
   row: number;
 }
@@ -40,6 +38,15 @@ export default function HeroAscii({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Get colors from canvas computed styles
+    const getColors = () => {
+      const styles = getComputedStyle(canvas);
+      return {
+        bg: styles.backgroundColor,
+        fg: styles.color,
+      };
+    };
+
     // Set canvas size
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
@@ -69,7 +76,6 @@ export default function HeroAscii({
           gridRef.current.push({
             baseLevel,
             currentLevel: baseLevel,
-            opacity: isDrawingMode ? 0.7 : 0.1,
             col,
             row,
           });
@@ -79,19 +85,22 @@ export default function HeroAscii({
 
     // Render function
     const render = () => {
-      ctx.fillStyle = "black";
+      const { bg, fg } = getColors();
+
+      ctx.fillStyle = bg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.font = "12px 'IBM Plex Mono', monospace";
+      ctx.font = "14px 'Geist Mono', monospace";
       ctx.textBaseline = "top";
 
       gridRef.current.forEach((cell) => {
         const x = cell.col * charWidth;
         const y = cell.row * charHeight;
 
-        ctx.fillStyle = `rgba(255, 255, 255, ${cell.opacity})`;
+        ctx.fillStyle = fg;
         ctx.fillText(ASCII_CHARS_DRAW[cell.currentLevel], x, y);
       });
+      ctx.globalAlpha = 1; // Reset
     };
 
     // Get cell at mouse position
@@ -157,7 +166,7 @@ export default function HeroAscii({
       canvas.removeEventListener("mouseleave", handleEnd);
       window.removeEventListener("resize", resizeCanvas);
     };
-  }, [charWidth, charHeight, isDrawingMode]);
+  }, [charWidth, charHeight]);
 
   // Clear: Set all to blank
   const handleClear = () => {
@@ -167,64 +176,121 @@ export default function HeroAscii({
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (ctx && canvas) {
-      ctx.fillStyle = "black";
+      const bg = getComputedStyle(canvas).backgroundColor;
+      ctx.fillStyle = bg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
   };
 
   // Reset: Back to original gradient
-  const handleReset = () => {
-    gridRef.current.forEach((cell) => {
-      cell.currentLevel = cell.baseLevel; // Back to gradient
-      cell.opacity = isDrawingMode ? 0.7 : 0.1; // Update opacity based on mode
-    });
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (ctx && canvas) {
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.font = "12px 'IBM Plex Mono', monospace";
-      ctx.textBaseline = "top";
-      gridRef.current.forEach((cell) => {
-        const x = cell.col * charWidth;
-        const y = cell.row * charHeight;
-        ctx.fillStyle = `rgba(255, 255, 255, ${cell.opacity})`;
-        ctx.fillText(ASCII_CHARS_DRAW[cell.currentLevel], x, y);
-      });
-    }
-  };
+  // const handleReset = () => {
+  //   gridRef.current.forEach((cell) => {
+  //     cell.currentLevel = cell.baseLevel; // Back to gradient
+  //   });
+  //   const canvas = canvasRef.current;
+  //   const ctx = canvas?.getContext("2d");
+  //   if (ctx && canvas) {
+  //     const styles = getComputedStyle(canvas);
+  //     const bg = styles.backgroundColor;
+  //     const fg = styles.color;
+
+  //     ctx.fillStyle = bg;
+  //     ctx.fillRect(0, 0, canvas.width, canvas.height);
+  //     ctx.font = "14px 'Geist Mono', monospace";
+  //     ctx.textBaseline = "top";
+  //     gridRef.current.forEach((cell) => {
+  //       const x = cell.col * charWidth;
+  //       const y = cell.row * charHeight;
+  //       ctx.fillStyle = fg;
+  //       ctx.fillText(ASCII_CHARS_DRAW[cell.currentLevel], x, y);
+  //     });
+  //     ctx.globalAlpha = 1;
+  //   }
+  // };
 
   // Toggle drawing mode
   const handleToggleMode = () => {
+    // Reset to base gradient when exiting drawing mode
+    if (isDrawingMode) {
+      gridRef.current.forEach((cell) => {
+        cell.currentLevel = cell.baseLevel;
+      });
+    }
+
     onToggleDrawingMode();
-    // Update opacity for all cells
-    const newOpacity = !isDrawingMode ? 0.7 : 0.1;
-    gridRef.current.forEach((cell) => {
-      cell.opacity = newOpacity;
-    });
+
     // Re-render
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (ctx && canvas) {
-      ctx.fillStyle = "black";
+      const styles = getComputedStyle(canvas);
+      const bg = styles.backgroundColor;
+      const fg = styles.color;
+
+      ctx.fillStyle = bg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.font = "12px 'Geist Mono', monospace";
+      ctx.font = "14px 'Geist Mono', monospace";
       ctx.textBaseline = "top";
       gridRef.current.forEach((cell) => {
         const x = cell.col * charWidth;
         const y = cell.row * charHeight;
-        ctx.fillStyle = `rgba(255, 255, 255, ${cell.opacity})`;
+        ctx.fillStyle = fg;
         ctx.fillText(ASCII_CHARS_DRAW[cell.currentLevel], x, y);
       });
+      ctx.globalAlpha = 1;
     }
   };
 
+  // Download canvas as image
+  const handleDownload = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ascii-art-${Date.now()}.png`;
+      a.click();
+
+      URL.revokeObjectURL(url);
+    });
+  };
+
   return (
-    <div className="absolute t-0 l-0 w-full h-screen overflow-hidden">
+    // biome-ignore lint/a11y/useSemanticElements: Full-screen interactive canvas container
+    <div
+      className={`absolute t-0 l-0 w-full h-screen overflow-hidden ${
+        isDrawingMode ? "opacity-100 z-100" : "opacity-25 z-0"
+      } transition-opacity duration-300`}
+      role="button"
+      tabIndex={isDrawingMode ? -1 : 0}
+      onMouseDown={() => {
+        if (!isDrawingMode) {
+          handleToggleMode();
+        }
+      }}
+      onKeyDown={(e) => {
+        if (!isDrawingMode && e.key === "p") {
+          e.preventDefault();
+          handleToggleMode();
+        }
+        if (isDrawingMode && e.key === "Escape") {
+          e.preventDefault();
+          handleToggleMode();
+        }
+        if (isDrawingMode && (e.metaKey || e.ctrlKey) && e.key === "s") {
+          e.preventDefault();
+          handleDownload();
+        }
+      }}
+    >
       <canvas
         ref={canvasRef}
-        className={`absolute inset-0 ${
-          isDrawingMode ? "cursor-crosshair z-100" : "cursor-default"
+        className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${
+          isDrawingMode ? "fixed" : "absolute"
         }`}
       />
 
@@ -235,7 +301,8 @@ export default function HeroAscii({
           <div className="flex gap-1">
             {ASCII_CHARS_DRAW.map((char, index) => (
               <button
-                key={index}
+                type="button"
+                key={char}
                 onClick={() => setSelectedSymbol(index)}
                 className={`w-8 h-8 text-sm font-mono rounded transition-colors ${
                   selectedSymbol === index
@@ -252,18 +319,21 @@ export default function HeroAscii({
           {/* Action Buttons */}
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={handleClear}
               className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded transition-colors"
             >
               Clear
             </button>
             <button
-              onClick={handleReset}
+              type="button"
+              onClick={handleDownload}
               className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded transition-colors"
             >
-              Reset
+              Download
             </button>
             <button
+              type="button"
               onClick={handleToggleMode}
               className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded transition-colors"
             >
@@ -271,16 +341,6 @@ export default function HeroAscii({
             </button>
           </div>
         </div>
-      )}
-
-      {/* Mode Toggle (visible when NOT in drawing mode) */}
-      {!isDrawingMode && (
-        <button
-          onClick={handleToggleMode}
-          className="absolute top-4 right-4 px-3 py-1 z-200 text-xs font-mono bg-white/10 hover:bg-white/20 text-white rounded transition-colors z-10"
-        >
-          Draw
-        </button>
       )}
     </div>
   );

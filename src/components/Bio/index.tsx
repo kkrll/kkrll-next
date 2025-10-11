@@ -1,14 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
+
 import { useTracking } from "@/hooks/useTracking";
+
+import Link from "next/link";
 import HeroAscii from "./HeroAscii";
 
 const Bio = () => {
   const [isCopied, setIsCopied] = useState(false);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const { track } = useTracking();
+
+  useEffect(() => {
+    if (isDrawingMode) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isDrawingMode]);
 
   return (
     <>
