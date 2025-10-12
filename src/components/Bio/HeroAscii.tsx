@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Divider from "../Divider";
 
 const ASCII_CHARS = [" ", "•", "∘", "∗", "※", "░", "▒", "▓", "█"];
 
@@ -261,7 +262,7 @@ export default function HeroAscii({
   };
 
   // Download canvas as image
-  const handleDownload = () => {
+  const handleDownloadPng = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -276,6 +277,36 @@ export default function HeroAscii({
 
       URL.revokeObjectURL(url);
     });
+  };
+
+  const handleDownloadTxt = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const cols = Math.ceil(canvas.width / charWidth);
+    const rows = Math.ceil(canvas.height / charHeight);
+
+    // Build text line by line
+    let txtContent = "";
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const index = row * cols + col;
+        const cell = gridRef.current[index];
+        if (cell) {
+          txtContent += asciiCharsDraw.current[cell.currentLevel] || " ";
+        }
+      }
+      txtContent += "\n";
+    }
+
+    // Create and download
+    const blob = new Blob([txtContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ascii-art-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const customInputRef = useRef<HTMLInputElement>(null);
@@ -349,7 +380,7 @@ export default function HeroAscii({
         }
         if (isDrawingMode && (e.metaKey || e.ctrlKey) && e.key === "s") {
           e.preventDefault();
-          handleDownload();
+          handleDownloadPng();
         }
       }}
     >
@@ -385,13 +416,22 @@ export default function HeroAscii({
             >
               Clear
             </button>
+            <Divider vertical className="bg-foreground-05 mx-2" />
             <button
               type="button"
-              onClick={handleDownload}
+              onClick={handleDownloadPng}
               className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded transition-colors"
             >
-              Download
+              Save as PNG
             </button>
+            <button
+              type="button"
+              onClick={handleDownloadTxt}
+              className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded transition-colors"
+            >
+              Save as TXT
+            </button>
+            <Divider vertical className="bg-foreground-05 mx-2" />
             <button
               type="button"
               onClick={handleToggleMode}
