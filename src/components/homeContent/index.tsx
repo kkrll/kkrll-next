@@ -9,19 +9,19 @@ import List from "@/components/homeContent/List";
 import ContentWindow from "./ContentWindow";
 import Divider from "../Divider";
 
-import type { ListItemProps } from "./types";
-import type { WritingMeta } from "@/lib/writings";
-import type { ProjectMeta } from "@/lib/projects";
-import type { PosterMeta } from "@/lib/posters";
+import type { ListItemProps, SelectedItemType } from "./types";
+import type { WritingMetaWithViewAll } from "@/lib/writings";
+import type { ProjectMetaWithViewAll } from "@/lib/projects";
+import type { PosterMetaWithViewAll } from "@/lib/posters";
 
 const HomeContent = ({
   writings,
   projects,
   posters,
 }: {
-  writings: WritingMeta[];
-  projects: ProjectMeta[];
-  posters: PosterMeta[];
+  writings: WritingMetaWithViewAll[];
+  projects: ProjectMetaWithViewAll[];
+  posters: PosterMetaWithViewAll[];
 }) => {
   const { selectedItemId, setSelectedItemId, selectNext, selectPrevious } =
     useNavigationStore();
@@ -30,6 +30,9 @@ const HomeContent = ({
   const allItemsIds = allItems.map((item) => item.globalId);
 
   const { trackSelection, trackNavigation, trackOpen } = useHomeTracking();
+
+  const currentSelectedId =
+    selectedItemId || (allItemsIds.length > 0 ? allItemsIds[0] : null);
 
   const handleSelect = (id: string, source: "click" | "keyboard") => {
     const item = allItems.find((item) => item.globalId === id);
@@ -40,29 +43,23 @@ const HomeContent = ({
   };
 
   useEffect(() => {
-    if (!selectedItemId && allItemsIds.length > 0) {
-      setSelectedItemId(allItemsIds[0]);
-    }
-  }, [selectedItemId, setSelectedItemId, allItemsIds]);
-
-  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        trackNavigation('down');
+        trackNavigation("down");
         selectNext(allItemsIds);
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        trackNavigation('up');
+        trackNavigation("up");
         selectPrevious(allItemsIds);
-      } else if (e.key === "Enter" && selectedItemId) {
+      } else if (e.key === "Enter" && currentSelectedId) {
         e.preventDefault();
-        const item = allItems.find(i => i.globalId === selectedItemId);
+        const item = allItems.find((i) => i.globalId === currentSelectedId);
         if (item) {
-          trackOpen(item, 'keyboard');
+          trackOpen(item, "keyboard");
         }
         const link = document
-          .querySelector(`[data-item-id="${selectedItemId}"]`)
+          .querySelector(`[data-item-id="${currentSelectedId}"]`)
           ?.getAttribute("href");
         if (link) {
           window.location.href = link;
@@ -71,20 +68,29 @@ const HomeContent = ({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectNext, selectPrevious, allItemsIds, selectedItemId, trackNavigation, trackOpen, allItems]);
+  }, [
+    selectNext,
+    selectPrevious,
+    allItemsIds,
+    currentSelectedId,
+    trackNavigation,
+    trackOpen,
+    allItems.find,
+  ]);
 
   // Scroll selected item into view when it changes
   useEffect(() => {
-    if (selectedItemId) {
+    const position = window.pageYOffset;
+    if (currentSelectedId && position > 240) {
       const element = document.querySelector(
-        `[data-item-id="${selectedItemId}"]`
+        `[data-item-id="${currentSelectedId}"]`
       );
       element?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
-  }, [selectedItemId]);
+  }, [currentSelectedId]);
 
   const selectedItem = allItems.find(
-    (item) => item.globalId === selectedItemId
+    (item) => item.globalId === currentSelectedId
   );
 
   return (
@@ -96,9 +102,9 @@ const HomeContent = ({
               key={"projects"}
               title={"projects"}
               list={projects as ListItemProps[]}
-              selectedItemId={selectedItemId}
+              selectedItemId={currentSelectedId}
               category="projects"
-              onSelect={(id) => handleSelect(id, 'click')}
+              onSelect={(id) => handleSelect(id, "click")}
             />
           )}
           {writings && (
@@ -106,9 +112,9 @@ const HomeContent = ({
               key="writings"
               title="writings"
               list={writings as ListItemProps[]}
-              selectedItemId={selectedItemId}
+              selectedItemId={currentSelectedId}
               category="writings"
-              onSelect={(id) => handleSelect(id, 'click')}
+              onSelect={(id) => handleSelect(id, "click")}
             />
           )}
           {posters && (
@@ -116,15 +122,15 @@ const HomeContent = ({
               key="posters"
               title="posters"
               list={posters as ListItemProps[]}
-              selectedItemId={selectedItemId}
+              selectedItemId={currentSelectedId}
               category="posters"
-              onSelect={(id) => handleSelect(id, 'click')}
+              onSelect={(id) => handleSelect(id, "click")}
             />
           )}
         </div>
         <div className="flex-2 motion-safe:animate-[fadeIn_200ms_ease-in-out] hidden md:flex">
           {selectedItem ? (
-            <ContentWindow selectedItem={selectedItem} />
+            <ContentWindow selectedItem={selectedItem as SelectedItemType} />
           ) : (
             "select from the list"
           )}

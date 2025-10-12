@@ -56,8 +56,10 @@ const ListItemSelector = ({
           onSelect();
         }
       }}
-      className={`py-2 px-8 md:px-4 hover:pointer text-left block bg-background text-foreground hover:bg-background-07 ${
-        isSelected ? "md:bg-foreground md:text-background" : ""
+      className={`py-2 px-8 md:px-4 hover:pointer text-left block bg-background text-foreground ${
+        isSelected
+          ? "md:bg-foreground md:text-background"
+          : "hover:bg-background-07"
       }`}
     >
       {item.title}
@@ -84,11 +86,38 @@ const List = ({
         <h2 className="pl-8 md:pl-4 mb-10">{title}</h2>
         <div className="flex gap-1 flex-col">
           {list.map((item) => {
-            const globalId = item.globalId || `${category}-${item.slug}`;
+            // Check if this is a "View All" item
+            if ("isViewAll" in item && item.isViewAll) {
+              const globalId = item.globalId;
+              const isSelected = selectedItemId === globalId;
+              return (
+                <a
+                  key={globalId}
+                  href={`/${category}`}
+                  data-item-id={globalId}
+                  onClick={(e) => {
+                    if (!isSelected) {
+                      e.preventDefault();
+                      onSelect(globalId);
+                    }
+                  }}
+                  className={`py-2 px-8 md:px-4 hover:pointer text-left block ${
+                    isSelected
+                      ? "md:bg-foreground md:text-background"
+                      : "hover:bg-background-07 text-foreground-07"
+                  }`}
+                >
+                  View all {category} →
+                </a>
+              );
+            }
+
+            // Regular item
+            const globalId = item.globalId;
             return (
               <ListItemSelector
                 key={globalId}
-                item={item}
+                item={item as ListItemProps}
                 itemId={globalId}
                 category={category}
                 isSelected={selectedItemId === globalId}

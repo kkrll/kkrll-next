@@ -140,3 +140,14 @@ p {
     transform: translateX(24);
   }
 }
+
+@keyframes fadeInFromTop {
+  from {
+    opacity: 1;
+    transform: translatey(-24);
+  }
+  to {
+    opacity: 0;
+    transform: translatey(0);
+  }
+}

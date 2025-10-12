@@ -32,6 +32,13 @@ export type PosterMeta = {
   globalId: string
 }
 
+export type PosterMetaWithViewAll = PosterMeta | {
+  isViewAll: true
+  totalItems: number
+  type: "posters"
+  globalId: string
+}
+
 // Get all posters with their frontmatter
 export function getAllPosters(): Poster[] {
   const folders = fs.readdirSync(postersDirectory)
@@ -73,7 +80,7 @@ export function getAllPosters(): Poster[] {
 }
 
 // Get all posters metadata (without content)
-export function getAllPostersMeta(): PosterMeta[] {
+export function getAllPostersMeta(limit?: number): PosterMetaWithViewAll[] {
   const folders = fs.readdirSync(postersDirectory)
 
   const postersMeta = folders.map((folder) => {
@@ -99,9 +106,23 @@ export function getAllPostersMeta(): PosterMeta[] {
   }).filter(Boolean) as PosterMeta[]
 
   // Sort by date, newest first
-  return postersMeta.sort((a, b) => {
+  const sorted = postersMeta.sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime()
   })
+
+  if (limit && sorted.length > limit) {
+    return [
+      ...sorted.slice(0, limit),
+      {
+        isViewAll: true,
+        totalItems: sorted.length,
+        type: 'posters',
+        globalId: 'posters-view-all',
+      }
+    ]
+  }
+
+  return sorted
 }
 
 // Get a single poster by slug

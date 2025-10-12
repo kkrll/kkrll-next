@@ -1,11 +1,6 @@
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
-
-import type { WritingMeta } from "@/lib/writings";
-import type { ProjectMeta } from "@/lib/projects";
-import type { PosterMeta } from "@/lib/posters";
-
-type SelectedItemType = WritingMeta | ProjectMeta | PosterMeta;
+import type { SelectedItemType } from "./types";
 
 const ContentWindow = ({
   selectedItem,

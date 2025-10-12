@@ -21,10 +21,10 @@ export default function HeroAscii({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gridRef = useRef<CharCell[]>([]);
   const isDraggingRef = useRef(false);
-  const selectedSymbolRef = useRef<number>(4);
+  const selectedSymbolRef = useRef<number>(8);
   const [charWidth] = useState(20);
   const [charHeight] = useState(20);
-  const [selectedSymbol, setSelectedSymbol] = useState<number>(4); // Default to "※"
+  const [selectedSymbol, setSelectedSymbol] = useState<number>(8); // Default to "█"
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -317,7 +317,7 @@ export default function HeroAscii({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 animate-[fadeIn_200ms_ease-in-out]">
             <button
               type="button"
               onClick={handleClear}

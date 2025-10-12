@@ -28,6 +28,13 @@ export type WritingMeta = {
   globalId: string;
 };
 
+export type WritingMetaWithViewAll = WritingMeta | {
+  isViewAll: true;
+  totalItems: number;
+  type: "writings";
+  globalId: string;
+};
+
 export function getAllWritings(): Writing[] {
   const folders = fs.readdirSync(writingsDirectory);
   const writings = folders.map((folder) => {
@@ -50,7 +57,7 @@ export function getAllWritings(): Writing[] {
   });
 }
 
-export function getAllWritingsMeta(): WritingMeta[] {
+export function getAllWritingsMeta(limit?: number): WritingMetaWithViewAll[] {
   const folders = fs.readdirSync(writingsDirectory);
   const writingsMeta = folders.map((folder) => {
     const fullPath = path.join(writingsDirectory, folder, "index.mdx");
@@ -70,9 +77,24 @@ export function getAllWritingsMeta(): WritingMeta[] {
       globalId: `writings-${folder}`,
     } as WritingMeta;
   });
-  return writingsMeta.sort((a, b) => {
+
+  const sorted = writingsMeta.sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
+
+  if (limit && sorted.length > limit) {
+    return [
+      ...sorted.slice(0, limit),
+      {
+        isViewAll: true,
+        totalItems: sorted.length,
+        type: "writings",
+        globalId: "writings-view-all",
+      }
+    ];
+  }
+
+  return sorted;
 }
 
 export function getWritingBySlug(slug: string): Writing | null {
