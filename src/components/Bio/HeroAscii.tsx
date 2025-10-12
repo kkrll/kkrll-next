@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const ASCII_CHARS_DRAW = [" ", "•", "∘", "∗", "※", "░", "▒", "▓", "█"];
+const ASCII_CHARS = [" ", "•", "∘", "∗", "※", "░", "▒", "▓", "█"];
 
 interface CharCell {
   baseLevel: number;
@@ -10,6 +10,31 @@ interface CharCell {
   col: number;
   row: number;
 }
+
+const NavButton = ({
+  text,
+  isSelected,
+  onClick,
+}: {
+  text: string;
+  isSelected: boolean;
+  onClick: () => void;
+}) => {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`min-w-8 h-8 text-sm font-mono rounded transition-colors ${
+        isSelected
+          ? "bg-background/100 text-foreground"
+          : "bg-background/30 hover:bg-background/70 text-foreground"
+      } ${text.length > 1 ? "px-4" : ""}`}
+      title={text.length > 1 ? text : `Draw with: ${text || "space"}`}
+    >
+      {text}
+    </button>
+  );
+};
 
 export default function HeroAscii({
   isDrawingMode,
@@ -22,9 +47,14 @@ export default function HeroAscii({
   const gridRef = useRef<CharCell[]>([]);
   const isDraggingRef = useRef(false);
   const selectedSymbolRef = useRef<number>(8);
-  const [charWidth] = useState(20);
-  const [charHeight] = useState(20);
+  const charWidth = 20;
+  const charHeight = 20;
   const [selectedSymbol, setSelectedSymbol] = useState<number>(8); // Default to "█"
+  const asciiCharsDraw = useRef<string[]>([...ASCII_CHARS]); //
+  const [customSymbol, setCustomSymbol] = useState<{
+    isActive: boolean;
+    symbol: string;
+  }>({ isActive: false, symbol: "" });
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -83,7 +113,22 @@ export default function HeroAscii({
       }
     };
 
-    // Render function
+    // Draw a single cell (optimized for individual updates)
+    const drawCell = (cell: CharCell) => {
+      const { bg, fg } = getColors();
+      const x = cell.col * charWidth;
+      const y = cell.row * charHeight;
+
+      ctx.fillStyle = bg;
+      ctx.fillRect(x, y, charWidth, charHeight);
+
+      ctx.fillStyle = fg;
+      ctx.font = "14px 'Geist Mono', monospace";
+      ctx.textBaseline = "top";
+      ctx.fillText(asciiCharsDraw.current[cell.currentLevel] || "", x, y);
+    };
+
+    // Render entire grid (only for initial load and full updates)
     const render = () => {
       const { bg, fg } = getColors();
 
@@ -98,7 +143,7 @@ export default function HeroAscii({
         const y = cell.row * charHeight;
 
         ctx.fillStyle = fg;
-        ctx.fillText(ASCII_CHARS_DRAW[cell.currentLevel], x, y);
+        ctx.fillText(asciiCharsDraw.current[cell.currentLevel] || "", x, y);
       });
       ctx.globalAlpha = 1; // Reset
     };
@@ -128,7 +173,7 @@ export default function HeroAscii({
       if (cell) {
         // Set to selected symbol
         cell.currentLevel = selectedSymbolRef.current;
-        render();
+        drawCell(cell); // Only redraw the changed cell
       }
     };
 
@@ -166,7 +211,7 @@ export default function HeroAscii({
       canvas.removeEventListener("mouseleave", handleEnd);
       window.removeEventListener("resize", resizeCanvas);
     };
-  }, [charWidth, charHeight]);
+  }, []);
 
   // Clear: Set all to blank
   const handleClear = () => {
@@ -181,32 +226,6 @@ export default function HeroAscii({
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
   };
-
-  // Reset: Back to original gradient
-  // const handleReset = () => {
-  //   gridRef.current.forEach((cell) => {
-  //     cell.currentLevel = cell.baseLevel; // Back to gradient
-  //   });
-  //   const canvas = canvasRef.current;
-  //   const ctx = canvas?.getContext("2d");
-  //   if (ctx && canvas) {
-  //     const styles = getComputedStyle(canvas);
-  //     const bg = styles.backgroundColor;
-  //     const fg = styles.color;
-
-  //     ctx.fillStyle = bg;
-  //     ctx.fillRect(0, 0, canvas.width, canvas.height);
-  //     ctx.font = "14px 'Geist Mono', monospace";
-  //     ctx.textBaseline = "top";
-  //     gridRef.current.forEach((cell) => {
-  //       const x = cell.col * charWidth;
-  //       const y = cell.row * charHeight;
-  //       ctx.fillStyle = fg;
-  //       ctx.fillText(ASCII_CHARS_DRAW[cell.currentLevel], x, y);
-  //     });
-  //     ctx.globalAlpha = 1;
-  //   }
-  // };
 
   // Toggle drawing mode
   const handleToggleMode = () => {
@@ -235,7 +254,7 @@ export default function HeroAscii({
         const x = cell.col * charWidth;
         const y = cell.row * charHeight;
         ctx.fillStyle = fg;
-        ctx.fillText(ASCII_CHARS_DRAW[cell.currentLevel], x, y);
+        ctx.fillText(asciiCharsDraw.current[cell.currentLevel] || "", x, y);
       });
       ctx.globalAlpha = 1;
     }
@@ -257,6 +276,53 @@ export default function HeroAscii({
 
       URL.revokeObjectURL(url);
     });
+  };
+
+  const customInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (customSymbol.isActive && customInputRef.current) {
+      customInputRef.current.focus();
+    }
+  }, [customSymbol.isActive]);
+
+  const handleCustomSymbolInput = (e: React.KeyboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.key.length === 1) {
+      // Single character typed
+      asciiCharsDraw.current = [...asciiCharsDraw.current, e.key];
+      setCustomSymbol({ isActive: false, symbol: e.key });
+      setSelectedSymbol(asciiCharsDraw.current.length - 1);
+    }
+  };
+
+  const CustomSymbolButton = () => {
+    const displaySymbol =
+      asciiCharsDraw.current.length > 9 ? asciiCharsDraw.current.at(-1) : "";
+
+    return customSymbol.isActive ? (
+      <input
+        ref={customInputRef}
+        type="text"
+        maxLength={1}
+        placeholder="Type symbol"
+        onKeyDown={handleCustomSymbolInput}
+        onBlur={() =>
+          setCustomSymbol({ isActive: false, symbol: customSymbol.symbol })
+        }
+        className="w-48 h-8 text-sm font-mono rounded bg-background/100 text-foreground text-center border-2 border-foreground"
+      />
+    ) : (
+      <NavButton
+        text={displaySymbol || "Enter symbol"}
+        onClick={() => {
+          setCustomSymbol({ isActive: true, symbol: "" });
+        }}
+        isSelected={selectedSymbol > 8}
+      />
+    );
   };
 
   return (
@@ -299,21 +365,15 @@ export default function HeroAscii({
         <div className="absolute top-4 right-4 left-4 flex justify-between p-4 gap-2 z-200 bg-foreground/10 text-foreground rounded-xl backdrop-blur">
           {/* Symbol Selector */}
           <div className="flex gap-1">
-            {ASCII_CHARS_DRAW.map((char, index) => (
-              <button
-                type="button"
+            {ASCII_CHARS.map((char, index) => (
+              <NavButton
                 key={char}
+                text={char}
                 onClick={() => setSelectedSymbol(index)}
-                className={`w-8 h-8 text-sm font-mono rounded transition-colors ${
-                  selectedSymbol === index
-                    ? "bg-background/100 text-foreground"
-                    : "bg-background/30 hover:bg-background/70 text-foreground"
-                }`}
-                title={`Draw with: ${char || "space"}`}
-              >
-                {char || "∅"}
-              </button>
+                isSelected={selectedSymbol === index}
+              />
             ))}
+            <CustomSymbolButton />
           </div>
 
           {/* Action Buttons */}
