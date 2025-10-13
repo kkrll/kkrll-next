@@ -94,7 +94,7 @@ const HomeContent = ({
   );
 
   return (
-    <section className="min-h-[720px] border-t-1 border-t-foreground ">
+    <section className="min-h-[720px] mt-24">
       <div className="flex h-full gap-12">
         <div className="flex-1 flex flex-col gap-20 my-8">
           {projects && (
