@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import type { SelectedItemType } from "./types";
+import PosterPreview from "./PosterPreview";
 
 const ContentWindow = ({
   selectedItem,
@@ -41,6 +42,44 @@ const ContentWindow = ({
     return () => clearTimeout(transitionTimer);
   }, [selectedItem]);
 
+  if (newValue.type === "posters") {
+    return (
+      <div
+        className={`sticky top-0 size-fit p-8 shadow-2xl w-full ${
+          isTransitioning
+            ? "animate-[fadeOut_200ms_ease-in-out]"
+            : "animate-[fadeIn_200ms_ease-in-out]"
+        }`}
+      >
+        <div className="mb-8">
+          <h2 className="mb-4">{newValue.title}</h2>
+          <p>{newValue.description}</p>
+        </div>
+
+        {newValue.cover && (
+          <PosterPreview
+            poster={{
+              slug: newValue.slug,
+              cover: `/${newValue.type}/${
+                newValue.slug
+              }/${newValue.cover.replace("./", "")}`,
+              title: newValue.title,
+            }}
+          />
+          // <Image
+          //   src={`/${newValue.type}/${newValue.slug}/${newValue.cover.replace(
+          //     "./",
+          //     ""
+          //   )}`}
+          //   width={512}
+          //   height={512}
+          //   alt={newValue.title}
+          //   className="w-[70%] mx-auto rounded-lg mb-4 border-4 border-black"
+          // />
+        )}
+      </div>
+    );
+  }
   return (
     <div
       className={`sticky top-0 size-fit p-8 shadow-2xl w-full ${

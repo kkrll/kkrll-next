@@ -48,7 +48,7 @@ export default function HeroAscii({
   const gridRef = useRef<CharCell[]>([]);
   const isDraggingRef = useRef(false);
   const selectedSymbolRef = useRef<number>(8);
-  const charWidth = 20;
+  const charWidth = 12;
   const charHeight = 20;
   const [selectedSymbol, setSelectedSymbol] = useState<number>(8); // Default to "█"
   const asciiCharsDraw = useRef<string[]>([...ASCII_CHARS]); //
