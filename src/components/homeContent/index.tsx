@@ -12,21 +12,22 @@ import Divider from "../Divider";
 import type { ListItemProps, SelectedItemType } from "./types";
 import type { WritingMetaWithViewAll } from "@/lib/writings";
 import type { ProjectMetaWithViewAll } from "@/lib/projects";
-import type { PosterMetaWithViewAll } from "@/lib/posters";
+import { WorkMetaWithViewAll } from "@/lib/work";
 
 const HomeContent = ({
   writings,
   projects,
-  posters,
+  work,
 }: {
   writings: WritingMetaWithViewAll[];
   projects: ProjectMetaWithViewAll[];
-  posters: PosterMetaWithViewAll[];
+  // posters: PosterMetaWithViewAll[];
+  work: WorkMetaWithViewAll[];
 }) => {
   const { selectedItemId, setSelectedItemId, selectNext, selectPrevious } =
     useNavigationStore();
 
-  const allItems = [...projects, ...writings, ...posters];
+  const allItems = [...projects, ...writings, ...work];
   const allItemsIds = allItems.map((item) => item.globalId);
 
   const { trackSelection, trackNavigation, trackOpen } = useHomeTracking();
@@ -117,13 +118,13 @@ const HomeContent = ({
               onSelect={(id) => handleSelect(id, "click")}
             />
           )}
-          {posters && (
+          {work && (
             <List
-              key="posters"
-              title="posters"
-              list={posters as ListItemProps[]}
+              key="work"
+              title="work"
+              list={work as ListItemProps[]}
               selectedItemId={currentSelectedId}
-              category="posters"
+              category="work"
               onSelect={(id) => handleSelect(id, "click")}
             />
           )}

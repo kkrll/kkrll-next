@@ -8,7 +8,7 @@ export type Project = {
   slug: string;
   title: string;
   date: string;
-  cover?: string;
+  images?: string[];
   publisher?: string;
   description?: string;
   projectType?: string;
@@ -20,7 +20,7 @@ export type ProjectMeta = {
   slug: string;
   title: string;
   date: string;
-  cover?: string;
+  images?: string[];
   description?: string;
   projectType?: string;
   link?: string;
@@ -36,6 +36,23 @@ export type ProjectMetaWithViewAll = ProjectMeta | {
   globalId: string;
 };
 
+export function getProjectImages(slug: string): string[] {
+  const projectDir = path.join(projectsDirectory, slug);
+
+  try {
+    const files = fs.readdirSync(projectDir);
+
+    // Filter image files and sort them
+    return files
+      .filter(file => /\.(jpg|jpeg|png|webp)$/i.test(file))
+      .filter(file => file !== 'index.mdx')
+      .sort()
+      .map(file => `/projects/${slug}/${file}`);
+  } catch {
+    return [];
+  }
+}
+
 export function getAllProjects(): Project[] {
   const folders = fs.readdirSync(projectsDirectory);
   const projects = folders.map((folder) => {
@@ -46,7 +63,7 @@ export function getAllProjects(): Project[] {
       slug: folder,
       title: data.title || "Untitled",
       date: data.date || "Unknown date",
-      cover: data.cover || null,
+      images: getProjectImages(folder),
       description: data.description || null,
       projectType: data.projectType,
       link: data.link || null,
@@ -69,7 +86,7 @@ export function getAllProjectsMeta(limit?: number): ProjectMetaWithViewAll[] {
       slug: folder,
       title: data.title || "Untitled",
       date: data.date || "Unknown date",
-      cover: data.cover || null,
+      images: getProjectImages(folder),
       description: data.description || null,
       projectType: data.projectType,
       link: data.link || null,
@@ -108,7 +125,7 @@ export function getProjectBySlug(slug: string): Project | null {
       slug,
       title: data.title,
       date: data.date,
-      cover: data.cover,
+      images: getProjectImages(slug),
       publisher: data.publisher,
       projectType: data.projectType,
       link: data.link,

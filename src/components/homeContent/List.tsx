@@ -1,7 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type { CategoriesTypes, ListItemProps, ListProps } from "./types";
+import type {
+  CategoriesTypes,
+  ListItemProps,
+  ListProps,
+  ViewAllItem,
+} from "./types";
 
 const ListItemSelector = ({
   item,
@@ -18,19 +23,24 @@ const ListItemSelector = ({
 }) => {
   const router = useRouter();
 
-  const href =
-    item.isExternal && item.link ? item.link : `/${category}/${item.slug}`;
+  const href = item.isExternal && item.link ? item.link : `/${item.slug}`;
 
   const getSecondLine = () => {
     switch (category) {
       case "posters":
-        return "date";
+        return item.date ? new Date(item.date).getFullYear() : null;
       case "projects":
         return item.projectType;
       case "writings":
         if (item.publisher) {
-          return `${item.publisher}, ${new Date(item.date).getFullYear()}`;
-        } else return new Date(item.date).getFullYear();
+          return `${item.publisher}, ${
+            item.date && new Date(item.date).getFullYear()
+          }`;
+        } else return item.date ? new Date(item.date).getFullYear() : null;
+      case "work":
+        return `${item.projectType}, ${item.period}`;
+      default:
+        return null;
     }
   };
 
@@ -47,7 +57,7 @@ const ListItemSelector = ({
         if (isMobile || isSelected) {
           // Mobile: always navigate, Desktop: navigate when already selected
           if (!item.isExternal) {
-            router.push(`/${category}/${item.slug}`);
+            router.push(`/${item.slug}`);
           } else {
             window.location.href = href;
           }
