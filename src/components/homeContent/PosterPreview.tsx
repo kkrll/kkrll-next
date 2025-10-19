@@ -62,7 +62,6 @@ const PosterImage = ({
     }`}
   >
     <div className="bg-gradient-to-b from-[#666] to-black border-[14px_16px_16px_16px] border-solid border-black box-border md:mx-auto">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <Image
         src={cover}
         alt={title}
@@ -79,7 +78,6 @@ const PosterPreview: React.FC<PosterPreviewProps> = ({
   small = false,
 }) => {
   const handleClick = () => {
-    // Track with PostHog if needed
     console.log("Poster clicked:", poster.slug);
   };
 
