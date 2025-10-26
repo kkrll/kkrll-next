@@ -22,6 +22,7 @@ export default function PostersPage() {
                 <Image
                   width={512}
                   height={512}
+                  placeholder="blur"
                   src={`/posters/${poster.slug}/1-full.jpg`}
                   alt={poster.title}
                   className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"

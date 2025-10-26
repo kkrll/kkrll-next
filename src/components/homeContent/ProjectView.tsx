@@ -1,6 +1,18 @@
+"use client";
+
 import Image from "next/image";
-import type { ProjectMeta } from "@/lib/projects";
 import Carousel from "../ui/carousel";
+import ImgPlaceholder from "../ui/imgPlaceholder";
+
+import type { ProjectMeta } from "@/lib/projects";
+import type { EmblaOptionsType } from "embla-carousel";
+
+const carouselOptions: EmblaOptionsType = {
+  loop: true,
+  align: "center",
+  containScroll: "trimSnaps",
+  startIndex: 0,
+};
 
 const ProjectView = ({
   project,
@@ -22,34 +34,28 @@ const ProjectView = ({
         <p>{project.description}</p>
       </div>
       {project.images && project.images.length > 0 && (
-        // <Carousel>
-        //   <CarouselContent>
-        <div>
-          <Carousel
-            options={{
-              loop: true,
-              align: "center",
-              containScroll: "trimSnaps",
-              startIndex: 0,
-            }}
-            nbSlides={project.images.length}
-          >
-            {project.images.map((image, index) => (
-              <Image
-                key={image}
-                src={image}
-                width={512}
-                height={512}
-                alt={`${project.title} - Image ${index + 1}`}
-                className="w-full"
-              />
-            ))}
-          </Carousel>
-        </div>
-        // </CarouselContent>
-        // <CarouselPrevious />
-        // <CarouselNext />
-        // </Carousel>
+        <Carousel
+          carouselName={project.slug}
+          options={carouselOptions}
+          nbSlides={project.images.length}
+        >
+          {project.images.map((image, index) => {
+            return (
+              <div key={image} className="embla__slide">
+                <div className="relative overflow-hidden w-full min-h-[240px]">
+                  <ImgPlaceholder className="absolute inset-0 z-0" />
+                  <Image
+                    src={image}
+                    width={800}
+                    height={0}
+                    alt={`${project.title} - Image ${index + 1}`}
+                    className="relative w-full h-auto z-10 object-contain"
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </Carousel>
       )}
     </div>
   );

@@ -39,6 +39,10 @@ export const usePrevNextButtons = (
 
     onSelect(emblaApi);
     emblaApi.on("reInit", onSelect).on("select", onSelect);
+
+    return () => {
+      emblaApi.off("reInit", onSelect).off("select", onSelect);
+    };
   }, [emblaApi, onSelect]);
 
   return {
