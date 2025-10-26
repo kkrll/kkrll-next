@@ -43,7 +43,7 @@ const ProjectView = ({
             return (
               <div key={image} className="embla__slide">
                 <div className="relative overflow-hidden w-full min-h-[240px]">
-                  <ImgPlaceholder className="absolute inset-0 z-0" />
+                  <ImgPlaceholder />
                   <Image
                     src={image}
                     width={800}

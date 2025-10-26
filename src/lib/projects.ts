@@ -29,12 +29,14 @@ export type ProjectMeta = {
   globalId: string;
 };
 
-export type ProjectMetaWithViewAll = ProjectMeta | {
-  isViewAll: true;
-  totalItems: number;
-  type: "projects";
-  globalId: string;
-};
+export type ProjectMetaWithViewAll =
+  | ProjectMeta
+  | {
+      isViewAll: true;
+      totalItems: number;
+      type: "projects";
+      globalId: string;
+    };
 
 export function getProjectImages(slug: string): string[] {
   const projectDir = path.join(projectsDirectory, slug);
@@ -44,10 +46,10 @@ export function getProjectImages(slug: string): string[] {
 
     // Filter image files and sort them
     return files
-      .filter(file => /\.(jpg|jpeg|png|webp)$/i.test(file))
-      .filter(file => file !== 'index.mdx')
+      .filter((file) => /\.(jpg|jpeg|png|webp)$/i.test(file))
+      .filter((file) => file !== "index.mdx")
       .sort()
-      .map(file => `/projects/${slug}/${file}`);
+      .map((file) => `/projects/${slug}/${file}`);
   } catch {
     return [];
   }
@@ -82,6 +84,8 @@ export function getAllProjectsMeta(limit?: number): ProjectMetaWithViewAll[] {
     const fileContents = fs.readFileSync(fullPath, "utf8");
     const { data } = matter(fileContents);
 
+    const href = data.isExternal && data.link ? data.link : `/${data.slug}`;
+
     return {
       slug: folder,
       title: data.title || "Untitled",
@@ -89,7 +93,7 @@ export function getAllProjectsMeta(limit?: number): ProjectMetaWithViewAll[] {
       images: getProjectImages(folder),
       description: data.description || null,
       projectType: data.projectType,
-      link: data.link || null,
+      link: href,
       isExternal: data.isExternal,
       type: "projects",
       globalId: `projects-${folder}`,
@@ -108,7 +112,7 @@ export function getAllProjectsMeta(limit?: number): ProjectMetaWithViewAll[] {
         totalItems: sorted.length,
         type: "projects",
         globalId: "projects-view-all",
-      }
+      },
     ];
   }
 

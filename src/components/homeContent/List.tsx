@@ -23,8 +23,6 @@ const ListItemSelector = ({
 }) => {
   const router = useRouter();
 
-  const href = item.isExternal && item.link ? item.link : `/${item.slug}`;
-
   const getSecondLine = () => {
     switch (category) {
       case "posters":
@@ -48,7 +46,7 @@ const ListItemSelector = ({
 
   return (
     <a
-      href={isSelected ? href : ""}
+      href={isSelected ? item.link : ""}
       data-item-id={itemId}
       onClick={(e) => {
         e.preventDefault();
@@ -57,9 +55,9 @@ const ListItemSelector = ({
         if (isMobile || isSelected) {
           // Mobile: always navigate, Desktop: navigate when already selected
           if (!item.isExternal) {
-            router.push(`/${item.slug}`);
+            router.push(item.link);
           } else {
-            window.location.href = href;
+            window.location.href = item.link;
           }
         } else {
           // Desktop: select on first click
@@ -105,12 +103,6 @@ const List = ({
                   key={globalId}
                   href={`/${category}`}
                   data-item-id={globalId}
-                  onClick={(e) => {
-                    if (!isSelected) {
-                      e.preventDefault();
-                      onSelect(globalId);
-                    }
-                  }}
                   className={`py-2 px-8 md:px-4 hover:pointer text-left block ${
                     isSelected
                       ? "md:bg-foreground md:text-background"

@@ -1,4 +1,5 @@
 import PageLayout from "@/components/PageLayout";
+import ImgPlaceholder from "@/components/ui/imgPlaceholder";
 import { getAllPosters } from "@/lib/posters";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,13 +20,13 @@ export default function PostersPage() {
               className="group"
             >
               <div className="relative aspect-[4/4] overflow-hidden rounded-lg mb-4">
+                <ImgPlaceholder size="sm" />
                 <Image
                   width={512}
                   height={512}
-                  placeholder="blur"
                   src={`/posters/${poster.slug}/1-full.jpg`}
                   alt={poster.title}
-                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                  className="relative object-cover z-10 w-full h-full group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <h2 className="group-hover:underline">{poster.title}</h2>

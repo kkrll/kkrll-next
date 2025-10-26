@@ -65,6 +65,7 @@ export function getAllWorksMeta(limit?: number): WorkMetaWithViewAll[] {
     const fullPath = path.join(workDirectory, folder, "index.mdx");
     const fileContents = fs.readFileSync(fullPath, "utf8");
     const { data } = matter(fileContents);
+    const href = data.isExternal && data.link ? data.link : `/${data.slug}`;
 
     return {
       slug: folder,
@@ -73,7 +74,7 @@ export function getAllWorksMeta(limit?: number): WorkMetaWithViewAll[] {
       images: data.images || null,
       description: data.description || null,
       projectType: data.projectType,
-      link: data.link || null,
+      link: href,
       isExternal: data.isExternal,
       type: "work",
       globalId: `work-${folder}`,

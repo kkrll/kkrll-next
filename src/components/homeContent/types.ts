@@ -10,7 +10,7 @@ export type ListItemProps = {
   description?: string;
   projectType?: string;
   images?: string[];
-  link?: string;
+  link: string;
   isExternal?: boolean;
   cover: string;
   type: CategoriesTypes;

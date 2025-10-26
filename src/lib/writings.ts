@@ -28,12 +28,14 @@ export type WritingMeta = {
   globalId: string;
 };
 
-export type WritingMetaWithViewAll = WritingMeta | {
-  isViewAll: true;
-  totalItems: number;
-  type: "writings";
-  globalId: string;
-};
+export type WritingMetaWithViewAll =
+  | WritingMeta
+  | {
+      isViewAll: true;
+      totalItems: number;
+      type: "writings";
+      globalId: string;
+    };
 
 export function getAllWritings(): Writing[] {
   const folders = fs.readdirSync(writingsDirectory);
@@ -71,7 +73,7 @@ export function getAllWritingsMeta(limit?: number): WritingMetaWithViewAll[] {
       cover: data.cover || null,
       publisher: data.publisher || null,
       description: data.description || null,
-      link: data.link || null,
+      link: `/writings/${folder}`,
       isExternal: data.isExternal,
       type: "writings",
       globalId: `writings-${folder}`,
@@ -90,7 +92,7 @@ export function getAllWritingsMeta(limit?: number): WritingMetaWithViewAll[] {
         totalItems: sorted.length,
         type: "writings",
         globalId: "writings-view-all",
-      }
+      },
     ];
   }
 
