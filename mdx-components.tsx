@@ -14,7 +14,11 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     h3: ({ children }) => (
       <h3 className="text-2xl font-bold my-4">{children}</h3>
     ),
-    p: ({ children }) => <p className="my-4 leading-relaxed">{children}</p>,
+    p: ({ children }) => (
+      <p className="my-4 font-mono dark:font-medium leading-[1.6]">
+        {children}
+      </p>
+    ),
     ul: ({ children }) => <ul className="list-disc ml-6 my-4">{children}</ul>,
     ol: ({ children }) => (
       <ol className="list-decimal ml-6 my-4">{children}</ol>

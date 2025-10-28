@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import Link from "next/link";
 import Image from "next/image";
+import PageLayout from "@/components/PageLayout";
 
 // Generate static paths for all writings at build time
 export async function generateStaticParams() {
@@ -21,8 +22,8 @@ export default function WritingPage({ params }: { params: { slug: string } }) {
   }
 
   return (
-    <main className="max-w-[960px] mx-auto p-8">
-      <article>
+    <PageLayout>
+      <article className="max-w-[560px]">
         <header className="mb-8 border-b border-foreground pb-6">
           {writing.cover && (
             <Image
@@ -36,7 +37,7 @@ export default function WritingPage({ params }: { params: { slug: string } }) {
               className="w-full rounded-lg mb-6"
             />
           )}
-          <h1 className="text-4xl font-bold mb-4">{writing.title}</h1>
+          <h1 className="text-4xl mb-4">{writing.title}</h1>
           <time className="text-sm text-foreground/60">
             {new Date(writing.date).toLocaleDateString("en-US", {
               year: "numeric",
@@ -72,6 +73,11 @@ export default function WritingPage({ params }: { params: { slug: string } }) {
   hover:no-underline"
                 />
               ),
+              p: ({ children }) => (
+                <p className="my-4 font-serif text-lg font-regular dark:font-medium leading-relaxed [figcaption_&]:mt-0 [figcaption_&]:text-foreground-07 [figcaption_&]:mb-10 [figcaption_&]:font-sans [figcaption_&]:text-xs [figcaption_&]:font-normal [figcaption_&]:leading-normal">
+                  {children}
+                </p>
+              ),
               img: (props) => {
                 // Rewrite relative paths (./image.png) to absolute paths (/writings/slug/image.png)
                 const src = props.src?.startsWith("./")
@@ -79,9 +85,11 @@ export default function WritingPage({ params }: { params: { slug: string } }) {
                   : props.src;
 
                 return (
-                  <img
+                  <Image
                     {...props}
                     src={src}
+                    width={800}
+                    height={0}
                     className="rounded-lg my-6"
                     alt={props.alt || ""}
                   />
@@ -91,6 +99,6 @@ export default function WritingPage({ params }: { params: { slug: string } }) {
           />
         </div>
       </article>
-    </main>
+    </PageLayout>
   );
 }

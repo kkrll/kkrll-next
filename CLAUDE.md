@@ -9,23 +9,27 @@ This is a Next.js 15 personal portfolio site using the App Router, TypeScript, a
 ## Development Commands
 
 ### Core Commands
-- `npm run dev` - Start development server with Turbopack
-- `npm run build` - Build production bundle with Turbopack (runs prebuild script)
-- `npm run prebuild` - Alias for copy-content
-- `npm run copy-content` - Copies content from `content/` to `public/` for static serving
-- `npm start` - Run production server
-- `npm run lint` - Check code with Biome
-- `npm run format` - Format code with Biome
+
+- `bun run dev` - Start development server with Turbopack
+- `bun run build` - Build production bundle with Turbopack (runs prebuild script)
+- `bun run prebuild` - Alias for copy-content
+- `bun run copy-content` - Copies content from `content/` to `public/` for static serving
+- `bun start` - Run production server
+- `bun run lint` - Check code with Biome
+- `bun run format` - Format code with Biome
 
 ### Biome Linter/Formatter
+
 This project uses Biome instead of ESLint/Prettier. Biome is configured for Next.js and React recommendations, with automatic import organization enabled.
 
 ## Architecture
 
 ### Content System
+
 The site uses a file-system based content architecture with three content types:
 
 #### Writings (Blog Posts)
+
 - **Location**: `content/writings/[slug]/index.mdx`
 - **Frontmatter**: title, date, cover, publisher?, link?
 - **API** (`src/lib/writings.ts`):
@@ -34,6 +38,7 @@ The site uses a file-system based content architecture with three content types:
   - `getWritingBySlug(slug)` - Returns specific writing
 
 #### Posters (Artwork)
+
 - **Location**: `content/posters/[slug]/index.mdx`
 - **Frontmatter**: title, date, description, order, tier, sm (size), lg (size), smId, lgId, priceSm, priceLg, external?, cover
 - **API** (`src/lib/posters.ts`):
@@ -43,6 +48,7 @@ The site uses a file-system based content architecture with three content types:
   - `getPosterImages(slug)` - Returns array of image paths for a poster
 
 #### Projects
+
 - **Location**: `content/projects/[slug]/index.mdx`
 - **Frontmatter**: title, date, cover?, publisher?, description?, projectType?, link?, isExternal?
 - **API** (`src/lib/projects.ts`):
@@ -53,6 +59,7 @@ The site uses a file-system based content architecture with three content types:
 **Important**: All content is copied from `content/` to `public/` during build via the `copy-content` script. This enables static serving of images and MDX files.
 
 ### MDX Configuration
+
 - MDX components are globally configured in `mdx-components.tsx` (root level)
 - Custom components override default HTML elements with Tailwind-styled versions
 - Next.js components (Link, Image) are available in MDX
@@ -60,6 +67,7 @@ The site uses a file-system based content architecture with three content types:
 - Uses `@mdx-js/loader`, `@mdx-js/react`, and `@next/mdx` packages
 
 ### Analytics
+
 - **PostHog** is used for analytics tracking
 - **Provider** (`src/providers/posthog-provider.tsx`): Client-side PostHog initialization with GDPR-friendly settings
 - **Hooks**:
@@ -68,13 +76,16 @@ The site uses a file-system based content architecture with three content types:
   - `useDebounce()` - Debounces callbacks (used for resize handling)
 
 ### State Management
+
 - **Zustand** is used for client-side state
 - **Navigation Store** (`src/stores/useNavigationStore.ts`): Persists selected item state to localStorage for navigation tracking with next/previous functionality
 
 ### Path Aliases
+
 TypeScript is configured with `@/*` path alias mapping to `src/*`
 
 ### Styling
+
 - Tailwind CSS v4 with PostCSS
 - Custom font setup: Geist and Geist Mono from next/font/google
 - Global styles in `src/app/globals.css`
@@ -133,31 +144,37 @@ public/                   # Static files (auto-copied from content/)
 
 **Writings:**
 Create a new folder in `content/writings/[slug]/` with:
+
 1. `index.mdx` file with frontmatter (title, date, cover, publisher?, link?)
 2. Images referenced relatively from the MDX file
 3. The slug from the folder name becomes the URL
 
 **Posters:**
 Create a new folder in `content/posters/[slug]/` with:
+
 1. `index.mdx` file with frontmatter (title, date, description, order, tier, sm, lg, smId, lgId, priceSm, priceLg, external?, cover)
 2. Images (will be auto-copied to public/)
 
 **Projects:**
 Create a new folder in `content/projects/[slug]/` with:
+
 1. `index.mdx` file with frontmatter (title, date, cover?, publisher?, description?, projectType?, link?, isExternal?)
 2. Images referenced relatively from the MDX file
 
 ### MDX Component Customization
+
 To customize MDX rendering, edit `mdx-components.tsx` in the root directory. All standard HTML elements can be overridden with custom React components.
 
 ### Analytics Tracking
 
 **Homepage Tracking** - Use `useHomeTracking()` hook:
+
 - `trackSelection(item, source)` - Track when user selects an item
 - `trackNavigation(direction)` - Track keyboard navigation
 - `trackOpen(item, method)` - Track when user opens an item
 
 **ASCII Canvas Tracking** - Automatically tracked in `HeroAscii` component:
+
 - `ascii_drawing_mode_entered` - User enters drawing mode
 - `ascii_drawing_mode_exited` - User exits drawing mode
 - `ascii_symbol_changed` - User changes drawing symbol (includes symbol & index)
@@ -173,6 +190,7 @@ See `src/components/Bio/HeroAscii/TRACKING.md` for detailed event documentation.
 **Location**: `src/components/Bio/HeroAscii/`
 
 **Architecture**:
+
 ```
 HeroAscii/
 ├── constants.ts              # ASCII chars, dimensions, font config
@@ -187,6 +205,7 @@ HeroAscii/
 ```
 
 **Key Features**:
+
 - Interactive fullscreen ASCII art canvas
 - Draw with 9 default symbols + custom characters
 - Preserves drawing during window resize (center-anchored)
@@ -196,6 +215,7 @@ HeroAscii/
 - PostHog event tracking for all user actions
 
 **Performance Patterns**:
+
 - Uses refs for non-UI state (avoids re-renders)
 - `selectedSymbol` state for UI + `selectedSymbolRef` for drawing logic
 - `asciiCharsDrawRef` for character array (ref to prevent re-renders)
@@ -204,6 +224,7 @@ HeroAscii/
 - Debounced resize with visual feedback
 
 **Resize Behavior**:
+
 - Preserves center content when resizing
 - Adds/removes columns and rows from edges
 - In drawing mode: new cells are blank
@@ -211,6 +232,7 @@ HeroAscii/
 - Shows "Resizing..." indicator during resize
 
 **Do NOT**:
+
 - Extract logic into custom hooks (not reused anywhere)
 - Over-engineer the component structure
 - Add state that could be refs (causes unnecessary re-renders)
