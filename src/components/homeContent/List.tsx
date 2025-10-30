@@ -64,16 +64,24 @@ const ListItemSelector = ({
           onSelect();
         }
       }}
-      className={`py-2 px-8 md:px-4 hover:pointer text-left block bg-background text-foreground ${
+      className={`py-2 px-8 md:px-4 no-underline hover:pointer text-left block bg-background text-foreground ${
         isSelected
           ? "md:bg-foreground md:text-background"
           : "hover:bg-background-07"
       }`}
     >
       {item.title}
-      {secondLine && <p className="text-foreground-07 text-sm">{secondLine}</p>}
+      {secondLine && (
+        <p
+          className={`${
+            isSelected ? "text-background-07" : "text-foreground-07"
+          }  text-sm`}
+        >
+          {secondLine}
+        </p>
+      )}
       {isSelected && (
-        <p className="hidden md:block text-foreground-07 text-sm mt-2">
+        <p className="hidden md:block text-background-07 text-sm mt-2">
           Open link →
         </p>
       )}

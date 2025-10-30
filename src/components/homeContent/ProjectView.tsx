@@ -14,21 +14,9 @@ const carouselOptions: EmblaOptionsType = {
   startIndex: 0,
 };
 
-const ProjectView = ({
-  project,
-  isTransitioning,
-}: {
-  project: ProjectMeta;
-  isTransitioning: boolean;
-}) => {
+const ProjectView = ({ project }: { project: ProjectMeta }) => {
   return (
-    <div
-      className={`sticky top-0 size-fit p-8 shadow-2xl w-full ${
-        isTransitioning
-          ? "animate-[fadeOut_200ms_ease-in-out]"
-          : "animate-[fadeIn_200ms_ease-in-out]"
-      }`}
-    >
+    <>
       <div className="mb-8">
         <h2 className="mb-4">{project.title}</h2>
         <p>{project.description}</p>
@@ -57,7 +45,7 @@ const ProjectView = ({
           })}
         </Carousel>
       )}
-    </div>
+    </>
   );
 };
 

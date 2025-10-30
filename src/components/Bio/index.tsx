@@ -34,9 +34,11 @@ const Bio = () => {
       {/* Bio content - hidden in drawing mode */}
       {!isDrawingMode ? (
         <section className="relative min-h-hero md:min-h-[70vh] pt-[50vh] px-8 md:px-4 z-10">
-          <p className="mb-6">Hey. </p>
-          <p>I'm Kiryl, a product designer at Zing Coach. </p>
-          <p>
+          <p className="mb-6 bg-background w-fit">Hey. </p>
+          <p className=" bg-background w-fit">
+            I'm Kiryl, a product designer at Zing Coach.{" "}
+          </p>
+          <p className=" bg-background w-fit">
             You can find here some of my{" "}
             <Link className="underline" href={"/writings"}>
               articles
@@ -51,10 +53,10 @@ const Bio = () => {
             </Link>
             , and something else, occasionally.
           </p>
-          <p>Welcome.</p>
-          <div className="group flex py-6 gap-4 items-baseline">
+          <p className=" bg-background w-fit">Welcome.</p>
+          <div className="group flex py-6 gap-4 items-baseline ">
             <a
-              className="underline"
+              className="underline bg-background w-fit"
               href="mailto:k_kov@hotmail.com?subject=Hey%20Kiryl!%20Big%20fan%20of%20yours..."
             >
               Email me

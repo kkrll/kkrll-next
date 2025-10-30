@@ -1,35 +1,46 @@
-import { getPosterBySlug, getAllPosters, getPosterImages } from '@/lib/posters'
-import { notFound } from 'next/navigation'
-import { MDXRemote } from 'next-mdx-remote/rsc'
+import { getPosterBySlug, getAllPosters, getPosterImages } from "@/lib/posters";
+import { notFound } from "next/navigation";
+import { MDXRemote } from "next-mdx-remote/rsc";
+import Image from "next/image";
+import PageLayout from "@/components/PageLayout";
+
+// Generate static paths for all posters at build time
 
 export async function generateStaticParams() {
-  const posters = getAllPosters()
+  const posters = getAllPosters();
 
   return posters.map((poster) => ({
     slug: poster.slug,
-  }))
+  }));
 }
 
-export default function PosterPage({ params }: { params: { slug: string } }) {
-  const poster = getPosterBySlug(params.slug)
+export default async function PosterPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const poster = getPosterBySlug(slug);
 
   if (!poster) {
-    notFound()
+    notFound();
   }
 
-  const images = getPosterImages(params.slug)
+  const images = getPosterImages(slug);
 
   return (
-    <main className="max-w-[1200px] mx-auto p-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+    <PageLayout>
+      <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] px-8 md:px-4 gap-12">
         {/* Images column */}
-        <div className="space-y-4">
+        <div className="space-y-1 rounded-4xl overflow-hidden">
           {images.map((image, index) => (
-            <img
-              key={index}
+            <Image
+              key={image}
+              width={800}
+              height={0}
               src={image}
               alt={`${poster.title} - image ${index + 1}`}
-              className="w-full rounded-lg"
+              className="w-full"
             />
           ))}
         </div>
@@ -39,14 +50,16 @@ export default function PosterPage({ params }: { params: { slug: string } }) {
           <h1 className="text-4xl font-bold mb-2">{poster.title}</h1>
           <p className="text-sm text-foreground/60 mb-6">{poster.date}</p>
 
-          {poster.description && (
-            <p className="mb-6">{poster.description}</p>
-          )}
+          {poster.description && <p className="mb-6">{poster.description}</p>}
 
           <div className="mb-6">
             <h3 className="text-sm font-bold mb-2">Sizes:</h3>
-            <p className="text-sm">{poster.sm} - €{poster.priceSm}</p>
-            <p className="text-sm">{poster.lg} - €{poster.priceLg}</p>
+            <p className="text-sm">
+              {poster.sm} - €{poster.priceSm}
+            </p>
+            <p className="text-sm">
+              {poster.lg} - €{poster.priceLg}
+            </p>
           </div>
 
           {poster.external && (
@@ -66,10 +79,19 @@ export default function PosterPage({ params }: { params: { slug: string } }) {
                 source={poster.content}
                 components={{
                   img: (props) => {
-                    const src = props.src?.startsWith('./')
-                      ? `/posters/${params.slug}/${props.src.replace('./', '')}`
+                    const src = props.src?.startsWith("./")
+                      ? `/posters/${slug}/${props.src.replace("./", "")}`
                       : props.src;
-                    return <img {...props} src={src} className="rounded-lg my-6" alt={props.alt || ''} />
+                    return (
+                      <Image
+                        {...props}
+                        src={src}
+                        width={800}
+                        height={0}
+                        className="rounded-lg my-6"
+                        alt={props.alt || ""}
+                      />
+                    );
                   },
                 }}
               />
@@ -77,6 +99,6 @@ export default function PosterPage({ params }: { params: { slug: string } }) {
           )}
         </div>
       </div>
-    </main>
-  )
+    </PageLayout>
+  );
 }

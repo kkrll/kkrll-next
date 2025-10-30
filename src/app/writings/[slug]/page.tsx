@@ -14,8 +14,13 @@ export async function generateStaticParams() {
   }));
 }
 
-export default function WritingPage({ params }: { params: { slug: string } }) {
-  const writing = getWritingBySlug(params.slug);
+export default async function WritingPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const writing = getWritingBySlug(slug);
 
   if (!writing) {
     notFound();
@@ -27,10 +32,7 @@ export default function WritingPage({ params }: { params: { slug: string } }) {
         <header className="mb-8 border-b border-foreground pb-6">
           {writing.cover && (
             <Image
-              src={`/writings/${params.slug}/${writing.cover.replace(
-                "./",
-                ""
-              )}`}
+              src={`/writings/${slug}/${writing.cover.replace("./", "")}`}
               alt={writing.title}
               width={800}
               height={400}
@@ -81,7 +83,7 @@ export default function WritingPage({ params }: { params: { slug: string } }) {
               img: (props) => {
                 // Rewrite relative paths (./image.png) to absolute paths (/writings/slug/image.png)
                 const src = props.src?.startsWith("./")
-                  ? `/writings/${params.slug}/${props.src.replace("./", "")}`
+                  ? `/writings/${slug}/${props.src.replace("./", "")}`
                   : props.src;
 
                 return (

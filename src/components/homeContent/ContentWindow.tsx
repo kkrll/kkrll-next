@@ -4,6 +4,7 @@ import ProjectView from "./ProjectView";
 import WritingsView from "./WritingsView";
 import WorkView from "./WorkView";
 import PosterView from "./PosterView";
+import { flushSync } from "react-dom";
 
 const ContentWindow = ({
   selectedItem,
@@ -11,63 +12,75 @@ const ContentWindow = ({
   selectedItem: SelectedItemType;
 }) => {
   const [newValue, setNewValue] = useState(selectedItem);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const lastChangeRef = useRef(Date.now());
+  const decbouceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const now = Date.now();
     const timeSinceLastChange = now - lastChangeRef.current;
     lastChangeRef.current = now;
 
+    if (decbouceTimerRef.current) {
+      clearTimeout(decbouceTimerRef.current);
+    }
+
     // Debounce: if navigating quickly, wait for pause
     if (timeSinceLastChange < 150) {
-      // Wait 200ms to see if user stops navigating
-      const debounceTimer = setTimeout(() => {
-        setIsTransitioning(true);
-        const transitionTimer = setTimeout(() => {
-          setNewValue(selectedItem);
-          setIsTransitioning(false);
-        }, 200);
-        return () => clearTimeout(transitionTimer);
+      decbouceTimerRef.current = setTimeout(() => {
+        updateWithTransition();
       }, 200);
-
-      return () => clearTimeout(debounceTimer);
+    } else {
+      updateWithTransition();
     }
 
-    // If enough time passed, update immediately with transition
-    setIsTransitioning(true);
-    const transitionTimer = setTimeout(() => {
-      setNewValue(selectedItem);
-      setIsTransitioning(false);
-    }, 200);
+    function updateWithTransition() {
+      if (document.startViewTransition) {
+        document.startViewTransition(() => {
+          flushSync(() => {
+            setNewValue(selectedItem);
+          });
+        });
+      } else {
+        setNewValue(selectedItem);
+      }
 
-    return () => clearTimeout(transitionTimer);
+      return () => {
+        if (decbouceTimerRef.current) {
+          clearTimeout(decbouceTimerRef.current);
+        }
+      };
+    }
   }, [selectedItem]);
 
-  if ("isViewAll" in newValue && newValue.isViewAll) {
-    return <p>Enter to open</p>;
-  } else {
-    switch (newValue.type) {
-      case "projects": {
-        return (
-          <ProjectView project={newValue} isTransitioning={isTransitioning} />
-        );
-      }
-      case "writings": {
-        return (
-          <WritingsView writing={newValue} isTransitioning={isTransitioning} />
-        );
-      }
-      case "work": {
-        return <WorkView work={newValue} isTransitioning={isTransitioning} />;
-      }
-      case "posters": {
-        return (
-          <PosterView poster={newValue} isTransitioning={isTransitioning} />
-        );
+  const GetContent = () => {
+    if ("isViewAll" in newValue && newValue.isViewAll) {
+      return <p>Enter to open</p>;
+    } else {
+      switch (newValue.type) {
+        case "projects": {
+          return <ProjectView project={newValue} />;
+        }
+        case "writings": {
+          return <WritingsView writing={newValue} />;
+        }
+        case "work": {
+          return <WorkView work={newValue} />;
+        }
+        case "posters": {
+          return <PosterView poster={newValue} />;
+        }
       }
     }
-  }
+  };
+
+  return (
+    <div
+      className="bg-background sticky top-0 size-fit p-8 w-full"
+      style={{ viewTransitionName: "fade-in-out" }}
+    >
+      {GetContent()}
+    </div>
+  );
 };
 
 export default ContentWindow;
