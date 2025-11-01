@@ -200,11 +200,11 @@ section {
       animation: fadeOutToBottom 0.2s ease-in forwards;
     }
 
-    ::view-transition-new(fade-vertically) {
+    ::view-transition-new(fade-in-out) {
       animation: fadeIn 0.3s ease-in-out forwards;
       /* animation-delay: 0.2s; */
     }
-    ::view-transition-old(fade-vertically) {
+    ::view-transition-old(fade-in-out) {
       animation: fadeOut 0.15s ease-in-out forwards;
     }
   }
