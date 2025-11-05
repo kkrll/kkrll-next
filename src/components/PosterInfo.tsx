@@ -45,36 +45,32 @@ export default function PosterInfo({
     <>
       {/* Desktop view */}
       <div className="hidden md:block font-mono md:sticky md:top-8 pt-[30vh] max-h-screen">
-        <div className={`transition-all duration-150`}>
-          <h1 className="text-md md:text-2xl mb-0 font-mono uppercase">
-            {title}
-          </h1>
-          <p className="text-sm text-foreground/60 mb-4 md:mb-6">{date}</p>
+        <h1 className="text-md md:text-2xl mb-0 font-mono uppercase">
+          {title}
+        </h1>
+        <p className="text-sm text-foreground/60 mb-4 md:mb-6">{date}</p>
 
-          {description && (
-            <p className="mb-4 md:mb-6 text-sm ">{description}</p>
-          )}
+        {description && <p className="mb-4 md:mb-6 text-sm ">{description}</p>}
 
-          <div className="mb-6  gap-1 hidden md:flex">
-            <p className="text-xm p-2 flex justify-center items-center bg-background-07 w-full">
-              {sm}
-            </p>
-            <p className="text-xm p-2 flex justify-center items-center bg-background-07 w-full">
-              {lg}
-            </p>
-          </div>
-
-          {external && (
-            <a
-              href={external}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`inline-block px-6 py-3 w-full text-background bg-foreground backdrop-blur-md text-center rounded-lg hover:opacity-90 transition-opacity`}
-            >
-              View on Good Mood Prints
-            </a>
-          )}
+        <div className="mb-6  gap-1 hidden md:flex">
+          <p className="text-xm p-2 flex justify-center items-center bg-background-07 w-full">
+            {sm}
+          </p>
+          <p className="text-xm p-2 flex justify-center items-center bg-background-07 w-full">
+            {lg}
+          </p>
         </div>
+
+        {external && (
+          <a
+            href={external}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-block px-6 py-3 w-full text-background bg-foreground backdrop-blur-md text-center rounded-lg hover:opacity-90 transition-opacity`}
+          >
+            View on Good Mood Prints
+          </a>
+        )}
       </div>
 
       {/* Mobile view */}

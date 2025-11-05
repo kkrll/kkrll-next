@@ -10,10 +10,19 @@ const HeaderLink = ({
   children: React.ReactNode;
   onClick?: () => void;
 }) => {
-  if (to) return <Link href={to}>{children}</Link>;
+  if (to)
+    return (
+      <Link href={to} className="font-mono uppercase text-sm">
+        {children}
+      </Link>
+    );
   if (onClick)
     return (
-      <Button variant={"link"} onClick={onClick}>
+      <Button
+        variant={"link"}
+        onClick={onClick}
+        className="font-mono uppercase text-sm"
+      >
         {children}
       </Button>
     );

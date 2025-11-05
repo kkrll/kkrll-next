@@ -8,7 +8,7 @@ export type Project = {
   slug: string;
   title: string;
   date: string;
-  images?: string[];
+  media?: string[];
   publisher?: string;
   description?: string;
   projectType?: string;
@@ -20,7 +20,7 @@ export type ProjectMeta = {
   slug: string;
   title: string;
   date: string;
-  images?: string[];
+  media?: string[];
   description?: string;
   projectType?: string;
   link?: string;
@@ -38,15 +38,15 @@ export type ProjectMetaWithViewAll =
       globalId: string;
     };
 
-export function getProjectImages(slug: string): string[] {
+export function getProjectMedia(slug: string): string[] {
   const projectDir = path.join(projectsDirectory, slug);
 
   try {
     const files = fs.readdirSync(projectDir);
 
-    // Filter image files and sort them
+    // Filter image and video files and sort them
     return files
-      .filter((file) => /\.(jpg|jpeg|png|webp)$/i.test(file))
+      .filter((file) => /\.(jpg|jpeg|png|webp|mp4|webm|mov|avi)$/i.test(file))
       .filter((file) => file !== "index.mdx")
       .sort()
       .map((file) => `/projects/${slug}/${file}`);
@@ -57,7 +57,12 @@ export function getProjectImages(slug: string): string[] {
 
 export function getAllProjects(): Project[] {
   const folders = fs.readdirSync(projectsDirectory);
-  const projects = folders.map((folder) => {
+  const projects = folders
+    .filter((folder) => {
+      const folderPath = path.join(projectsDirectory, folder);
+      return fs.statSync(folderPath).isDirectory();
+    })
+    .map((folder) => {
     const fullPath = path.join(projectsDirectory, folder, "index.mdx");
     const fileContents = fs.readFileSync(fullPath, "utf8");
     const { data, content } = matter(fileContents);
@@ -65,7 +70,7 @@ export function getAllProjects(): Project[] {
       slug: folder,
       title: data.title || "Untitled",
       date: data.date || "Unknown date",
-      images: getProjectImages(folder),
+      media: getProjectMedia(folder),
       description: data.description || null,
       projectType: data.projectType,
       link: data.link || null,
@@ -79,7 +84,12 @@ export function getAllProjects(): Project[] {
 
 export function getAllProjectsMeta(limit?: number): ProjectMetaWithViewAll[] {
   const folders = fs.readdirSync(projectsDirectory);
-  const projectsMeta = folders.map((folder) => {
+  const projectsMeta = folders
+    .filter((folder) => {
+      const folderPath = path.join(projectsDirectory, folder);
+      return fs.statSync(folderPath).isDirectory();
+    })
+    .map((folder) => {
     const fullPath = path.join(projectsDirectory, folder, "index.mdx");
     const fileContents = fs.readFileSync(fullPath, "utf8");
     const { data } = matter(fileContents);
@@ -90,7 +100,7 @@ export function getAllProjectsMeta(limit?: number): ProjectMetaWithViewAll[] {
       slug: folder,
       title: data.title || "Untitled",
       date: data.date || "Unknown date",
-      images: getProjectImages(folder),
+      media: getProjectMedia(folder),
       description: data.description || null,
       projectType: data.projectType,
       link: href,
@@ -129,7 +139,7 @@ export function getProjectBySlug(slug: string): Project | null {
       slug,
       title: data.title,
       date: data.date,
-      images: getProjectImages(slug),
+      media: getProjectMedia(slug),
       publisher: data.publisher,
       projectType: data.projectType,
       link: data.link,

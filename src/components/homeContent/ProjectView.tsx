@@ -14,6 +14,33 @@ const carouselOptions: EmblaOptionsType = {
   startIndex: 0,
 };
 
+const MediaItem = ({ src, title }: { src: string; title: string }) => {
+  const isVideo = (src: string): boolean => {
+    return /\.(mp4|webm|mov|avi)$/i.test(src);
+  };
+
+  if (isVideo(src))
+    return (
+      <video
+        src={src}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="relative w-full h-auto z-10 object-contain"
+      />
+    );
+  return (
+    <Image
+      src={src}
+      width={800}
+      height={0}
+      alt={`${title} - Image`}
+      className="relative w-full h-auto z-10 object-contain"
+    />
+  );
+};
+
 const ProjectView = ({ project }: { project: ProjectMeta }) => {
   return (
     <>
@@ -21,24 +48,24 @@ const ProjectView = ({ project }: { project: ProjectMeta }) => {
         <h2 className="mb-4">{project.title}</h2>
         <p>{project.description}</p>
       </div>
-      {project.images && project.images.length > 0 && (
+      {project.media && project.media.length === 1 && (
+        <div className="relative overflow-hidden w-full min-h-[240px]">
+          <ImgPlaceholder />
+          <MediaItem src={project.media[0]} title={project.title} />
+        </div>
+      )}
+      {project.media && project.media.length > 1 && (
         <Carousel
           carouselName={project.slug}
           options={carouselOptions}
-          nbSlides={project.images.length}
+          nbSlides={project.media.length}
         >
-          {project.images.map((image, index) => {
+          {project.media.map((mediaItem) => {
             return (
-              <div key={image} className="embla__slide">
+              <div key={mediaItem} className="embla__slide">
                 <div className="relative overflow-hidden w-full min-h-[240px]">
                   <ImgPlaceholder />
-                  <Image
-                    src={image}
-                    width={800}
-                    height={0}
-                    alt={`${project.title} - Image ${index + 1}`}
-                    className="relative w-full h-auto z-10 object-contain"
-                  />
+                  <MediaItem src={mediaItem} title={project.title} />
                 </div>
               </div>
             );
