@@ -4,7 +4,7 @@ import PageLayout from "@/components/PageLayout";
 import jobsList, { JobsType } from "@/components/resume/jobsList";
 
 const WorkItem = ({ job }: { job: JobsType }) => {
-  const { dates, role, company, companyLink, description, details, tags } = job;
+  const { dates, role, company, companyLink, description, details } = job;
 
   return (
     <>

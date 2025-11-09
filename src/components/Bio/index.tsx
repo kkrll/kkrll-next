@@ -36,7 +36,14 @@ const Bio = () => {
         <section className="relative min-h-hero md:min-h-[70vh] pt-[50vh] px-8 md:px-4 z-10">
           <p className="mb-6 bg-background w-fit">Hey. </p>
           <p className=" bg-background w-fit">
-            I'm Kiryl, a product designer at Zing Coach.{" "}
+            I'm Kiryl, a product designer at{" "}
+            <a
+              className="underline"
+              href="https://www.zing.coach/"
+              target="_blank"
+            >
+              Zing Coach.
+            </a>{" "}
           </p>
           <p className=" bg-background w-fit">
             You can find here some of my{" "}

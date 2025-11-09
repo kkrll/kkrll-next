@@ -79,6 +79,20 @@ const Carousel = ({
     onNextButtonClick,
   } = usePrevNextButtons(emblaApi);
 
+  useEffect(() => {
+    const handleCarouselKeys = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === "l") {
+        onNextButtonClick();
+      }
+      if (e.key === "ArrowLeft" || e.key === "j") {
+        onPrevButtonClick();
+      }
+    };
+    window.addEventListener("keydown", handleCarouselKeys);
+
+    return () => window.removeEventListener("keydown", handleCarouselKeys);
+  });
+
   return (
     <section className="embla">
       <div className="embla__viewport" ref={emblaRef}>
