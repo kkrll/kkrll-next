@@ -67,12 +67,12 @@ export default function HeroAscii({
 
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        const gradientProgress = col / (cols - 1);
+        const gradientProgress = 1 - row / (rows - 1);
         const gradientLevel = gradientProgress * 4;
         const randomOffset = (Math.random() - 0.5) * 2;
         const baseLevel = Math.max(
           0,
-          Math.min(4, Math.floor(gradientLevel + randomOffset))
+          Math.min(4, Math.floor(gradientLevel + randomOffset)),
         );
 
         newGrid.push({
@@ -160,7 +160,7 @@ export default function HeroAscii({
               const randomOffset = (Math.random() - 0.5) * 2;
               const baseLevel = Math.max(
                 0,
-                Math.min(4, Math.floor(gradientLevel + randomOffset))
+                Math.min(4, Math.floor(gradientLevel + randomOffset)),
               );
 
               newGrid.push({
@@ -175,7 +175,7 @@ export default function HeroAscii({
       }
       gridRef.current = newGrid;
     },
-    [getCanvasDimensions, isDrawingMode]
+    [getCanvasDimensions, isDrawingMode],
   );
 
   const handleWindowResize = useCallback(() => {
@@ -221,7 +221,7 @@ export default function HeroAscii({
       ctx.fillStyle = fg;
       ctx.fillText(asciiCharsDrawRef.current[cell.currentLevel] || "", x, y);
     },
-    []
+    [],
   );
 
   const getCellAtPosition = useCallback(
@@ -238,7 +238,7 @@ export default function HeroAscii({
       const index = row * cols + col;
       return gridRef.current[index];
     },
-    []
+    [],
   );
 
   const handleDraw = useCallback(
@@ -273,7 +273,7 @@ export default function HeroAscii({
         animationFrameRef.current = undefined;
       });
     },
-    [getCellAtPosition, drawCell]
+    [getCellAtPosition, drawCell],
   );
 
   const handleStart = useCallback(
@@ -281,7 +281,7 @@ export default function HeroAscii({
       isDraggingRef.current = true;
       handleDraw(e);
     },
-    [handleDraw]
+    [handleDraw],
   );
 
   const handleEnd = useCallback(() => {
@@ -342,7 +342,9 @@ export default function HeroAscii({
 
   const handleToggleMode = useCallback(() => {
     track(
-      isDrawingMode ? "ascii_drawing_mode_exited" : "ascii_drawing_mode_entered"
+      isDrawingMode
+        ? "ascii_drawing_mode_exited"
+        : "ascii_drawing_mode_entered",
     );
 
     if (isDrawingMode) {
@@ -419,7 +421,7 @@ export default function HeroAscii({
         setSelectedSymbol(newIndex);
       }
     },
-    [track]
+    [track],
   );
 
   useEffect(() => {
@@ -436,14 +438,14 @@ export default function HeroAscii({
       });
       setSelectedSymbol(index);
     },
-    [track]
+    [track],
   );
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: Full-screen interactive canvas container
     <div
       className={`absolute t-0 l-0 w-full h-screen overflow-hidden ${
-        isDrawingMode ? "opacity-100 z-100" : "opacity-25 z-0"
+        isDrawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
       } transition-opacity duration-300`}
       role="button"
       tabIndex={isDrawingMode ? -1 : 0}
