@@ -3,211 +3,222 @@
 @plugin "@tailwindcss/typography";
 
 :root {
-    --background: #f1eadf;
-    --background-07: #6b6a69;
-    --background-05: #4b4a49;
+  --background: #f1eadf;
+  --background-07: #6b6a69;
+  --background-05: #4b4a49;
 
-    --foreground: #171717;
-    --foreground-07: #1f1f20;
-    --foreground-05: #323235;
-    --font-geist-sans:
-        "Geist Sans", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-    --font-geist-mono:
-        "Geist Mono", "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono",
-        monospace;
-    --font-recia-serif: "Recia", Georgia, serif;
+  --foreground: #171717;
+  --foreground-07: #1f1f20;
+  --foreground-05: #323235;
+  --font-geist-sans: "Geist Sans", -apple-system, BlinkMacSystemFont, Arial,
+    sans-serif;
+  --font-geist-mono: "Geist Mono", "SF Mono", "Fira Code", "Fira Mono",
+    "Roboto Mono", monospace;
+  --font-recia-serif: "Recia", Georgia, serif;
 }
 
 @theme inline {
-    --color-background: var(--background);
-    --color-background-07: var(--background-07);
-    --color-background-05: var(--background-05);
+  --color-background: var(--background);
+  --color-background-07: var(--background-07);
+  --color-background-05: var(--background-05);
 
-    --color-foreground: var(--foreground);
-    --color-foreground-07: var(--foreground-07);
-    --color-foreground-05: var(--foreground-05);
+  --color-foreground: var(--foreground);
+  --color-foreground-07: var(--foreground-07);
+  --color-foreground-05: var(--foreground-05);
 
-    --font-sans: var(--font-geist-sans);
-    --font-mono: var(--font-geist-mono);
-    --font-serif: var(--font-recia-serif);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-recia-serif);
 }
 
 @media (prefers-color-scheme: dark) {
-    :root {
-        --background: #0a0a0a;
-        --background-07: #1f1f20;
-        --background-05: #3d3d3f;
+  :root {
+    --background: #0a0a0a;
+    --background-07: #1f1f20;
+    --background-05: #3d3d3f;
 
-        --foreground: #ededed;
-        --foreground-07: #6b6a69;
-        --foreground-05: #4b4a49;
-    }
+    --foreground: #ededed;
+    --foreground-07: #6b6a69;
+    --foreground-05: #4b4a49;
+  }
 }
 
 body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: Arial, Helvetica, sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 section {
-    width: 100%;
+  width: 100%;
 }
 
 @layer base {
-    h2 {
-        text-transform: uppercase;
-        font-family: var(--font-mono);
-    }
+  h2 {
+    text-transform: uppercase;
+    font-family: var(--font-mono);
+  }
 
-    p {
-        line-height: 1.5;
-    }
+  p {
+    line-height: 1.5;
+  }
 
-    a {
-        text-underline-offset: 4px;
-    }
+  a {
+    text-underline-offset: 4px;
+  }
 
-    a:hover {
-        text-decoration: underline;
+  a:hover {
+    text-decoration: underline;
+  }
+
+  .px-default {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  @media (width >= 48rem /* 768px */) {
+    .px-default {
+      padding-left: 24px;
+      padding-right: 24px;
     }
+  }
 }
 
 .h-hero {
-    height: calc(100vh - 120px);
+  height: calc(100vh - 120px);
 }
 
 .min-h-hero {
-    min-height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
 }
 
 @media (width >= 48rem /* 768px */) {
-    .h-hero {
-        height: calc(100vh - 88px);
-    }
-    .min-h-hero {
-        min-height: calc(100vh - 88px);
-    }
+  .h-hero {
+    height: calc(100vh - 88px);
+  }
+  .min-h-hero {
+    min-height: calc(100vh - 88px);
+  }
 }
 
 @keyframes fadeIn {
-    0% {
-        opacity: 0;
-        transform: scale(0.98);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes fadeOut {
-    from {
-        opacity: 1;
-        transform: scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: scale(0.99);
-    }
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.99);
+  }
 }
 
 @keyframes fadeInToLeft {
-    0% {
-        opacity: 0;
-        transform: translateX(24px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0px);
-    }
+  0% {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0px);
+  }
 }
 
 @keyframes fadeOutToLeft {
-    from {
-        opacity: 1;
-        transform: translateX(0px);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(-24px);
-    }
+  from {
+    opacity: 1;
+    transform: translateX(0px);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
 }
 
 @keyframes fadeInToRight {
-    0% {
-        opacity: 0;
-        transform: translateX(-24px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0px);
-    }
+  0% {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0px);
+  }
 }
 
 @keyframes fadeOutToRight {
-    from {
-        opacity: 1;
-        transform: translateX(0px);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(24px);
-    }
+  from {
+    opacity: 1;
+    transform: translateX(0px);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(24px);
+  }
 }
 
 @keyframes fadeInFromBottom {
-    from {
-        opacity: 0;
-        transform: translateY(24px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0px);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
 }
 
 @keyframes fadeOutToBottom {
-    from {
-        opacity: 1;
-        transform: translateY(0px);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(24px);
-    }
+  from {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(24px);
+  }
 }
 
 @keyframes fadeOutToTop {
-    0% {
-        opacity: 1;
-        transform: translateY(0px);
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(-24px);
-    }
+  0% {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-    ::view-transition-old(root),
-    ::view-transition-new(root) {
-        animation-duration: 0.3s;
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.3s;
+  }
+  @supports (view-transition-name: none) {
+    ::view-transition-new(fade-from-bottom) {
+      animation: fadeInFromBottom 0.2s ease-out forwards;
     }
-    @supports (view-transition-name: none) {
-        ::view-transition-new(fade-from-bottom) {
-            animation: fadeInFromBottom 0.2s ease-out forwards;
-        }
-        ::view-transition-old(fade-from-bottom) {
-            animation: fadeOutToBottom 0.2s ease-in forwards;
-        }
+    ::view-transition-old(fade-from-bottom) {
+      animation: fadeOutToBottom 0.2s ease-in forwards;
+    }
 
-        ::view-transition-new(fade-in-out) {
-            animation: fadeIn 0.3s ease-in-out forwards;
-            /* animation-delay: 0.2s; */
-        }
-        ::view-transition-old(fade-in-out) {
-            animation: fadeOut 0.15s ease-in-out forwards;
-        }
+    ::view-transition-new(fade-in-out) {
+      animation: fadeIn 0.3s ease-in-out forwards;
+      /* animation-delay: 0.2s; */
     }
+    ::view-transition-old(fade-in-out) {
+      animation: fadeOut 0.15s ease-in-out forwards;
+    }
+  }
 }

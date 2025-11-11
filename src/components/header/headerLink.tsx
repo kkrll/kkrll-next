@@ -21,7 +21,7 @@ const HeaderLink = ({
       <Button
         variant={"link"}
         onClick={onClick}
-        className="font-mono uppercase text-sm"
+        className="font-mono font-normal uppercase text-sm px-0"
       >
         {children}
       </Button>

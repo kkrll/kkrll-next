@@ -7,7 +7,7 @@ export default function WritingsPage() {
 
   return (
     <PageLayout>
-      <section className="px-8 md:px-4 mb-24">
+      <section className="px-default mb-24">
         <h2 className="mb-8">Writings</h2>
         <div>
           {writings.map((writing) => (
@@ -21,7 +21,7 @@ export default function WritingsPage() {
                     {writing.title}
                   </h3>
                   {writing.publisher && (
-                    <p className="text-sm mt-2 text-foreground-05 hidden md:block">
+                    <p className="text-sm mt-2 text-foreground-07 hidden md:block">
                       {" , "}
                       <span className="italic">{writing.publisher}</span>
                     </p>

@@ -33,7 +33,7 @@ const Bio = () => {
 
       {/* Bio content - hidden in drawing mode */}
       {!isDrawingMode ? (
-        <section className="relative min-h-hero md:min-h-[70vh] pt-[50vh] px-8 md:px-4 z-10">
+        <section className="relative min-h-hero md:min-h-[70vh] pt-[40vh] md:pt-[50vh] px-default z-10">
           <p className="mb-6 bg-background w-fit">Hey. </p>
           <p className=" bg-background w-fit">
             I'm Kiryl, a product designer at{" "}
@@ -41,6 +41,7 @@ const Bio = () => {
               className="underline"
               href="https://www.zing.coach/"
               target="_blank"
+              rel="noopener"
             >
               Zing Coach.
             </a>{" "}
@@ -83,7 +84,7 @@ const Bio = () => {
           </div>
         </section>
       ) : (
-        <section className="relative min-h-hero md:min-h-[70vh] pt-[50vh] px-8 md:px-4 z-0"></section>
+        <section className="relative min-h-hero md:min-h-[70vh] pt-[50vh] px-default z-0"></section>
       )}
     </>
   );

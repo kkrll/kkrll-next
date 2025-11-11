@@ -62,7 +62,7 @@ const Header = () => {
   md:p-4"
     >
       <HeaderLink to="/">kkrll</HeaderLink>
-      <nav className="flex gap-4 items-baseline">
+      <nav className="flex gap-6 items-baseline">
         <HeaderLink to="/resume">resume</HeaderLink>
         <HeaderLink onClick={handleOpen}>contact</HeaderLink>
       </nav>

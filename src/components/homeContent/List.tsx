@@ -57,14 +57,14 @@ const ListItemSelector = ({
           if (!item.isExternal) {
             router.push(item.link);
           } else {
-            window.location.href = item.link;
+            window.open(item.link, item.link[0] === "/" ? "_self" : "_blank");
           }
         } else {
           // Desktop: select on first click
           onSelect();
         }
       }}
-      className={`py-2 px-8 md:px-4 no-underline hover:pointer text-left block bg-background text-foreground ${
+      className={`py-2 px-default no-underline hover:pointer text-left block bg-background text-foreground ${
         isSelected
           ? "md:bg-foreground md:text-background"
           : "hover:bg-background-07"
@@ -74,7 +74,9 @@ const ListItemSelector = ({
       {secondLine && (
         <p
           className={`${
-            isSelected ? "text-background-07" : "text-foreground-07"
+            isSelected
+              ? "text-foreground-07 md:text-background-07"
+              : "text-foreground-07"
           }  text-sm`}
         >
           {secondLine}
@@ -111,7 +113,7 @@ const List = ({
                   key={globalId}
                   href={`/${category}`}
                   data-item-id={globalId}
-                  className={`py-2 px-8 md:px-4 hover:pointer text-left block ${
+                  className={`py-2 px-default hover:pointer text-left block ${
                     isSelected
                       ? "md:bg-foreground md:text-background"
                       : "hover:bg-background-07 text-foreground-07"

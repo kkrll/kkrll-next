@@ -28,7 +28,7 @@ export default async function WritingPage({
 
   return (
     <PageLayout>
-      <article className="max-w-[560px] px-8 md:px-6">
+      <article className="max-w-[560px] px-default">
         <header className="mb-8 border-b border-foreground-05 pb-6">
           {writing.cover && (
             <Image
@@ -66,7 +66,7 @@ export default async function WritingPage({
           </p>
         </header>
 
-        <div className="prose prose-invert max-w-none font-serif text-lg font-regular dark:font-medium">
+        <div className="prose prose-invert max-w-none font-serif text-md  font-regular dark:font-medium">
           <MDXRemote
             source={writing.content}
             components={{

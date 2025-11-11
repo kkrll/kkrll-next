@@ -13,7 +13,7 @@ const Footer = () => {
 
   return (
     <footer
-      className={`flex flex-col md:flex-row p-6 gap-8 justify-between mt-24 mb-4 w-full mx-auto box-border`}
+      className={`flex flex-col md:flex-row p-8 md:p-6 gap-8 justify-between mt-24 mb-4 w-full mx-auto box-border`}
     >
       <Link href="/" className="no-underline">
         <h4 className="mb-2 text-sm font-sans font-semibold">{author.name}</h4>

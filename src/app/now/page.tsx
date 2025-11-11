@@ -3,9 +3,9 @@ import PageLayout from "@/components/PageLayout";
 const NowPage = () => {
   return (
     <PageLayout>
-      <main className="w-full flex flex-col justify-center gap-8 px-4 py-8 md:py-6">
-        <h1 className="font-mono uppercase">What I’m doing now</h1>
-        <ul className="list-disc list-inside">
+      <section className="w-full px-default flex flex-col justify-center gap-8 max-w-[560px]">
+        <h1 className="font-mono uppercase">What I'm doing now</h1>
+        <ul className="list-disc ml-5 space-y-2">
           <li>Quited bouldering and open for a new activity</li>
           <li>Looking for a squash partner</li>
           <li>
@@ -35,7 +35,7 @@ const NowPage = () => {
           </a>
           ", and you should make one too.
         </p>
-      </main>
+      </section>
     </PageLayout>
   );
 };

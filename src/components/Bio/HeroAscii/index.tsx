@@ -72,7 +72,7 @@ export default function HeroAscii({
         const randomOffset = (Math.random() - 0.5) * 2;
         const baseLevel = Math.max(
           0,
-          Math.min(4, Math.floor(gradientLevel + randomOffset)),
+          Math.min(4, Math.floor(gradientLevel + randomOffset))
         );
 
         newGrid.push({
@@ -155,12 +155,12 @@ export default function HeroAscii({
                 row,
               });
             } else {
-              const gradientProgress = col / (newCols - 1);
+              const gradientProgress = 1 - row / (newRows - 1);
               const gradientLevel = gradientProgress * 4;
               const randomOffset = (Math.random() - 0.5) * 2;
               const baseLevel = Math.max(
                 0,
-                Math.min(4, Math.floor(gradientLevel + randomOffset)),
+                Math.min(4, Math.floor(gradientLevel + randomOffset))
               );
 
               newGrid.push({
@@ -175,7 +175,7 @@ export default function HeroAscii({
       }
       gridRef.current = newGrid;
     },
-    [getCanvasDimensions, isDrawingMode],
+    [getCanvasDimensions, isDrawingMode]
   );
 
   const handleWindowResize = useCallback(() => {
@@ -221,7 +221,7 @@ export default function HeroAscii({
       ctx.fillStyle = fg;
       ctx.fillText(asciiCharsDrawRef.current[cell.currentLevel] || "", x, y);
     },
-    [],
+    []
   );
 
   const getCellAtPosition = useCallback(
@@ -238,7 +238,7 @@ export default function HeroAscii({
       const index = row * cols + col;
       return gridRef.current[index];
     },
-    [],
+    []
   );
 
   const handleDraw = useCallback(
@@ -273,7 +273,7 @@ export default function HeroAscii({
         animationFrameRef.current = undefined;
       });
     },
-    [getCellAtPosition, drawCell],
+    [getCellAtPosition, drawCell]
   );
 
   const handleStart = useCallback(
@@ -281,7 +281,7 @@ export default function HeroAscii({
       isDraggingRef.current = true;
       handleDraw(e);
     },
-    [handleDraw],
+    [handleDraw]
   );
 
   const handleEnd = useCallback(() => {
@@ -342,9 +342,7 @@ export default function HeroAscii({
 
   const handleToggleMode = useCallback(() => {
     track(
-      isDrawingMode
-        ? "ascii_drawing_mode_exited"
-        : "ascii_drawing_mode_entered",
+      isDrawingMode ? "ascii_drawing_mode_exited" : "ascii_drawing_mode_entered"
     );
 
     if (isDrawingMode) {
@@ -421,7 +419,7 @@ export default function HeroAscii({
         setSelectedSymbol(newIndex);
       }
     },
-    [track],
+    [track]
   );
 
   useEffect(() => {
@@ -438,7 +436,7 @@ export default function HeroAscii({
       });
       setSelectedSymbol(index);
     },
-    [track],
+    [track]
   );
 
   return (

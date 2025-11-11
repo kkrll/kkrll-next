@@ -9,7 +9,7 @@ export default function PostersPage() {
 
   return (
     <PageLayout>
-      <section className="px-8 md:px-4 mb-24">
+      <section className="px-default mb-24">
         <h2 className="mb-8">Posters</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

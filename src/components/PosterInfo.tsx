@@ -66,7 +66,7 @@ export default function PosterInfo({
             href={external}
             target="_blank"
             rel="noopener noreferrer"
-            className={`inline-block px-6 py-3 w-full text-background bg-foreground backdrop-blur-md text-center rounded-lg hover:opacity-90 transition-opacity`}
+            className={`inline-block text-sm font-medium uppercase px-6 py-3 w-full text-background bg-foreground backdrop-blur-md text-center rounded-lg hover:opacity-90 hover:no-underline transition-opacity`}
           >
             View on Good Mood Prints
           </a>
@@ -76,10 +76,8 @@ export default function PosterInfo({
       {/* Mobile view */}
       <div className="block md:hidden fixed font-mono bottom-0 left-0 right-0 md:sticky md:top-8 max-h-screen">
         <div
-          className={`p-8 transition-all duration-150 bg-linear-to-t ${
-            isCollapsed
-              ? " from-background/90 to-background/0"
-              : "from-background to-background"
+          className={`py-8 px-6 transition-all duration-150 ${
+            isCollapsed ? " bg-background/0" : "bg-background"
           }`}
         >
           <div
@@ -111,7 +109,7 @@ export default function PosterInfo({
               href={external}
               target="_blank"
               rel="noopener noreferrer"
-              className={`inline-block px-6 py-3 w-full text-background backdrop-blur-md text-center rounded-lg hover:opacity-90 transition-opacity ${
+              className={`inline-block px-6 py-3 text-sm font-medium uppercase w-full text-background backdrop-blur-md text-center rounded-lg hover:opacity-90 transition-opacity ${
                 isCollapsed ? "bg-foreground/50" : "bg-foreground"
               }`}
             >
