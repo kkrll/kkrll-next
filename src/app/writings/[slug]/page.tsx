@@ -66,7 +66,7 @@ export default async function WritingPage({
           </p>
         </header>
 
-        <div className="prose prose-invert max-w-none font-serif text-md  font-regular dark:font-medium">
+        <div className="prose prose-invert max-w-none font-serif text-md text-foreground font-regular dark:font-medium [&_*]:!text-inherit [&_li::marker]:!text-foreground-05">
           <MDXRemote
             source={writing.content}
             components={{
@@ -79,11 +79,7 @@ export default async function WritingPage({
                 <h3 className="text-lg lining-nums font-medium">{children}</h3>
               ),
               a: (props) => (
-                <a
-                  {...props}
-                  className="underline
-  hover:no-underline"
-                />
+                <a {...props} className="underline hover:no-underline" />
               ),
               p: ({ children }) => (
                 <p className="my-4 leading-relaxed [figcaption_&]:mt-0 [figcaption_&]:text-foreground-07 [figcaption_&]:mb-10 [figcaption_&]:font-sans [figcaption_&]:text-xs [figcaption_&]:font-normal [figcaption_&]:leading-normal">
@@ -92,7 +88,7 @@ export default async function WritingPage({
               ),
               hr: () => <hr className="my-18 border-background-05" />,
               li: ({ children }) => (
-                <li className="mb-4 font-medium ">{children}</li>
+                <li className="mb-4 font-medium">{children}</li>
               ),
               img: (props) => {
                 // Rewrite relative paths (./image.png) to absolute paths (/writings/slug/image.png)

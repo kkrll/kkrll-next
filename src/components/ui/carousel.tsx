@@ -102,10 +102,10 @@ const Carousel = ({
       <div className="embla__controls font-mono justify-between flex items-center w-full">
         <div className="embla__buttons">
           <PrevButton onClick={onPrevButtonClick} disabled={prevBtnDisabled}>
-            <ArrowLeftIcon size={24} />
+            <ArrowLeftIcon size={24} className="text-foreground" />
           </PrevButton>
           <NextButton onClick={onNextButtonClick} disabled={nextBtnDisabled}>
-            <ArrowRightIcon size={24} />
+            <ArrowRightIcon size={24} className="text-foreground" />
           </NextButton>
         </div>
         {emblaApi && (

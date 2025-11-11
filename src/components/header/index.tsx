@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import HeaderLink from "./headerLink";
 import { Button } from "../ui/button";
 import { createPortal, flushSync } from "react-dom";
+import ThemeSwitcher from "../ThemeSwitcher";
 
 const ContactModal = ({ onClose }: { onClose: () => void }) => {
   return createPortal(
@@ -58,11 +59,12 @@ const Header = () => {
 
   return (
     <header
-      className="w-full flex z-10 items-center justify-between mb-8 p-8
+      className="w-full flex z-10 items-center justify-between mb-8 py-8 px-4 md:px-2
   md:p-4"
     >
       <HeaderLink to="/">kkrll</HeaderLink>
-      <nav className="flex gap-6 items-baseline">
+      <nav className="flex gap-0 md:gap-2">
+        <ThemeSwitcher />
         <HeaderLink to="/resume">resume</HeaderLink>
         <HeaderLink onClick={handleOpen}>contact</HeaderLink>
       </nav>

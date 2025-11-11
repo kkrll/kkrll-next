@@ -12,7 +12,7 @@ const HeaderLink = ({
 }) => {
   if (to)
     return (
-      <Link href={to} className="font-mono uppercase text-sm">
+      <Link href={to} className="font-mono uppercase text-sm  p-2 ">
         {children}
       </Link>
     );
@@ -21,7 +21,7 @@ const HeaderLink = ({
       <Button
         variant={"link"}
         onClick={onClick}
-        className="font-mono font-normal uppercase text-sm px-0"
+        className="font-mono font-normal uppercase text-sm p-2"
       >
         {children}
       </Button>

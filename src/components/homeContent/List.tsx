@@ -101,7 +101,7 @@ const List = ({
   return (
     <section>
       <div>
-        <h2 className="pl-8 md:pl-4 mb-10">{title}</h2>
+        <h2 className="pl-8 md:pl-6 mb-10">{title}</h2>
         <div className="flex gap-1 flex-col">
           {list.map((item) => {
             // Check if this is a "View All" item

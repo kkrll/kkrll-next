@@ -26,7 +26,10 @@ export default function PosterInfo({
 
   const handleScroll = useCallback(() => {
     const scrollTop = window.scrollY;
-    if (scrollTop === lastScrollTopRef.current) return;
+    const scrollDiff = Math.abs(scrollTop - lastScrollTopRef.current);
+
+    if (scrollDiff < 32) return;
+
     if (scrollTop > 100 && scrollTop > lastScrollTopRef.current) {
       setIsCollapsed(true);
     } else {

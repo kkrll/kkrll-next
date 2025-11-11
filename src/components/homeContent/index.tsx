@@ -127,7 +127,7 @@ const HomeContent = ({
       {/* footer */}
       <div className="sticky bottom-0 bg-background hidden sm:block text-foreground-07">
         <Divider className="bg-foreground-07" />
-        <p className="font-mono text-sm py-2">
+        <p className="font-mono text-sm py-2 px-default">
           Use ↓ | ↑ or mouse to navigate and ⏎ or click to open
         </p>
       </div>

@@ -29,8 +29,8 @@ const Bio = () => {
       <HeroAscii
         isDrawingMode={isDrawingMode}
         onToggleDrawingMode={() => setIsDrawingMode(!isDrawingMode)}
-      />
-
+      />{" "}
+      <div className="absolute left-0 right-0 top-0 h-48 bg-gradient-to-b from-background to-transparent opacity-80 " />
       {/* Bio content - hidden in drawing mode */}
       {!isDrawingMode ? (
         <section className="relative min-h-hero md:min-h-[70vh] pt-[40vh] md:pt-[50vh] px-default z-10">
@@ -52,12 +52,12 @@ const Bio = () => {
               articles
             </Link>
             ,{" "}
-            <Link className="underline" href={"/resume"}>
-              resume
+            <Link className="underline" href={"/posters"}>
+              prints
             </Link>
             ,{" "}
-            <Link className="underline" href={"/posters"}>
-              posters
+            <Link className="underline" href={"/resume"}>
+              resume
             </Link>
             , and something else, occasionally.
           </p>

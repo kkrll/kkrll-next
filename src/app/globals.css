@@ -4,8 +4,8 @@
 
 :root {
   --background: #f1eadf;
-  --background-07: #6b6a69;
-  --background-05: #4b4a49;
+  --background-07: #bbb2aa;
+  --background-05: #a6a29e;
 
   --foreground: #171717;
   --foreground-07: #1f1f20;
@@ -31,16 +31,17 @@
   --font-serif: var(--font-recia-serif);
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) { 
   :root {
-    --background: #0a0a0a;
-    --background-07: #1f1f20;
-    --background-05: #3d3d3f;
+*/
+.dark {
+  --background: #0a0a0a;
+  --background-07: #1f1f20;
+  --background-05: #3d3d3f;
 
-    --foreground: #ededed;
-    --foreground-07: #6b6a69;
-    --foreground-05: #4b4a49;
-  }
+  --foreground: #ededed;
+  --foreground-07: #6b6a69;
+  --foreground-05: #4b4a49;
 }
 
 body {

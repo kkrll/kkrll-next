@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { PHProvider } from "@/providers/posthog-provider";
+import ThemeProvider from "@/providers/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,11 +32,26 @@ export default function RootLayout({
           href="https://api.fontshare.com/v2/css?f[]=recia@1,2&display=swap"
           rel="stylesheet"
         />
+        <script
+          /** biome-ignore lint/security/noDangerouslySetInnerHtml: make sure theme is loaded on client-side */
+          dangerouslySetInnerHTML={{
+            __html: `
+            try {
+              const theme = JSON.parse(localStorage.getItem("theme") || '{}').state?.theme || 'dark';
+              if (theme === "dark") {
+                document.documentElement.classList.add("dark")
+              }
+            } catch (e) {}
+          `,
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <PHProvider>{children}</PHProvider>
+        <ThemeProvider>
+          <PHProvider>{children}</PHProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

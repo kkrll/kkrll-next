@@ -8,6 +8,7 @@ import type { CharCell, Colors } from "./types";
 import SymbolSelector from "./SymbolSelector";
 import DrawingControls from "./DrawingControls";
 import ResizingIndicator from "./ResizingIndicator";
+import { useThemeStore } from "@/stores/useThemeStore";
 
 export default function HeroAscii({
   isDrawingMode,
@@ -33,6 +34,7 @@ export default function HeroAscii({
 
   const customInputRef = useRef<HTMLInputElement>(null);
   const { track } = useTracking();
+  const theme = useThemeStore((state) => state.theme);
 
   useEffect(() => {
     selectedSymbolRef.current = selectedSymbol;
@@ -110,6 +112,13 @@ export default function HeroAscii({
       ctx.fillText(asciiCharsDrawRef.current[cell.currentLevel] || "", x, y);
     });
   }, [updateColors]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: subscribe to theme changes
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      renderGrid();
+    });
+  }, [theme, renderGrid]);
 
   const resizeGridPerephery = useCallback(
     (newWidth: number, newHeight: number) => {
