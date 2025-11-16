@@ -1,5 +1,13 @@
 import { ReactNode } from "react";
 
+type ProjectsType = {
+  type: "video" | "code" | "image" | "case";
+  name: string;
+  description?: string;
+  link?: string;
+  file?: string;
+};
+
 export type JobsType = {
   dates: string;
   role: string;
@@ -8,7 +16,7 @@ export type JobsType = {
   description: ReactNode;
   details: string[];
   tags: string[];
-  // projects?: ProjectsType[];
+  projects?: ProjectsType[];
 };
 
 const jobsList: JobsType[] = [
@@ -28,6 +36,13 @@ Working across mobile features like interactive workouts, body scan, and strengt
       "UI",
     ],
     details: [],
+    projects: [
+      {
+        type: "video",
+        name: "Body Scan",
+        file: "/resume/zing/body-scan-c.mp4",
+      },
+    ],
   },
   {
     dates: "Mar, 2021 – Jun, 2024",

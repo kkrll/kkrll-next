@@ -3,12 +3,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTracking } from "@/hooks/useTracking";
-import { ASCII_CHARS, CHAR_HEIGHT, CHAR_WIDTH, FONT } from "./constants";
+import {
+  ASCII_CHARS,
+  CHAR_HEIGHT,
+  CHAR_WIDTH,
+  FONT,
+  IMAGE_ASCII_CHARS,
+} from "./constants";
 import type { CharCell, Colors } from "./types";
 import SymbolSelector from "./SymbolSelector";
 import DrawingControls from "./DrawingControls";
 import ResizingIndicator from "./ResizingIndicator";
 import { useThemeStore } from "@/stores/useThemeStore";
+import convertImageToGrid from "./imageToAscii";
 
 export default function HeroAscii({
   isDrawingMode,
@@ -31,6 +38,7 @@ export default function HeroAscii({
     symbol: string;
   }>({ isActive: false, symbol: "" });
   const [isResizing, setIsResizing] = useState<boolean>(false);
+  const [isConverting, setIsConverting] = useState(false);
 
   const customInputRef = useRef<HTMLInputElement>(null);
   const { track } = useTracking();
@@ -301,38 +309,6 @@ export default function HeroAscii({
     }
   }, []);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    initGrid();
-    renderGrid();
-
-    window.addEventListener("resize", triggerResize);
-
-    canvas.addEventListener("mousedown", handleStart);
-    canvas.addEventListener("mousemove", handleDraw);
-    canvas.addEventListener("mouseup", handleEnd);
-    canvas.addEventListener("mouseleave", handleEnd);
-
-    return () => {
-      window.removeEventListener("resize", triggerResize);
-      canvas.removeEventListener("mousedown", handleStart);
-      canvas.removeEventListener("mousemove", handleDraw);
-      canvas.removeEventListener("mouseup", handleEnd);
-      canvas.removeEventListener("mouseleave", handleEnd);
-
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, [initGrid, renderGrid, handleStart, handleDraw, handleEnd, triggerResize]);
-
   const handleClear = useCallback(() => {
     track("ascii_canvas_cleared");
 
@@ -402,7 +378,6 @@ export default function HeroAscii({
       }
       lines.push(line);
     }
-
     const txtContent = lines.join("\n");
     const blob = new Blob([txtContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -412,6 +387,97 @@ export default function HeroAscii({
     a.click();
     URL.revokeObjectURL(url);
   }, [getCanvasDimensions, track]);
+
+  const handleImageUpload = useCallback(
+    async (file: File) => {
+      setIsConverting(true);
+      try {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const { cols, rows } = getCanvasDimensions(canvas);
+
+        console.log(file);
+        const convertedGrid = await convertImageToGrid(
+          file,
+          cols,
+          rows,
+          IMAGE_ASCII_CHARS
+        );
+
+        asciiCharsDrawRef.current = IMAGE_ASCII_CHARS;
+        gridRef.current = convertedGrid;
+        renderGrid();
+
+        track("ascii_image_converted");
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Failed to convert the image";
+        throw new Error(message);
+      } finally {
+        setIsConverting(false);
+        asciiCharsDrawRef.current = ASCII_CHARS;
+      }
+    },
+    [getCanvasDimensions, renderGrid, track]
+  );
+
+  const handlePaste = useCallback(
+    (e: ClipboardEvent) => {
+      e.preventDefault();
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith("image/")) {
+          const file = items[i].getAsFile();
+
+          if (file) {
+            handleImageUpload(file);
+          }
+          break;
+        }
+      }
+    },
+    [handleImageUpload]
+  );
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: initialize canvas and attach listeners once
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    initGrid();
+    renderGrid();
+
+    window.addEventListener("resize", triggerResize);
+
+    canvas.addEventListener("mousedown", handleStart);
+    canvas.addEventListener("mousemove", handleDraw);
+    canvas.addEventListener("mouseup", handleEnd);
+    canvas.addEventListener("mouseleave", handleEnd);
+    document.addEventListener("paste", handlePaste);
+
+    return () => {
+      window.removeEventListener("resize", triggerResize);
+      canvas.removeEventListener("mousedown", handleStart);
+      canvas.removeEventListener("mousemove", handleDraw);
+      canvas.removeEventListener("mouseup", handleEnd);
+      canvas.removeEventListener("mouseleave", handleEnd);
+      document.removeEventListener("paste", handlePaste);
+
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [initGrid, handleStart, handleDraw, handleEnd, triggerResize]);
 
   const handleCustomSymbolInput = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -517,6 +583,8 @@ export default function HeroAscii({
             onDownloadPng={handleDownloadPng}
             onDownloadTxt={handleDownloadTxt}
             onExit={handleToggleMode}
+            onImageUpload={handleImageUpload}
+            isConverting={isConverting}
           />
         </div>
       )}

@@ -4,7 +4,7 @@ import PageLayout from "@/components/PageLayout";
 import jobsList, { JobsType } from "@/components/resume/jobsList";
 
 const WorkItem = ({ job }: { job: JobsType }) => {
-  const { dates, role, company, companyLink, description, details } = job;
+  const { dates, role, company, companyLink, description, projects } = job;
 
   return (
     <>
@@ -19,8 +19,24 @@ const WorkItem = ({ job }: { job: JobsType }) => {
             <p className="font-mono text-foreground-07 text-sm">{dates}</p>
           </div>
         </div>
-        <div className="px-default">
+        <div className="px-default flex flex-col gap-10">
           <p className="max-w-[512px]">{description}</p>
+          {projects?.map((project, index) => {
+            return (
+              <div key={project.name} className="flex gap-4">
+                <video
+                  src={project.file}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="relative max-h-[480px] rounded-4xl "
+                />
+                <h3>{project.name}</h3>
+                <p>{project.description}</p>
+              </div>
+            );
+          })}
           {/* <ul className="list-disc list-inside">
             {details.map((detail, index) => (
               <li key={index} className="mb-2">

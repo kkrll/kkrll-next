@@ -195,14 +195,24 @@ See `src/components/Bio/HeroAscii/TRACKING.md` for detailed event documentation.
 HeroAscii/
 ├── constants.ts              # ASCII chars, dimensions, font config
 ├── types.ts                  # TypeScript interfaces (CharCell, Colors)
+├── imageToAscii.ts          # Image-to-ASCII conversion utility
+├── ImageUploadButton.tsx    # File picker button component
 ├── NavButton.tsx             # Symbol button component
 ├── CustomSymbolButton.tsx    # Custom symbol input component
 ├── DrawingControls.tsx       # Action buttons (Clear/Save/Exit)
 ├── ResizingIndicator.tsx     # Loading overlay during resize
 ├── SymbolSelector.tsx        # Symbol picker bar
 ├── TRACKING.md               # PostHog event documentation
-└── index.tsx                 # Main component (~450 lines)
+└── index.tsx                 # Main component (~480 lines)
 ```
+
+**Image-to-ASCII Conversion**:
+
+- Upload images via file picker, drag-drop, or Cmd+V paste
+- Converts pixel brightness to ASCII characters using 6-char set (` • ∗ ※ @ W`)
+- Maintains aspect ratio accounting for character dimensions (10px × 16px)
+- Applies monochrome conversion + gamma correction for contrast
+- Converted grid can be edited with drawing tools or exported
 
 **Key Features**:
 
