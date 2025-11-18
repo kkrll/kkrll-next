@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTracking } from "@/hooks/useTracking";
 import {
-  ASCII_CHARS,
+  DRAW_ASCII_CHARS,
   CHAR_HEIGHT,
   CHAR_WIDTH,
   FONT,
@@ -16,6 +16,7 @@ import DrawingControls from "./DrawingControls";
 import ResizingIndicator from "./ResizingIndicator";
 import { useThemeStore } from "@/stores/useThemeStore";
 import convertImageToGrid from "./imageToAscii";
+import { generateAsciiTxt, uploadAsciiToR2 } from "./asciiSavingUtils";
 
 export default function HeroAscii({
   isDrawingMode,
@@ -29,18 +30,16 @@ export default function HeroAscii({
   const isDraggingRef = useRef(false);
   const colorsRef = useRef<Colors>({ bg: "", fg: "" });
   const animationFrameRef = useRef<number | undefined>(undefined);
-  const asciiCharsDrawRef = useRef<string[]>([...ASCII_CHARS]);
+  const asciiCharsDrawRef = useRef<string[]>([
+    ...IMAGE_ASCII_CHARS,
+    ...DRAW_ASCII_CHARS,
+  ]);
   const selectedSymbolRef = useRef(8);
 
   const [selectedSymbol, setSelectedSymbol] = useState(8);
-  const [customSymbol, setCustomSymbol] = useState<{
-    isActive: boolean;
-    symbol: string;
-  }>({ isActive: false, symbol: "" });
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [isConverting, setIsConverting] = useState(false);
 
-  const customInputRef = useRef<HTMLInputElement>(null);
   const { track } = useTracking();
   const theme = useThemeStore((state) => state.theme);
 
@@ -82,7 +81,7 @@ export default function HeroAscii({
         const randomOffset = (Math.random() - 0.5) * 2;
         const baseLevel = Math.max(
           0,
-          Math.min(4, Math.floor(gradientLevel + randomOffset))
+          Math.min(4, Math.floor(gradientLevel + randomOffset)),
         );
 
         newGrid.push({
@@ -177,7 +176,7 @@ export default function HeroAscii({
               const randomOffset = (Math.random() - 0.5) * 2;
               const baseLevel = Math.max(
                 0,
-                Math.min(4, Math.floor(gradientLevel + randomOffset))
+                Math.min(4, Math.floor(gradientLevel + randomOffset)),
               );
 
               newGrid.push({
@@ -192,7 +191,7 @@ export default function HeroAscii({
       }
       gridRef.current = newGrid;
     },
-    [getCanvasDimensions, isDrawingMode]
+    [getCanvasDimensions, isDrawingMode],
   );
 
   const handleWindowResize = useCallback(() => {
@@ -238,7 +237,7 @@ export default function HeroAscii({
       ctx.fillStyle = fg;
       ctx.fillText(asciiCharsDrawRef.current[cell.currentLevel] || "", x, y);
     },
-    []
+    [],
   );
 
   const getCellAtPosition = useCallback(
@@ -255,7 +254,7 @@ export default function HeroAscii({
       const index = row * cols + col;
       return gridRef.current[index];
     },
-    []
+    [],
   );
 
   const handleDraw = useCallback(
@@ -290,7 +289,7 @@ export default function HeroAscii({
         animationFrameRef.current = undefined;
       });
     },
-    [getCellAtPosition, drawCell]
+    [getCellAtPosition, drawCell],
   );
 
   const handleStart = useCallback(
@@ -298,7 +297,7 @@ export default function HeroAscii({
       isDraggingRef.current = true;
       handleDraw(e);
     },
-    [handleDraw]
+    [handleDraw],
   );
 
   const handleEnd = useCallback(() => {
@@ -327,7 +326,9 @@ export default function HeroAscii({
 
   const handleToggleMode = useCallback(() => {
     track(
-      isDrawingMode ? "ascii_drawing_mode_exited" : "ascii_drawing_mode_entered"
+      isDrawingMode
+        ? "ascii_drawing_mode_exited"
+        : "ascii_drawing_mode_entered",
     );
 
     if (isDrawingMode) {
@@ -340,25 +341,41 @@ export default function HeroAscii({
     renderGrid();
   }, [isDrawingMode, onToggleDrawingMode, renderGrid, track]);
 
-  const handleDownloadPng = useCallback(() => {
+  const handleDownloadPng = useCallback(async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     track("ascii_saved_as_png");
 
-    canvas.toBlob((blob) => {
+    canvas.toBlob(async (blob) => {
       if (!blob) return;
 
+      // 1. Download PNG
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `ascii-art-${Date.now()}.png`;
       a.click();
       URL.revokeObjectURL(url);
-    });
-  }, [track]);
 
-  const handleDownloadTxt = useCallback(() => {
+      // 2. Also upload TXT version to R2
+      const { cols, rows } = getCanvasDimensions(canvas);
+      const txtContent = generateAsciiTxt({
+        grid: gridRef.current,
+        symbols: asciiCharsDrawRef.current,
+        cols,
+        rows,
+        theme,
+      });
+
+      const uploadedUrl = await uploadAsciiToR2(txtContent);
+      if (uploadedUrl) {
+        track("ascii_uploaded_to_r2", { url: uploadedUrl, source: "png_save" });
+      }
+    });
+  }, [getCanvasDimensions, track, theme]);
+
+  const handleDownloadTxt = useCallback(async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -366,19 +383,16 @@ export default function HeroAscii({
 
     const { cols, rows } = getCanvasDimensions(canvas);
 
-    const lines: string[] = [];
-    for (let row = 0; row < rows; row++) {
-      let line = "";
-      for (let col = 0; col < cols; col++) {
-        const index = row * cols + col;
-        const cell = gridRef.current[index];
-        line += cell
-          ? asciiCharsDrawRef.current[cell.currentLevel] || " "
-          : " ";
-      }
-      lines.push(line);
-    }
-    const txtContent = lines.join("\n");
+    // Generate TXT with metadata
+    const txtContent = generateAsciiTxt({
+      grid: gridRef.current,
+      symbols: asciiCharsDrawRef.current,
+      cols,
+      rows,
+      theme,
+    });
+
+    // 1. Download locally
     const blob = new Blob([txtContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -386,7 +400,14 @@ export default function HeroAscii({
     a.download = `ascii-art-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [getCanvasDimensions, track]);
+
+    // 2. Upload to R2
+    const uploadedUrl = await uploadAsciiToR2(txtContent);
+    if (uploadedUrl) {
+      track("ascii_uploaded_to_r2", { url: uploadedUrl });
+      console.log("Content copied");
+    }
+  }, [getCanvasDimensions, track, theme]);
 
   const handleImageUpload = useCallback(
     async (file: File) => {
@@ -397,15 +418,13 @@ export default function HeroAscii({
 
         const { cols, rows } = getCanvasDimensions(canvas);
 
-        console.log(file);
         const convertedGrid = await convertImageToGrid(
           file,
           cols,
           rows,
-          IMAGE_ASCII_CHARS
+          IMAGE_ASCII_CHARS,
         );
 
-        asciiCharsDrawRef.current = IMAGE_ASCII_CHARS;
         gridRef.current = convertedGrid;
         renderGrid();
 
@@ -418,10 +437,9 @@ export default function HeroAscii({
         throw new Error(message);
       } finally {
         setIsConverting(false);
-        asciiCharsDrawRef.current = ASCII_CHARS;
       }
     },
-    [getCanvasDimensions, renderGrid, track]
+    [getCanvasDimensions, renderGrid, track],
   );
 
   const handlePaste = useCallback(
@@ -441,7 +459,7 @@ export default function HeroAscii({
         }
       }
     },
-    [handleImageUpload]
+    [handleImageUpload],
   );
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: initialize canvas and attach listeners once
@@ -479,39 +497,15 @@ export default function HeroAscii({
     };
   }, [initGrid, handleStart, handleDraw, handleEnd, triggerResize]);
 
-  const handleCustomSymbolInput = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (e.key.length === 1) {
-        track("ascii_custom_symbol_added", { symbol: e.key });
-
-        asciiCharsDrawRef.current = [...asciiCharsDrawRef.current, e.key];
-        const newIndex = asciiCharsDrawRef.current.length - 1;
-
-        setCustomSymbol({ isActive: false, symbol: e.key });
-        setSelectedSymbol(newIndex);
-      }
-    },
-    [track]
-  );
-
-  useEffect(() => {
-    if (customSymbol.isActive && customInputRef.current) {
-      customInputRef.current.focus();
-    }
-  }, [customSymbol.isActive]);
-
   const handleSelectSymbol = useCallback(
     (index: number) => {
       track("ascii_symbol_changed", {
-        symbol: ASCII_CHARS[index] || "custom",
+        symbol: asciiCharsDrawRef.current[index],
         index,
       });
       setSelectedSymbol(index);
     },
-    [track]
+    [track],
   );
 
   return (
@@ -559,23 +553,6 @@ export default function HeroAscii({
           <SymbolSelector
             selectedSymbol={selectedSymbol}
             onSelectSymbol={handleSelectSymbol}
-            customSymbol={customSymbol}
-            onCustomSymbolBlur={() =>
-              setCustomSymbol({
-                isActive: false,
-                symbol: customSymbol.symbol,
-              })
-            }
-            onCustomSymbolClick={() =>
-              setCustomSymbol({ isActive: true, symbol: "" })
-            }
-            displaySymbol={
-              asciiCharsDrawRef.current.length > 9
-                ? asciiCharsDrawRef.current.at(-1)
-                : ""
-            }
-            customInputRef={customInputRef}
-            handleCustomSymbolInput={handleCustomSymbolInput}
           />
 
           <DrawingControls

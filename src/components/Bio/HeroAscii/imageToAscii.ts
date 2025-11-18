@@ -1,5 +1,6 @@
 import type { CharCell } from "./types";
 import { CHAR_WIDTH, CHAR_HEIGHT } from "./constants";
+import { useCallback } from "react";
 
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -22,7 +23,7 @@ async function convertImageToGrid(
   file: File,
   cols: number,
   rows: number,
-  asciiChars: string[]
+  asciiChars: string[],
 ): Promise<CharCell[]> {
   try {
     if (!file.type.startsWith("image/")) {
@@ -66,15 +67,25 @@ async function convertImageToGrid(
       offsetX,
       offsetY,
       drawWidth,
-      drawHeight
+      drawHeight,
     );
     const imageData = ctx.getImageData(
       0,
       0,
       tempCanvas.width,
-      tempCanvas.height
+      tempCanvas.height,
     );
     const data = imageData.data;
+
+    const adjustContrast = (normalized: number) => {
+      if (normalized < 0.4) {
+        return normalized ** (1 / 1.5);
+      }
+      if (normalized > 0.6) {
+        return normalized ** 1.3;
+      }
+      return normalized;
+    };
 
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
@@ -84,8 +95,10 @@ async function convertImageToGrid(
       const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
       const normalized = luminance / 255;
-      const contrast = 2; // Adjust this value to control contrast strength (1-3 recommended)
-      const adjusted = normalized ** (1 / contrast);
+      // const contrast = 1;
+      const adjusted =
+        normalized > 0.6 ? normalized ** (1 / 1.5) : normalized ** 1.3;
+      // const adjusted = adjustContrast(normalized);
       const final = Math.round(adjusted * 255);
 
       data[i] = final;

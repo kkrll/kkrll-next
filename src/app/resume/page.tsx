@@ -2,6 +2,7 @@ import Divider from "@/components/Divider";
 import PageLayout from "@/components/PageLayout";
 
 import jobsList, { JobsType } from "@/components/resume/jobsList";
+import { getR2Url } from "@/lib/constants";
 
 const WorkItem = ({ job }: { job: JobsType }) => {
   const { dates, role, company, companyLink, description, projects } = job;
@@ -22,20 +23,22 @@ const WorkItem = ({ job }: { job: JobsType }) => {
         <div className="px-default flex flex-col gap-10">
           <p className="max-w-[512px]">{description}</p>
           {projects?.map((project, index) => {
-            return (
-              <div key={project.name} className="flex gap-4">
-                <video
-                  src={project.file}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="relative max-h-[480px] rounded-4xl "
-                />
-                <h3>{project.name}</h3>
-                <p>{project.description}</p>
-              </div>
-            );
+            if (project.type === "video" && project.file) {
+              return (
+                <div key={project.name} className="flex gap-4">
+                  <video
+                    src={getR2Url(project.file)}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="relative max-h-[480px] rounded-4xl "
+                  />
+                  <h3>{project.name}</h3>
+                  <p>{project.description}</p>
+                </div>
+              );
+            }
           })}
           {/* <ul className="list-disc list-inside">
             {details.map((detail, index) => (

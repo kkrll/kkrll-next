@@ -40,7 +40,7 @@ Working across mobile features like interactive workouts, body scan, and strengt
       {
         type: "video",
         name: "Body Scan",
-        file: "/resume/zing/body-scan-c.mp4",
+        file: "body-scan-c.mp4",
       },
     ],
   },

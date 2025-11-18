@@ -1,6 +1,7 @@
 import { memo } from "react";
 import Divider from "../../Divider";
 import ImageUploadButton from "./imageUploadButton";
+import NavButton from "./NavButton";
 
 interface DrawingControlsProps {
   onClear: () => void;
@@ -22,13 +23,7 @@ const DrawingControls = memo(
   }: DrawingControlsProps) => {
     return (
       <div className="flex gap-2 animate-[fadeIn_200ms_ease-in-out]">
-        <button
-          type="button"
-          onClick={onClear}
-          className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded transition-colors"
-        >
-          Clear
-        </button>
+        <NavButton text="Clear" onClick={onClear} />
         <Divider vertical className="bg-foreground-05 mx-2" />
         <ImageUploadButton onImageSelected={onImageUpload} />
         {isConverting && (
@@ -37,28 +32,10 @@ const DrawingControls = memo(
           </div>
         )}
         <Divider vertical className="bg-foreground-05 mx-2" />
-        <button
-          type="button"
-          onClick={onDownloadPng}
-          className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded transition-colors"
-        >
-          Save as PNG
-        </button>
-        <button
-          type="button"
-          onClick={onDownloadTxt}
-          className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded transition-colors"
-        >
-          Save as TXT
-        </button>
+        <NavButton text="Save as PNG" onClick={onDownloadPng} />
+        <NavButton text="Save as TXT" onClick={onDownloadTxt} />
         <Divider vertical className="bg-foreground-05 mx-2" />
-        <button
-          type="button"
-          onClick={onExit}
-          className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded transition-colors"
-        >
-          Exit
-        </button>
+        <NavButton text="Exit" onClick={onExit} />
       </div>
     );
   }

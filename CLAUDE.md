@@ -58,6 +58,16 @@ The site uses a file-system based content architecture with three content types:
 
 **Important**: All content is copied from `content/` to `public/` during build via the `copy-content` script. This enables static serving of images and MDX files.
 
+### Media Storage
+
+- **Small media** (<5MB, <10 files): Store in `public/` and commit to git
+- **Large media/videos**: Use Cloudflare R2 (S3-compatible storage, zero egress fees)
+- **R2 Configuration**:
+  - Uses `@aws-sdk/client-s3` for uploads
+  - Utility: `src/lib/r2.ts` (`uploadToR2()` function)
+  - Helper: `src/lib/constants.ts` (`getR2Url()` for public URLs)
+  - Env vars: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `NEXT_PUBLIC_R2_PUBLIC_URL`
+  
 ### MDX Configuration
 
 - MDX components are globally configured in `mdx-components.tsx` (root level)
@@ -95,6 +105,7 @@ TypeScript is configured with `@/*` path alias mapping to `src/*`
 ```
 src/
 ├── app/                  # Next.js App Router pages
+│   ├── api/ascii/upload/ # ASCII art upload to R2
 │   ├── posters/          # Poster listing and dynamic routes
 │   ├── writings/         # Writing listing and dynamic routes
 │   ├── page.tsx          # Homepage
@@ -112,6 +123,8 @@ src/
 │   ├── useHomeTracking.ts
 │   └── useTracking.ts
 ├── lib/                  # Utility functions
+│   ├── r2.ts             # R2 upload utility
+│   ├── constants.ts      # R2 URL helpers + other constants
 │   ├── writings.ts       # Writings content loading
 │   ├── posters.ts        # Posters content loading
 │   └── projects.ts       # Projects content loading
@@ -177,11 +190,11 @@ To customize MDX rendering, edit `mdx-components.tsx` in the root directory. All
 
 - `ascii_drawing_mode_entered` - User enters drawing mode
 - `ascii_drawing_mode_exited` - User exits drawing mode
-- `ascii_symbol_changed` - User changes drawing symbol (includes symbol & index)
-- `ascii_custom_symbol_added` - User adds custom character (includes symbol)
+- `ascii_symbol_changed` - User changes brush thickness (includes symbol & index)
 - `ascii_canvas_cleared` - User clears canvas
 - `ascii_saved_as_png` - User downloads PNG
 - `ascii_saved_as_txt` - User downloads TXT
+- `ascii_uploaded_to_r2` - ASCII art uploaded to R2 (includes url & source)
 
 See `src/components/Bio/HeroAscii/TRACKING.md` for detailed event documentation.
 
@@ -196,12 +209,13 @@ HeroAscii/
 ├── constants.ts              # ASCII chars, dimensions, font config
 ├── types.ts                  # TypeScript interfaces (CharCell, Colors)
 ├── imageToAscii.ts          # Image-to-ASCII conversion utility
+├── asciiSavingUtils.ts      # TXT generation + R2 upload utilities
 ├── ImageUploadButton.tsx    # File picker button component
-├── NavButton.tsx             # Symbol button component
-├── CustomSymbolButton.tsx    # Custom symbol input component
+├── NavButton.tsx             # Reusable button component
 ├── DrawingControls.tsx       # Action buttons (Clear/Save/Exit)
 ├── ResizingIndicator.tsx     # Loading overlay during resize
-├── SymbolSelector.tsx        # Symbol picker bar
+├── SymbolSelector.tsx        # Brush thickness slider with tapered gradient
+├── styles.css                # Custom slider styling
 ├── TRACKING.md               # PostHog event documentation
 └── index.tsx                 # Main component (~480 lines)
 ```
@@ -214,12 +228,20 @@ HeroAscii/
 - Applies monochrome conversion + gamma correction for contrast
 - Converted grid can be edited with drawing tools or exported
 
+**Save & Share**:
+
+- **Save as PNG**: Downloads PNG locally + uploads TXT to R2 + copies shareable link
+- **Save as TXT**: Downloads TXT locally + uploads to R2 + copies shareable link
+- **TXT Format**: Metadata header (chars, created, theme, dimensions) + ASCII art
+- **Storage**: R2 bucket at `ascii/{timestamp}-{random}.txt`
+- **Utils**: `generateAsciiTxt()` and `uploadAsciiToR2()` in `asciiSavingUtils.ts`
+
 **Key Features**:
 
 - Interactive fullscreen ASCII art canvas
-- Draw with 9 default symbols + custom characters
+- Brush thickness slider controlling character selection from combined IMAGE_ASCII_CHARS + DRAW_ASCII_CHARS arrays
 - Preserves drawing during window resize (center-anchored)
-- Export as PNG or TXT
+- Export as PNG or TXT (both upload to R2 for sharing)
 - RAF-throttled drawing for 60fps performance
 - Debounced resize handling (200ms)
 - PostHog event tracking for all user actions
