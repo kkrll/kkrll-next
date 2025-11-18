@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTracking } from "@/hooks/useTracking";
 import {
@@ -17,13 +24,17 @@ import ResizingIndicator from "./ResizingIndicator";
 import { useThemeStore } from "@/stores/useThemeStore";
 import convertImageToGrid from "./imageToAscii";
 import { generateAsciiTxt, uploadAsciiToR2 } from "./asciiSavingUtils";
+import NavButton from "./NavButton";
+import Divider from "@/components/Divider";
 
 export default function HeroAscii({
-  isDrawingMode,
+  drawingMode,
   onToggleDrawingMode,
+  setMode,
 }: {
-  isDrawingMode: boolean;
+  drawingMode: "brush" | "increment" | "decrement" | null;
   onToggleDrawingMode: () => void;
+  setMode: Dispatch<SetStateAction<"brush" | "increment" | "decrement" | null>>;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gridRef = useRef<CharCell[]>([]);
@@ -35,6 +46,8 @@ export default function HeroAscii({
     ...DRAW_ASCII_CHARS,
   ]);
   const selectedSymbolRef = useRef(8);
+  const drawingModeRef = useRef(drawingMode);
+  const lastDrawnCellRef = useRef<{ row: number; col: number } | null>(null);
 
   const [selectedSymbol, setSelectedSymbol] = useState(8);
   const [isResizing, setIsResizing] = useState<boolean>(false);
@@ -46,6 +59,10 @@ export default function HeroAscii({
   useEffect(() => {
     selectedSymbolRef.current = selectedSymbol;
   }, [selectedSymbol]);
+
+  useEffect(() => {
+    drawingModeRef.current = drawingMode;
+  }, [drawingMode]);
 
   const getCanvasDimensions = useCallback((canvas: HTMLCanvasElement) => {
     return {
@@ -163,7 +180,7 @@ export default function HeroAscii({
               row,
             });
           } else {
-            if (isDrawingMode) {
+            if (drawingMode) {
               newGrid.push({
                 baseLevel: 0,
                 currentLevel: 0,
@@ -191,7 +208,7 @@ export default function HeroAscii({
       }
       gridRef.current = newGrid;
     },
-    [getCanvasDimensions, isDrawingMode],
+    [getCanvasDimensions, drawingMode],
   );
 
   const handleWindowResize = useCallback(() => {
@@ -280,10 +297,32 @@ export default function HeroAscii({
 
         const cell = getCellAtPosition(canvas, x, y);
         if (cell) {
-          cell.currentLevel = selectedSymbolRef.current;
-          ctx.font = FONT;
-          ctx.textBaseline = "top";
-          drawCell(ctx, cell);
+          const isDifferentCell =
+            !lastDrawnCellRef.current ||
+            lastDrawnCellRef.current.row !== cell.row ||
+            lastDrawnCellRef.current.col !== cell.col;
+          if (isDifferentCell) {
+            switch (drawingModeRef.current) {
+              case "brush":
+                cell.currentLevel = selectedSymbolRef.current;
+                break;
+              case "increment":
+                cell.currentLevel = Math.min(
+                  cell.currentLevel + 1,
+                  asciiCharsDrawRef.current.length -
+                    DRAW_ASCII_CHARS.length -
+                    1,
+                );
+                break;
+              case "decrement":
+                cell.currentLevel = Math.max(cell.currentLevel - 1, 0);
+                break;
+            }
+            lastDrawnCellRef.current = { row: cell.row, col: cell.col };
+            ctx.font = FONT;
+            ctx.textBaseline = "top";
+            drawCell(ctx, cell);
+          }
         }
 
         animationFrameRef.current = undefined;
@@ -302,6 +341,7 @@ export default function HeroAscii({
 
   const handleEnd = useCallback(() => {
     isDraggingRef.current = false;
+    lastDrawnCellRef.current = null;
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = undefined;
@@ -326,12 +366,10 @@ export default function HeroAscii({
 
   const handleToggleMode = useCallback(() => {
     track(
-      isDrawingMode
-        ? "ascii_drawing_mode_exited"
-        : "ascii_drawing_mode_entered",
+      drawingMode ? "ascii_drawing_mode_exited" : "ascii_drawing_mode_entered",
     );
 
-    if (isDrawingMode) {
+    if (drawingMode) {
       gridRef.current.forEach((cell) => {
         cell.currentLevel = cell.baseLevel;
       });
@@ -339,7 +377,7 @@ export default function HeroAscii({
 
     onToggleDrawingMode();
     renderGrid();
-  }, [isDrawingMode, onToggleDrawingMode, renderGrid, track]);
+  }, [drawingMode, onToggleDrawingMode, renderGrid, track]);
 
   const handleDownloadPng = useCallback(async () => {
     const canvas = canvasRef.current;
@@ -512,48 +550,66 @@ export default function HeroAscii({
     // biome-ignore lint/a11y/useSemanticElements: Full-screen interactive canvas container
     <div
       className={`absolute t-0 l-0 w-full h-screen overflow-hidden ${
-        isDrawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
+        drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
       } transition-opacity duration-300`}
       role="button"
-      tabIndex={isDrawingMode ? -1 : 0}
+      tabIndex={drawingMode ? -1 : 0}
       onMouseDown={() => {
-        if (!isDrawingMode) {
+        if (!drawingMode) {
           handleToggleMode();
         }
       }}
       onKeyDown={(e) => {
-        if (!isDrawingMode && e.key === "p") {
+        if (!drawingMode && e.key === "p") {
           e.preventDefault();
           handleToggleMode();
         }
-        if (isDrawingMode && e.key === "Escape") {
+        if (drawingMode && e.key === "Escape") {
           e.preventDefault();
           handleToggleMode();
         }
-        if (isDrawingMode && (e.metaKey || e.ctrlKey) && e.key === "s") {
+        if (drawingMode && (e.metaKey || e.ctrlKey) && e.key === "s") {
           e.preventDefault();
           handleDownloadPng();
         }
       }}
     >
-      <ResizingIndicator
-        isResizing={isResizing}
-        isDrawingMode={isDrawingMode}
-      />
+      <ResizingIndicator isResizing={isResizing} drawingMode={drawingMode} />
 
       <canvas
         ref={canvasRef}
         className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${
-          isDrawingMode ? "fixed" : "absolute"
+          drawingMode ? "fixed" : "absolute"
         }`}
       />
 
-      {isDrawingMode && (
+      {drawingMode && (
         <div className="fixed top-4 right-4 left-4 flex justify-between p-4 gap-2 z-200 bg-foreground/10 text-foreground rounded-xl backdrop-blur">
-          <SymbolSelector
-            selectedSymbol={selectedSymbol}
-            onSelectSymbol={handleSelectSymbol}
-          />
+          <div className="flex gap-2">
+            <SymbolSelector
+              selectedSymbol={selectedSymbol}
+              onSelectSymbol={handleSelectSymbol}
+              onModeSelect={() => setMode("brush")}
+              isSelected={drawingMode === "brush"}
+            />
+            <Divider vertical className="bg-foreground-05 mx-2" />
+            <div className="flex gap-2">
+              <NavButton
+                onClick={() => {
+                  setMode("decrement");
+                }}
+                isSelected={drawingMode === "decrement"}
+                text="Darken"
+              />
+              <NavButton
+                onClick={() => {
+                  setMode("increment");
+                }}
+                isSelected={drawingMode === "increment"}
+                text="Lighten"
+              />
+            </div>
+          </div>
 
           <DrawingControls
             onClear={handleClear}

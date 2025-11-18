@@ -9,9 +9,9 @@ export const IMAGE_ASCII_CHARS = [
   "s",
   "x",
   "※",
+  "8",
   "@",
   "W",
-  "#",
 ];
 export const CHAR_WIDTH = 10;
 export const CHAR_HEIGHT = 16;

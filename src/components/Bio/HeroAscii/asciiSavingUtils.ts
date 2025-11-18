@@ -43,7 +43,7 @@ export async function uploadAsciiToR2(
       body: txtContent,
     });
 
-    await navigator.clipboard.writeText(txtContent);
+    // await navigator.clipboard.writeText(txtContent);
     const data = await response.json();
 
     if (data.success) {
