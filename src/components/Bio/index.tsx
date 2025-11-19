@@ -15,6 +15,25 @@ const Bio = () => {
   const { track } = useTracking();
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "b" || e.key === '1') {
+        e.preventDefault();
+        setDrawingMode('brush');
+      }
+      if (drawingMode && e.key === "2" || e.key === "d") {
+        e.preventDefault();
+        setDrawingMode('decrement');
+      }
+      if (drawingMode && e.key === "3" || e.key === "l") {
+        e.preventDefault();
+        setDrawingMode('increment');
+      }
+      if (drawingMode && e.key === "Escape") {
+        e.preventDefault();
+        setDrawingMode(null);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
     if (drawingMode) {
       document.body.style.overflow = "hidden";
     } else {
@@ -23,6 +42,7 @@ const Bio = () => {
 
     return () => {
       document.body.style.overflow = "";
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [drawingMode]);
 

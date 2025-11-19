@@ -310,8 +310,8 @@ export default function HeroAscii({
                 cell.currentLevel = Math.min(
                   cell.currentLevel + 1,
                   asciiCharsDrawRef.current.length -
-                    DRAW_ASCII_CHARS.length -
-                    1,
+                  DRAW_ASCII_CHARS.length -
+                  1,
                 );
                 break;
               case "decrement":
@@ -549,9 +549,8 @@ export default function HeroAscii({
   return (
     // biome-ignore lint/a11y/useSemanticElements: Full-screen interactive canvas container
     <div
-      className={`absolute t-0 l-0 w-full h-screen overflow-hidden ${
-        drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
-      } transition-opacity duration-300`}
+      className={`absolute t-0 l-0 w-full h-screen overflow-hidden ${drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
+        } transition-opacity duration-300`}
       role="button"
       tabIndex={drawingMode ? -1 : 0}
       onMouseDown={() => {
@@ -560,14 +559,6 @@ export default function HeroAscii({
         }
       }}
       onKeyDown={(e) => {
-        if (!drawingMode && e.key === "p") {
-          e.preventDefault();
-          handleToggleMode();
-        }
-        if (drawingMode && e.key === "Escape") {
-          e.preventDefault();
-          handleToggleMode();
-        }
         if (drawingMode && (e.metaKey || e.ctrlKey) && e.key === "s") {
           e.preventDefault();
           handleDownloadPng();
@@ -578,9 +569,8 @@ export default function HeroAscii({
 
       <canvas
         ref={canvasRef}
-        className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${
-          drawingMode ? "fixed" : "absolute"
-        }`}
+        className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${drawingMode ? "fixed" : "absolute"
+          }`}
       />
 
       {drawingMode && (
