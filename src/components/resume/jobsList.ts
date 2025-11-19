@@ -40,7 +40,14 @@ Working across mobile features like interactive workouts, body scan, and strengt
       {
         type: "video",
         name: "Body Scan",
+        description: "AI analyses your body, compares to your goal. As a result, you get your body composition details and highlight on problematic areas.",
         file: "body-scan-c.mp4",
+      },
+      {
+        type: "video",
+        name: "Interactive workouts",
+        description: "A workout including video analyses. We count and estimate the quality of your reps agaings the goal, tailored to you individually.",
+        file: "interactive_workout_c.mp4",
       },
     ],
   },
