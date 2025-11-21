@@ -31,7 +31,7 @@
   --font-serif: var(--font-recia-serif);
 }
 
-/* @media (prefers-color-scheme: dark) { 
+/* @media (prefers-color-scheme: dark) {
   :root {
 */
 .dark {
@@ -55,6 +55,12 @@ section {
 }
 
 @layer base {
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
   h2 {
     text-transform: uppercase;
     font-family: var(--font-mono);
@@ -72,12 +78,21 @@ section {
     text-decoration: underline;
   }
 
+  figcaption {
+    color: var(--foreground-07);
+    size: 0.75rem;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
   .px-default {
     padding-left: 32px;
     padding-right: 32px;
   }
 
-  @media (width >= 48rem /* 768px */) {
+  @media (width >=48rem
+
+ /* 768px */) {
     .px-default {
       padding-left: 24px;
       padding-right: 24px;
@@ -93,10 +108,25 @@ section {
   min-height: calc(100vh - 120px);
 }
 
-@media (width >= 48rem /* 768px */) {
+.grid-1-to-3 {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  column-gap: 24px;
+}
+
+.text-secondary {
+  font-family: var(--font-mono);
+  color: var(--foreground-07);
+  text-transform: uppercase;
+  font-size: 0.875rem;
+}
+
+@media (width >=48rem
+ /* 768px */) {
   .h-hero {
     height: calc(100vh - 88px);
   }
+
   .min-h-hero {
     min-height: calc(100vh - 88px);
   }
@@ -107,6 +137,7 @@ section {
     opacity: 0;
     transform: scale(0.98);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);
@@ -118,6 +149,7 @@ section {
     opacity: 1;
     transform: scale(1);
   }
+
   to {
     opacity: 0;
     transform: scale(0.99);
@@ -129,6 +161,7 @@ section {
     opacity: 0;
     transform: translateX(24px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0px);
@@ -140,6 +173,7 @@ section {
     opacity: 1;
     transform: translateX(0px);
   }
+
   to {
     opacity: 0;
     transform: translateX(-24px);
@@ -151,6 +185,7 @@ section {
     opacity: 0;
     transform: translateX(-24px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0px);
@@ -162,6 +197,7 @@ section {
     opacity: 1;
     transform: translateX(0px);
   }
+
   to {
     opacity: 0;
     transform: translateX(24px);
@@ -173,6 +209,7 @@ section {
     opacity: 0;
     transform: translateY(24px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0px);
@@ -184,6 +221,7 @@ section {
     opacity: 1;
     transform: translateY(0px);
   }
+
   to {
     opacity: 0;
     transform: translateY(24px);
@@ -195,6 +233,7 @@ section {
     opacity: 1;
     transform: translateY(0px);
   }
+
   100% {
     opacity: 0;
     transform: translateY(-24px);
@@ -206,10 +245,12 @@ section {
   ::view-transition-new(root) {
     animation-duration: 0.3s;
   }
+
   @supports (view-transition-name: none) {
     ::view-transition-new(fade-from-bottom) {
       animation: fadeInFromBottom 0.2s ease-out forwards;
     }
+
     ::view-transition-old(fade-from-bottom) {
       animation: fadeOutToBottom 0.2s ease-in forwards;
     }
@@ -218,6 +259,7 @@ section {
       animation: fadeIn 0.3s ease-in-out forwards;
       /* animation-delay: 0.2s; */
     }
+
     ::view-transition-old(fade-in-out) {
       animation: fadeOut 0.15s ease-in-out forwards;
     }
