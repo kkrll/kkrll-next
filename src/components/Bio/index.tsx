@@ -93,10 +93,13 @@ const Bio = () => {
           <p className=" bg-background w-fit">Welcome.</p>
           <div className="group flex py-6 gap-4 items-baseline ">
             <a
-              className="underline bg-background w-fit"
+              className="bg-background w-fit nice-button"
+              // className="underline bg-background w-fit"
               href="mailto:k_kov@hotmail.com?subject=Hey%20Kiryl!%20Big%20fan%20of%20yours..."
             >
-              Email me
+              <span>
+                Email me
+              </span>
             </a>
             <button
               className="opacity-0 group-hover:opacity-100 cursor-pointer uppercase font-mono text-background-05 hover:text-foreground-07 transition-colors duration-100"

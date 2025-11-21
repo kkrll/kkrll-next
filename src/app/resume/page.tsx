@@ -5,6 +5,7 @@ import jobsList, { JobsType } from "@/components/resume/jobsList";
 import Carousel from "@/components/ui/carousel";
 import { getR2Url } from "@/lib/constants";
 import type { EmblaOptionsType } from "embla-carousel";
+import Image from "next/image";
 
 const carouselOptions: EmblaOptionsType = {
   loop: true,
@@ -29,7 +30,7 @@ const WorkItem = ({ job }: { job: JobsType }) => {
             <p className="font-mono text-foreground-07 text-sm">{dates}</p>
           </div>
         </div>
-        <div className="px-default flex md:flex-col gap-12">
+        <div className="px-default flex flex-col gap-16">
           <p className="max-w-[512px]">{description}</p>
           {projects && (
             <Carousel
@@ -38,26 +39,61 @@ const WorkItem = ({ job }: { job: JobsType }) => {
               carouselName={company + "projects"}
             >
               {projects.map((project, index) => {
-                if (project.type === "video" && project.file) {
-                  return (
-                    <div key={project.name} className="flex gap-8 embla__slide">
-                      <video
-                        src={getR2Url(project.file)}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="relative max-h-[480px] rounded-4xl "
-                      />
-                      <div className="flex flex-col h-full justify-end gap-4">
-                        <h3 className="font-mono uppercase">{project.name}</h3>
-                        <p>{project.description}</p></div>
-                    </div>
-                  );
+                switch (project.type) {
+                  case "video":
+                    return (
+                      <div
+                        key={project.name}
+                        className="flex gap-8 mb-4 embla__slide"
+                      >
+                        {project.file && (
+                          <video
+                            src={getR2Url(project.file)}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="relative max-h-[480px] rounded-4xl border-8 border-background-07"
+                          />
+                        )}
+                        <div className="flex flex-col h-full gap-4">
+                          <h3 className="font-mono uppercase">
+                            {project.name}
+                          </h3>
+                          <p>{project.description}</p>
+                        </div>
+                      </div>
+                    );
+                  case "case":
+                    return (
+                      <a
+                        key={project.name}
+                        className="flex gap-8 mb-4 embla__slide rounded-4xl border-8 border-background-07 overflow-hidden transition-colors duration-100 hover:bg-background-07 hover:no-underline"
+                        href="/resume/cases/sos-project-overview"
+                      >
+                        {project.file && (
+                          <Image
+                            src={project.file}
+                            alt={project.name}
+                            width={640}
+                            height={480}
+                            className="object-cover w-[240px] relative h-[240px]"
+                          />
+                        )}
+                        <div className="flex flex-col h-full gap-4 py-6">
+                          <h3 className="font-mono uppercase">
+                            {project.name}
+                          </h3>
+                          <p>{project.description}</p>
+                        </div>
+                      </a>
+                    );
+                  default:
+                    return null;
                 }
-              }
-              )}
-            </Carousel>)}
+              })}
+            </Carousel>
+          )}
           {/* <ul className="list-disc list-inside">
             {details.map((detail, index) => (
               <li key={index} className="mb-2">

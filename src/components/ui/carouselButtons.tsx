@@ -55,30 +55,39 @@ export const usePrevNextButtons = (
 
 type PropType = ComponentPropsWithRef<"button">;
 
-export const PrevButton: React.FC<PropType> = (props) => {
-  const { children, ...restProps } = props;
+export const PrevButton = React.forwardRef<HTMLButtonElement, PropType>(
+  (props, ref) => {
+    const { children, ...restProps } = props;
+    return (
+      <button
+        ref={ref}
+        className="embla__button embla__button--prev nice-button"
+        type="button"
+        {...restProps}
+      >
+        <span>
+          {children}
+        </span>
+      </button>
+    );
+  }
+);
+PrevButton.displayName = 'PrevButton';
 
-  return (
-    <button
-      className="embla__button embla__button--prev"
-      type="button"
-      {...restProps}
-    >
-      {children}
-    </button>
-  );
-};
-
-export const NextButton: React.FC<PropType> = (props) => {
-  const { children, ...restProps } = props;
-
-  return (
-    <button
-      className="embla__button embla__button--next"
-      type="button"
-      {...restProps}
-    >
-      {children}
-    </button>
-  );
-};
+export const NextButton = React.forwardRef<HTMLButtonElement, PropType>(
+  (props, ref) => {
+    const { children, ...restProps } = props;
+    return (
+      <button
+        className="embla__button embla__button--next nice-button"
+        type="button"
+        ref={ref}
+        {...restProps}
+      >
+        <span>
+          {children}
+        </span>
+      </button>
+    );
+  }
+)

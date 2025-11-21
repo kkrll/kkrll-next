@@ -35,7 +35,7 @@ export const ArrowLeftIcon = ({ size = 16, className, id }: IconType) => (
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     className={cn(
-      "block select-none shrink-0 transition-all duration-100 text-foreground",
+      "block select-none shrink-0 transition-all duration-100 ",
       className
     )}
   >
@@ -56,7 +56,7 @@ export const ArrowRightIcon = ({ size = 16, className, id }: IconType) => (
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     className={cn(
-      "block select-none shrink-0 transition-all duration-100 text-foreground",
+      "block select-none shrink-0 transition-all duration-100",
       className
     )}
   >
