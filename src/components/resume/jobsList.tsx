@@ -25,8 +25,23 @@ const jobsList: JobsType[] = [
     role: "Senior Product Designer",
     company: "Zing Coach",
     companyLink: "https://www.zing.coach",
-    description: `Working on one of the <a href="https://www.techradar.com/health-fitness/best-fitness-app" target="_blank">top-rated</a> fitness apps, available on iOS and Android.
-Working across mobile features like interactive workouts, body scan, and strength score — combining design, user feedback, and AI-powered technologies to support long-term training at home.`,
+    description: (
+      <>
+        Working on one of the{" "}
+        <a
+          href="https://www.techradar.com/health-fitness/best-fitness-app"
+          target="_blank"
+          className="underline"
+          rel="noreferrer"
+        >
+          top-rated
+        </a>{" "}
+        fitness apps, available on iOS and Android. Working across mobile
+        features like interactive workouts, body scan, and strength score —
+        combining design, user feedback, and AI-powered technologies to support
+        long-term training at home.
+      </>
+    ),
     tags: [
       "Web",
       "Mobile",

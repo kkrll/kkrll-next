@@ -44,7 +44,7 @@ const WorkItem = ({ job }: { job: JobsType }) => {
                     return (
                       <div
                         key={project.name}
-                        className="flex gap-8 mb-4 embla__slide"
+                        className="flex flex-col md:flex-row gap-8 mb-4 embla__slide"
                       >
                         {project.file && (
                           <video
@@ -53,7 +53,7 @@ const WorkItem = ({ job }: { job: JobsType }) => {
                             loop
                             muted
                             playsInline
-                            className="relative max-h-[480px] rounded-4xl border-8 border-background-07"
+                            className="relative max-h-[480px] w-fit rounded-4xl border-8 border-background-07"
                           />
                         )}
                         <div className="flex flex-col h-full gap-4">
@@ -68,7 +68,7 @@ const WorkItem = ({ job }: { job: JobsType }) => {
                     return (
                       <a
                         key={project.name}
-                        className="flex gap-8 mb-4 embla__slide rounded-4xl border-8 border-background-07 overflow-hidden transition-colors duration-100 hover:bg-background-07 hover:no-underline"
+                        className="flex flex-col md:flex-row mb-4 embla__slide rounded-4xl border-8 border-background-07 overflow-hidden transition-colors duration-100 hover:bg-background-07 hover:no-underline"
                         href="/resume/cases/sos-project-overview"
                       >
                         {project.file && (
@@ -77,10 +77,10 @@ const WorkItem = ({ job }: { job: JobsType }) => {
                             alt={project.name}
                             width={640}
                             height={480}
-                            className="object-cover w-[240px] relative h-[240px]"
+                            className="object-cover md:w-[240px] relative h-[240px]"
                           />
                         )}
-                        <div className="flex flex-col h-full gap-4 py-6">
+                        <div className="flex flex-col h-full gap-4 p-6">
                           <h3 className="font-mono uppercase">
                             {project.name}
                           </h3>
