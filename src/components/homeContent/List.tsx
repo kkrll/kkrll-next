@@ -1,12 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type {
-  CategoriesTypes,
-  ListItemProps,
-  ListProps,
-  ViewAllItem,
-} from "./types";
+import type { CategoriesTypes, ListItemProps, ListProps } from "./types";
 
 const ListItemSelector = ({
   item,

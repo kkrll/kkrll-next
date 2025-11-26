@@ -13,6 +13,7 @@ export type Writing = {
   description?: string;
   link?: string;
   content: string;
+  excerpt?: string;
 };
 
 export type WritingMeta = {
@@ -26,6 +27,7 @@ export type WritingMeta = {
   link?: string;
   type: "writings";
   globalId: string;
+  excerpt?: string;
 };
 
 export type WritingMetaWithViewAll =
@@ -36,6 +38,46 @@ export type WritingMetaWithViewAll =
       type: "writings";
       globalId: string;
     };
+
+function extractExcerpt(content: string, maxLength = 250): string {
+  const lines = content.split("\n");
+  let excerpt = "";
+  let linesUsed = 0;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (
+      !trimmed || // Empty
+      trimmed.startsWith("import ") || // Imports
+      trimmed.startsWith("export ") || // Exports
+      trimmed.startsWith("<") || // JSX
+      trimmed.startsWith("```") || // Code blocks
+      trimmed.startsWith("#") // Headers
+    ) {
+      continue;
+    }
+
+    const cleaned = trimmed
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // Links
+      .replace(/[*_]{1,2}([^*_]+)[*_]{1,2}/g, "$1") // Bold/italic
+      .replace(/`([^`]+)`/g, "$1"); // Inline code
+
+    const potentialExcerpt = excerpt + (excerpt ? " " : "") + cleaned;
+
+    if (potentialExcerpt.length > maxLength) {
+      const remaining = maxLength - excerpt.length;
+      excerpt += (excerpt ? " " : "") + cleaned.substring(0, remaining);
+      break;
+    }
+
+    excerpt = potentialExcerpt;
+    linesUsed++;
+
+    if (linesUsed >= 5) break;
+  }
+
+  return excerpt.trim() + (excerpt.length >= maxLength ? "..." : "");
+}
 
 export function getAllWritings(): Writing[] {
   const folders = fs.readdirSync(writingsDirectory);
@@ -64,7 +106,9 @@ export function getAllWritingsMeta(limit?: number): WritingMetaWithViewAll[] {
   const writingsMeta = folders.map((folder) => {
     const fullPath = path.join(writingsDirectory, folder, "index.mdx");
     const fileContents = fs.readFileSync(fullPath, "utf8");
-    const { data } = matter(fileContents);
+    const { data, content } = matter(fileContents);
+
+    const excerpt = data.description ? undefined : extractExcerpt(content);
 
     return {
       slug: folder,
@@ -77,6 +121,7 @@ export function getAllWritingsMeta(limit?: number): WritingMetaWithViewAll[] {
       isExternal: data.isExternal,
       type: "writings",
       globalId: `writings-${folder}`,
+      excerpt: excerpt,
     } as WritingMeta;
   });
 

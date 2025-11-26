@@ -3,467 +3,492 @@
 @plugin "@tailwindcss/typography";
 
 :root {
-    --background: #f1eadf;
-    --background-07: #C8C1BB;
-    --background-05: #a6a29e;
-    --background-05-semi: #a6a29e4D;
+  --background: #f1eadf;
+  --background-07: #c8c1bb;
+  --background-05: #a6a29e;
+  --background-05-semi: #a6a29e4d;
 
-    --foreground: #171717;
-    --foreground-07: #1f1f20;
-    --foreground-05: #323235;
+  --foreground: #171717;
+  --foreground-07: #1f1f20;
+  --foreground-05: #323235;
 
-    --overlay: #0a0a0aB3;
+  --overlay: #0a0a0ab3;
 
-    --font-geist-sans:
-        "Geist Sans", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-    --font-geist-mono:
-        "Geist Mono", "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
-    --font-recia-serif: "Recia", Georgia, serif;
+  --font-geist-sans: "Geist Sans", -apple-system, BlinkMacSystemFont, Arial,
+    sans-serif;
+  --font-geist-mono: "Geist Mono", "SF Mono", "Fira Code", "Fira Mono",
+    "Roboto Mono", monospace;
+  --font-recia-serif: "Recia", Georgia, serif;
 }
 
 @theme inline {
-    --color-background: var(--background);
-    --color-background-07: var(--background-07);
-    --color-background-05: var(--background-05);
+  --color-background: var(--background);
+  --color-background-07: var(--background-07);
+  --color-background-05: var(--background-05);
 
-    --color-foreground: var(--foreground);
-    --color-foreground-07: var(--foreground-07);
-    --color-foreground-05: var(--foreground-05);
+  --color-foreground: var(--foreground);
+  --color-foreground-07: var(--foreground-07);
+  --color-foreground-05: var(--foreground-05);
 
-    --color-overlay: var(--overlay);
+  --color-overlay: var(--overlay);
 
-    --font-sans: var(--font-geist-sans);
-    --font-mono: var(--font-geist-mono);
-    --font-serif: var(--font-recia-serif);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-recia-serif);
+}
+
+@utility no-scrollbar {
+  @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
 }
 
 /* @media (prefers-color-scheme: dark) {
   :root {
 */
 .dark {
-    --background: #0a0a0a;
-    --background-07: #1f1f20;
-    --background-05: #3d3d3f;
+  --background: #0a0a0a;
+  --background-07: #1f1f20;
+  --background-05: #3d3d3f;
 
-    --foreground: #ededed;
-    --foreground-07: #6b6a69;
-    --foreground-05: #4b4a49;
+  --foreground: #ededed;
+  --foreground-07: #6b6a69;
+  --foreground-05: #4b4a49;
 
-    .nice-button {
-        position: relative;
-        background: linear-gradient(to bottom, var(--background-05) 0%, var(--background-07) 100%);
-        padding: 0.25rem 0.25rem;
-        border-radius: 0.5rem;
-        border: 1px solid black;
-        font-family: var(--font-mono);
-        font-size: 0.75rem;
-        color: var(--foreground);
-        text-transform: uppercase;
-        box-shadow: inset 0 0 16px 1px var(--background-07);
-        transition: box-shadow 0.08s ease-in-out, color 0.08s ease-in-out;
-        overflow: hidden;
-        filter: none;
-    }
-
-    .nice-button::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to bottom, var(--background-07) 0%, var(--background-05) 10%, var(--background-07) 50%, var(--background-07) 80%, var(--background) 100%);
-        opacity: 0;
-        transition: opacity 0.08s ease-in-out;
-        pointer-events: none;
-        box-shadow: inset 0 0 1rem 2px var(--background);
-
-    }
-
-    .nice-button:active::before,
-    .nice-button.active-pressed::before {
-        opacity: 1;
-    }
-
-    .nice-button:active,
-    .nice-button.active-pressed {
-        color: var(--foreground-07);
-        box-shadow: inset 0 0 1rem 2px var(--background);
-        filter: none;
-    }
-
-    .nice-button span {
-        position: relative;
-        z-index: 1;
-        display: block;
-        background: linear-gradient(to bottom, var(--background-07) 0%, var(--background-05) 100%);
-        padding: 0.5rem 1rem;
-        border-radius: 100rem;
-        transition: box-shadow 0.08s ease-in-out;
-    }
-
-    .nice-button:active span,
-    .nice-button.active-pressed span {
-        box-shadow: inset 0 0 1rem 6px var(--background-07);
-    }
-
-}
-
-body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: Arial, Helvetica, sans-serif;
-}
-
-section {
-    width: 100%;
-}
-
-.nice-button {
+  .nice-button {
     position: relative;
-    background: linear-gradient(to bottom, var(--background) 0%, var(--background-07) 100%);
+    background: linear-gradient(
+      to bottom,
+      var(--background-05) 0%,
+      var(--background-07) 100%
+    );
     padding: 0.25rem 0.25rem;
-    border-radius: 8px;
-    border: 1px solid var(--background-07-semi);
+    border-radius: 0.5rem;
+    border: 1px solid black;
     font-family: var(--font-mono);
     font-size: 0.75rem;
     color: var(--foreground);
     text-transform: uppercase;
-    box-shadow: inset 0 0 16px 0px var(--background-07-semi);
-    transition: box-shadow 0.08s ease-in-out, color 0.2s ease-in-out;
+    box-shadow: inset 0 0 16px 1px var(--background-07);
+    transition: box-shadow 0.08s ease-in-out, color 0.08s ease-in-out;
     overflow: hidden;
-    filter: drop-shadow(0px 2px 4px var(--background-07));
-}
+    filter: none;
+  }
 
-.nice-button::before {
-    content: '';
+  .nice-button::before {
+    content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, var(--background-07) -25%, var(--background) 10%, var(--background-07) 50%, var(--background-07) 80%, var(--background-05) 100%);
+    background: linear-gradient(
+      to bottom,
+      var(--background-07) 0%,
+      var(--background-05) 10%,
+      var(--background-07) 50%,
+      var(--background-07) 80%,
+      var(--background) 100%
+    );
     opacity: 0;
     transition: opacity 0.08s ease-in-out;
     pointer-events: none;
-    box-shadow: inset 0 0 0.5rem 2px var(--background-05-semi);
+    box-shadow: inset 0 0 1rem 2px var(--background);
+  }
 
+  .nice-button:active::before,
+  .nice-button.active-pressed::before {
+    opacity: 1;
+  }
+
+  .nice-button:active,
+  .nice-button.active-pressed {
+    color: var(--foreground-07);
+    box-shadow: inset 0 0 1rem 2px var(--background);
+    filter: none;
+  }
+
+  .nice-button span {
+    position: relative;
+    z-index: 1;
+    display: block;
+    background: linear-gradient(
+      to bottom,
+      var(--background-07) 0%,
+      var(--background-05) 100%
+    );
+    padding: 0.5rem 1rem;
+    border-radius: 100rem;
+    transition: box-shadow 0.08s ease-in-out;
+  }
+
+  .nice-button:active span,
+  .nice-button.active-pressed span {
+    box-shadow: inset 0 0 1rem 6px var(--background-07);
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+section {
+  width: 100%;
+}
+
+.nice-button {
+  position: relative;
+  background: linear-gradient(
+    to bottom,
+    var(--background) 0%,
+    var(--background-07) 100%
+  );
+  padding: 0.25rem 0.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--background-07-semi);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--foreground);
+  text-transform: uppercase;
+  box-shadow: inset 0 0 16px 0px var(--background-07-semi);
+  transition: box-shadow 0.08s ease-in-out, color 0.2s ease-in-out;
+  overflow: hidden;
+  filter: drop-shadow(0px 2px 4px var(--background-07));
+}
+
+.nice-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--background-07) -25%,
+    var(--background) 10%,
+    var(--background-07) 50%,
+    var(--background-07) 80%,
+    var(--background-05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.08s ease-in-out;
+  pointer-events: none;
+  box-shadow: inset 0 0 0.5rem 2px var(--background-05-semi);
 }
 
 .nice-button:active::before,
 .nice-button.active-pressed::before {
-    opacity: 1;
+  opacity: 1;
 }
 
 .nice-button:active,
 .nice-button.active-pressed {
-    color: var(--foreground-07);
-    box-shadow: inset 0 0 1rem 1px var(--background-semi);
-    filter: drop-shadow(0px 1px 1px var(--background-07));
+  color: var(--foreground-07);
+  box-shadow: inset 0 0 1rem 1px var(--background-semi);
+  filter: drop-shadow(0px 1px 1px var(--background-07));
 }
 
 .nice-button span {
-    position: relative;
-    z-index: 1;
-    display: block;
-    background: linear-gradient(to bottom, var(--background-07) 0%, var(--background) 60%);
-    padding: 0.5rem 1rem;
-    border-radius: 100rem;
-    transition: box-shadow 0.08s ease-in-out;
+  position: relative;
+  z-index: 1;
+  display: block;
+  background: linear-gradient(
+    to bottom,
+    var(--background-07) 0%,
+    var(--background) 60%
+  );
+  padding: 0.5rem 1rem;
+  border-radius: 100rem;
+  transition: box-shadow 0.08s ease-in-out;
 }
 
 .nice-button:active span,
 .nice-button.active-pressed span {
-    box-shadow: inset 0 0 0.5rem 6px var(--background-05-semi);
+  box-shadow: inset 0 0 0.5rem 6px var(--background-05-semi);
 }
 
-
-
-
 @layer base {
-    * {
-        /* biome-ignore lint/correctness/noUnknownProperty: experimental support */
-        /* biome-ignore lint/correctness/noUnknownFunction: experimental support */
-        corner-shape: superellipse(1.333);
-    }
+  * {
+    /* biome-ignore lint/correctness/noUnknownProperty: experimental support */
+    /* biome-ignore lint/correctness/noUnknownFunction: experimental support */
+    corner-shape: superellipse(1.333);
+  }
 
-    h1,
-    h2,
-    h3 {
-        text-wrap: balance;
-    }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
 
-    h2 {
-        text-transform: uppercase;
-        font-family: var(--font-mono);
-    }
+  h2 {
+    text-transform: uppercase;
+    font-family: var(--font-mono);
+  }
 
-    p {
-        line-height: 1.5;
-    }
+  p {
+    line-height: 1.5;
+  }
 
-    a {
-        text-underline-offset: 4px;
-    }
+  a {
+    text-underline-offset: 4px;
+  }
 
-    a:hover {
-        text-decoration: underline;
-    }
+  a:hover {
+    text-decoration: underline;
+  }
 
-    figcaption {
-        color: var(--foreground-07);
-        size: 0.75rem;
-        width: 100%;
-        margin-top: 0.5rem;
-    }
+  figcaption {
+    color: var(--foreground-07);
+    size: 0.75rem;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
 
+  .px-default {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  @media (width >=48rem
+
+ /* 768px */) {
     .px-default {
-        padding-left: 32px;
-        padding-right: 32px;
+      padding-left: 24px;
+      padding-right: 24px;
     }
-
-    @media (width >=48rem
-
-        /* 768px */
-    ) {
-        .px-default {
-            padding-left: 24px;
-            padding-right: 24px;
-        }
-    }
+  }
 }
 
 .h-hero {
-    height: calc(100vh - 120px);
+  height: calc(100vh - 120px);
 }
 
 .min-h-hero {
-    min-height: calc(100vh - 120px);
+  min-height: calc(100vh - 120px);
 }
 
 .grid-1-to-3 {
-    display: grid;
-    grid-template-columns: 1fr;
-    column-gap: 24px;
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: 24px;
 }
 
 .text-secondary {
-    font-family: var(--font-mono);
-    color: var(--foreground-07);
-    text-transform: uppercase;
-    font-size: 0.875rem;
+  font-family: var(--font-mono);
+  color: var(--foreground-07);
+  text-transform: uppercase;
+  font-size: 0.875rem;
 }
 
 @media (width >=48rem
-    /* 768px */
-) {
-    .h-hero {
-        height: calc(100vh - 88px);
-    }
+ /* 768px */) {
+  .h-hero {
+    height: calc(100vh - 88px);
+  }
 
-    .min-h-hero {
-        min-height: calc(100vh - 88px);
-    }
+  .min-h-hero {
+    min-height: calc(100vh - 88px);
+  }
 
-    .grid-1-to-3 {
-        display: grid;
-        grid-template-columns: 1fr 3fr;
-        column-gap: 24px;
-    }
+  .grid-1-to-3 {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    column-gap: 24px;
+  }
 }
 
 @keyframes fadeIn {
-    0% {
-        opacity: 0;
-        transform: scale(0.98);
-    }
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
 
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes fadeOut {
-    from {
-        opacity: 1;
-        transform: scale(1);
-    }
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
 
-    to {
-        opacity: 0;
-        transform: scale(0.99);
-    }
+  to {
+    opacity: 0;
+    transform: scale(0.99);
+  }
 }
 
 @keyframes fadeInToLeft {
-    0% {
-        opacity: 0;
-        transform: translateX(24px);
-    }
+  0% {
+    opacity: 0;
+    transform: translateX(24px);
+  }
 
-    100% {
-        opacity: 1;
-        transform: translateX(0px);
-    }
+  100% {
+    opacity: 1;
+    transform: translateX(0px);
+  }
 }
 
 @keyframes fadeOutToLeft {
-    from {
-        opacity: 1;
-        transform: translateX(0px);
-    }
+  from {
+    opacity: 1;
+    transform: translateX(0px);
+  }
 
-    to {
-        opacity: 0;
-        transform: translateX(-24px);
-    }
+  to {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
 }
 
 @keyframes fadeInToRight {
-    0% {
-        opacity: 0;
-        transform: translateX(-24px);
-    }
+  0% {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
 
-    100% {
-        opacity: 1;
-        transform: translateX(0px);
-    }
+  100% {
+    opacity: 1;
+    transform: translateX(0px);
+  }
 }
 
 @keyframes fadeOutToRight {
-    from {
-        opacity: 1;
-        transform: translateX(0px);
-    }
+  from {
+    opacity: 1;
+    transform: translateX(0px);
+  }
 
-    to {
-        opacity: 0;
-        transform: translateX(24px);
-    }
+  to {
+    opacity: 0;
+    transform: translateX(24px);
+  }
 }
 
 @keyframes fadeInFromBottom {
-    from {
-        opacity: 0;
-        transform: translateY(24px);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
 
-    to {
-        opacity: 1;
-        transform: translateY(0px);
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
 }
 
 @keyframes fadeOutToBottom {
-    from {
-        opacity: 1;
-        transform: translateY(0px);
-    }
+  from {
+    opacity: 1;
+    transform: translateY(0px);
+  }
 
-    to {
-        opacity: 0;
-        transform: translateY(24px);
-    }
+  to {
+    opacity: 0;
+    transform: translateY(24px);
+  }
 }
 
 @keyframes fadeOutToTop {
-    0% {
-        opacity: 1;
-        transform: translateY(0px);
-    }
+  0% {
+    opacity: 1;
+    transform: translateY(0px);
+  }
 
-    100% {
-        opacity: 0;
-        transform: translateY(-24px);
-    }
+  100% {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.3s;
+  }
 
-    ::view-transition-old(root),
-    ::view-transition-new(root) {
-        animation-duration: 0.3s;
+  @supports (view-transition-name: none) {
+    ::view-transition-new(fade-from-bottom) {
+      animation: fadeInFromBottom 0.2s ease-out forwards;
     }
 
-    @supports (view-transition-name: none) {
-        ::view-transition-new(fade-from-bottom) {
-            animation: fadeInFromBottom 0.2s ease-out forwards;
-        }
-
-        ::view-transition-old(fade-from-bottom) {
-            animation: fadeOutToBottom 0.2s ease-in forwards;
-        }
-
-        ::view-transition-new(fade-in-out) {
-            animation: fadeIn 0.3s ease-in-out forwards;
-            /* animation-delay: 0.2s; */
-        }
-
-        ::view-transition-old(fade-in-out) {
-            animation: fadeOut 0.15s ease-in-out forwards;
-        }
+    ::view-transition-old(fade-from-bottom) {
+      animation: fadeOutToBottom 0.2s ease-in forwards;
     }
+
+    ::view-transition-new(fade-in-out) {
+      animation: fadeIn 0.3s ease-in-out forwards;
+      /* animation-delay: 0.2s; */
+    }
+
+    ::view-transition-old(fade-in-out) {
+      animation: fadeOut 0.15s ease-in-out forwards;
+    }
+  }
 }
 
 /* Modal animations */
 @keyframes modalOverlayOpen {
-    from {
-        background-color: transparent;
-    }
+  from {
+    background-color: transparent;
+  }
 
-    to {
-        background-color: var(--overlay);
-    }
+  to {
+    background-color: var(--overlay);
+  }
 }
 
 @keyframes modalOverlayClose {
-    from {
-        background-color: var(--overlay);
-    }
+  from {
+    background-color: var(--overlay);
+  }
 
-    to {
-        background-color: transparent;
-    }
+  to {
+    background-color: transparent;
+  }
 }
 
 @keyframes modalOpen {
-    from {
-        opacity: 0;
-        transform: translateY(24px);
-        backdrop-filter: blur(0px);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+    backdrop-filter: blur(0px);
+  }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-        backdrop-filter: blur(24px);
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    backdrop-filter: blur(24px);
+  }
 }
 
 @keyframes modalClose {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-        backdrop-filter: blur(24px);
-    }
+  from {
+    opacity: 1;
+    transform: translateY(0);
+    backdrop-filter: blur(24px);
+  }
 
-    to {
-        opacity: 0;
-        transform: translateY(24px);
-        backdrop-filter: blur(0px);
-    }
+  to {
+    opacity: 0;
+    transform: translateY(24px);
+    backdrop-filter: blur(0px);
+  }
 }
 
 @layer utilities {
-    .animate-modal-overlay-open {
-        animation: modalOverlayOpen 0.2s ease-out forwards;
-    }
+  .animate-modal-overlay-open {
+    animation: modalOverlayOpen 0.2s ease-out forwards;
+  }
 
-    .animate-modal-overlay-close {
-        animation: modalOverlayClose 0.2s ease-out forwards;
-    }
+  .animate-modal-overlay-close {
+    animation: modalOverlayClose 0.2s ease-out forwards;
+  }
 
-    .animate-modal-open {
-        animation: modalOpen 0.2s ease-out forwards;
-    }
+  .animate-modal-open {
+    animation: modalOpen 0.2s ease-out forwards;
+  }
 
-    .animate-modal-close {
-        animation: modalClose 0.2s ease-out forwards;
-    }
+  .animate-modal-close {
+    animation: modalClose 0.2s ease-out forwards;
+  }
 }

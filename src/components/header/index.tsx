@@ -16,9 +16,9 @@ const Header = () => {
       <nav className="flex gap-0 md:gap-2">
         <ThemeSwitcher />
         <HeaderLink to="/resume">resume</HeaderLink>
-        <HeaderLink onClick={open}>contact</HeaderLink>
+        {/* <HeaderLink onClick={open}>contact</HeaderLink> */}
       </nav>
-      {isOpen && <Modal onClose={close}> contact popup </Modal>}
+      {/* {isOpen && <Modal onClose={close}> contact popup </Modal>} */}
     </header>
   );
 };

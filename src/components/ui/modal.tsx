@@ -69,13 +69,15 @@ const Modal = ({
         role="dialog"
         aria-modal="true"
       >
-        <div className="flex flex-col g-6 [&_p]:max-w-[540px] bg-background/95 p-24 rounded-[44px] w-full max-w-[960px] max-h-[calc(100vh-48px)] md:max-h-[75vh] overflow-y-scroll">
+        <div className="flex no-scrollbar flex-col g-6 [&_p]:max-w-[540px] bg-background/95 p-8 md:p-24 rounded-[44px] w-full max-w-[960px] max-h-[calc(100vh-48px)] md:max-h-[75vh] overflow-y-scroll ">
           {children}
-          <Button onClick={handleClose}>Close</Button>
+          <Button onClick={handleClose} className="w-fit">
+            Close
+          </Button>
         </div>
       </div>
     </div>,
-    document.body,
+    document.body
   );
 };
 
