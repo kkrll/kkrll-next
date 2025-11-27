@@ -38,7 +38,7 @@ const WorkItem = ({ job }: { job: JobsType }) => {
               options={carouselOptions}
               carouselName={company + "projects"}
             >
-              {projects.map((project, index) => {
+              {projects.map((project) => {
                 switch (project.type) {
                   case "video":
                     return (
@@ -47,14 +47,29 @@ const WorkItem = ({ job }: { job: JobsType }) => {
                         className="flex flex-col md:flex-row gap-8 mb-4 embla__slide"
                       >
                         {project.file && (
-                          <video
-                            src={getR2Url(project.file)}
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            className="relative max-h-[480px] w-fit rounded-4xl border-8 border-background-07"
-                          />
+                          <>
+                            {/* Desktop: original approach */}
+                            <video
+                              src={getR2Url(project.file)}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              className="hidden md:block relative max-h-[480px] rounded-4xl border-8 border-background-07"
+                            />
+                            {/* Mobile: wrapper approach for Safari */}
+                            <div className="relative w-fit md:hidden">
+                              <video
+                                src={getR2Url(project.file)}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="block  max-h-[480px] w-auto rounded-4xl border-8 border-background-07"
+                                style={{ display: "block" }}
+                              />
+                            </div>
+                          </>
                         )}
                         <div className="flex flex-col h-full gap-4">
                           <h3 className="font-mono uppercase">

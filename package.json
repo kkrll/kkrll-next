@@ -18,6 +18,8 @@
     "@next/mdx": "^15.5.4",
     "@supabase/supabase-js": "^2.80.0",
     "@types/mdx": "^2.0.13",
+    "@vercel/analytics": "^1.5.0",
+    "@vercel/speed-insights": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "embla-carousel-fade": "^8.6.0",
