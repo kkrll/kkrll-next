@@ -204,10 +204,9 @@ const ProfessionalCards = () => {
       </IntroPoint>
       <div className="grid-1-to-3">
         <div />
-        <div className="flex gap-12">
-          <div className="flex flex-col md:flex-row gap-6 md:gap-12">
+        <div className="flex flex-col md:flex-row gap-6 md:gap-12">
+          <div className="flex flex-col gap-1">
             <p className="text-secondary">Target conversion on mobile</p>
-
             <p className="text-2xl font-medium font-mono">~40% increase</p>
           </div>
           <div className="flex flex-col gap-1">

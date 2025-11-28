@@ -98,7 +98,7 @@ export default function HeroAscii({
         const randomOffset = (Math.random() - 0.5) * 2;
         const baseLevel = Math.max(
           0,
-          Math.min(4, Math.floor(gradientLevel + randomOffset)),
+          Math.min(4, Math.floor(gradientLevel + randomOffset))
         );
 
         newGrid.push({
@@ -193,7 +193,7 @@ export default function HeroAscii({
               const randomOffset = (Math.random() - 0.5) * 2;
               const baseLevel = Math.max(
                 0,
-                Math.min(4, Math.floor(gradientLevel + randomOffset)),
+                Math.min(4, Math.floor(gradientLevel + randomOffset))
               );
 
               newGrid.push({
@@ -208,7 +208,7 @@ export default function HeroAscii({
       }
       gridRef.current = newGrid;
     },
-    [getCanvasDimensions, drawingMode],
+    [getCanvasDimensions, drawingMode]
   );
 
   const handleWindowResize = useCallback(() => {
@@ -254,7 +254,7 @@ export default function HeroAscii({
       ctx.fillStyle = fg;
       ctx.fillText(asciiCharsDrawRef.current[cell.currentLevel] || "", x, y);
     },
-    [],
+    []
   );
 
   const getCellAtPosition = useCallback(
@@ -271,7 +271,7 @@ export default function HeroAscii({
       const index = row * cols + col;
       return gridRef.current[index];
     },
-    [],
+    []
   );
 
   const handleDraw = useCallback(
@@ -309,9 +309,7 @@ export default function HeroAscii({
               case "increment":
                 cell.currentLevel = Math.min(
                   cell.currentLevel + 1,
-                  asciiCharsDrawRef.current.length -
-                  DRAW_ASCII_CHARS.length -
-                  1,
+                  asciiCharsDrawRef.current.length - DRAW_ASCII_CHARS.length - 1
                 );
                 break;
               case "decrement":
@@ -328,7 +326,7 @@ export default function HeroAscii({
         animationFrameRef.current = undefined;
       });
     },
-    [getCellAtPosition, drawCell],
+    [getCellAtPosition, drawCell]
   );
 
   const handleStart = useCallback(
@@ -336,7 +334,7 @@ export default function HeroAscii({
       isDraggingRef.current = true;
       handleDraw(e);
     },
-    [handleDraw],
+    [handleDraw]
   );
 
   const handleEnd = useCallback(() => {
@@ -366,7 +364,7 @@ export default function HeroAscii({
 
   const handleToggleMode = useCallback(() => {
     track(
-      drawingMode ? "ascii_drawing_mode_exited" : "ascii_drawing_mode_entered",
+      drawingMode ? "ascii_drawing_mode_exited" : "ascii_drawing_mode_entered"
     );
 
     if (drawingMode) {
@@ -460,7 +458,7 @@ export default function HeroAscii({
           file,
           cols,
           rows,
-          IMAGE_ASCII_CHARS,
+          IMAGE_ASCII_CHARS
         );
 
         gridRef.current = convertedGrid;
@@ -477,7 +475,7 @@ export default function HeroAscii({
         setIsConverting(false);
       }
     },
-    [getCanvasDimensions, renderGrid, track],
+    [getCanvasDimensions, renderGrid, track]
   );
 
   const handlePaste = useCallback(
@@ -497,7 +495,7 @@ export default function HeroAscii({
         }
       }
     },
-    [handleImageUpload],
+    [handleImageUpload]
   );
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: initialize canvas and attach listeners once
@@ -543,14 +541,15 @@ export default function HeroAscii({
       });
       setSelectedSymbol(index);
     },
-    [track],
+    [track]
   );
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: Full-screen interactive canvas container
     <div
-      className={`absolute t-0 l-0 w-full h-screen overflow-hidden ${drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
-        } transition-opacity duration-300`}
+      className={`absolute top-0 left-0 w-full h-screen overflow-hidden ${
+        drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
+      } transition-opacity duration-300`}
       role="button"
       tabIndex={drawingMode ? -1 : 0}
       onMouseDown={() => {
@@ -569,8 +568,9 @@ export default function HeroAscii({
 
       <canvas
         ref={canvasRef}
-        className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${drawingMode ? "fixed" : "absolute"
-          }`}
+        className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${
+          drawingMode ? "fixed" : "absolute"
+        }`}
       />
 
       {drawingMode && (

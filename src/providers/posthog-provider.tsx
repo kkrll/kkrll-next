@@ -7,6 +7,10 @@ import { useEffect } from "react";
 export function PHProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window !== "undefined") {
+      if (process.env.NODE_ENV === "development") {
+        console.log("[PostHog] Disabled in development");
+        return;
+      }
       const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
       const host =
         process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
@@ -28,14 +32,7 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
               }
             },
           });
-        } catch (error) {
-          if (process.env.NODE_ENV === "development") {
-            console.warn(
-              "ProstHog is likely blocked by browser extension:",
-              error
-            );
-          }
-        }
+        } catch (error) {}
       } else {
         console.warn("PostHog key not found. Analytics will not work.");
       }

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   ReactNode,
@@ -10,7 +10,7 @@ import {
 } from "react";
 
 import useEmblaCarousel from "embla-carousel-react";
-import { PrevButton, NextButton, usePrevNextButtons } from "./carouselButtons";
+import { usePrevNextButtons, CarouselButton } from "./carouselButtons";
 import { ArrowLeftIcon, ArrowRightIcon } from "./icons";
 import Fade from "embla-carousel-fade";
 
@@ -89,19 +89,19 @@ const Carousel = ({
 
       if (e.key === "ArrowRight" || e.key === "l") {
         onNextButtonClick();
-        nextButtonRef.current?.classList.add('active-pressed');
+        nextButtonRef.current?.classList.add("active-pressed");
       }
       if (e.key === "ArrowLeft" || e.key === "j") {
         onPrevButtonClick();
-        prevButtonRef.current?.classList.add('active-pressed');
+        prevButtonRef.current?.classList.add("active-pressed");
       }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight" || e.key === "l") {
-        nextButtonRef.current?.classList.remove('active-pressed');
+        nextButtonRef.current?.classList.remove("active-pressed");
       }
       if (e.key === "ArrowLeft" || e.key === "j") {
-        prevButtonRef.current?.classList.remove('active-pressed');
+        prevButtonRef.current?.classList.remove("active-pressed");
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -118,19 +118,29 @@ const Carousel = ({
         <div className="embla__container">{children}</div>
       </div>
 
-      {nbSlides > 1 && (<div className="embla__controls font-mono justify-between flex items-center w-full">
-        <div className="embla__buttons">
-          <PrevButton onClick={onPrevButtonClick} disabled={prevBtnDisabled} ref={prevButtonRef}>
-            <ArrowLeftIcon size={16} />
-          </PrevButton>
-          <NextButton onClick={onNextButtonClick} disabled={nextBtnDisabled} ref={nextButtonRef}>
-            <ArrowRightIcon size={16} />
-          </NextButton>
+      {nbSlides > 1 && (
+        <div className="embla__controls font-mono justify-between flex items-center w-full">
+          <div className="embla__buttons">
+            <CarouselButton
+              onClick={onPrevButtonClick}
+              disabled={prevBtnDisabled}
+              ref={prevButtonRef}
+            >
+              <ArrowLeftIcon size={16} />
+            </CarouselButton>
+            <CarouselButton
+              onClick={onNextButtonClick}
+              disabled={nextBtnDisabled}
+              ref={nextButtonRef}
+            >
+              <ArrowRightIcon size={16} />
+            </CarouselButton>
+          </div>
+          {emblaApi && (
+            <p className="text-right mr-4">{`${currentSlide} / ${nbSlides}`}</p>
+          )}
         </div>
-        {emblaApi && (
-          <p className="text-right mr-4">{`${currentSlide} / ${nbSlides}`}</p>
-        )}
-      </div>)}
+      )}
     </section>
   );
 };
