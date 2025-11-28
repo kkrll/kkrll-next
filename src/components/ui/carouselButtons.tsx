@@ -55,39 +55,20 @@ export const usePrevNextButtons = (
 
 type PropType = ComponentPropsWithRef<"button">;
 
-export const PrevButton = React.forwardRef<HTMLButtonElement, PropType>(
+export const CarouselButton = React.forwardRef<HTMLButtonElement, PropType>(
   (props, ref) => {
     const { children, ...restProps } = props;
     return (
       <button
         ref={ref}
-        className="embla__button embla__button--prev nice-button"
+        className="embla__button nice-button"
+        onTouchStart={() => navigator.vibrate(10)}
+        onTouchEnd={() => navigator.vibrate(10)}
         type="button"
         {...restProps}
       >
-        <span>
-          {children}
-        </span>
+        <span>{children}</span>
       </button>
     );
   }
 );
-PrevButton.displayName = 'PrevButton';
-
-export const NextButton = React.forwardRef<HTMLButtonElement, PropType>(
-  (props, ref) => {
-    const { children, ...restProps } = props;
-    return (
-      <button
-        className="embla__button embla__button--next nice-button"
-        type="button"
-        ref={ref}
-        {...restProps}
-      >
-        <span>
-          {children}
-        </span>
-      </button>
-    );
-  }
-)

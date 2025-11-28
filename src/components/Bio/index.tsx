@@ -16,24 +16,24 @@ const Bio = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "b" || e.key === '1') {
+      if (e.key === "b" || e.key === "1") {
         e.preventDefault();
-        setDrawingMode('brush');
+        setDrawingMode("brush");
       }
-      if (drawingMode && e.key === "2" || e.key === "d") {
+      if ((drawingMode && e.key === "2") || (drawingMode && e.key === "d")) {
         e.preventDefault();
-        setDrawingMode('decrement');
+        setDrawingMode("decrement");
       }
-      if (drawingMode && e.key === "3" || e.key === "l") {
+      if ((drawingMode && e.key === "3") || (drawingMode && e.key === "l")) {
         e.preventDefault();
-        setDrawingMode('increment');
+        setDrawingMode("increment");
       }
       if (drawingMode && e.key === "Escape") {
         e.preventDefault();
         setDrawingMode(null);
       }
     };
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
     if (drawingMode) {
       document.body.style.overflow = "hidden";
     } else {
@@ -42,7 +42,7 @@ const Bio = () => {
 
     return () => {
       document.body.style.overflow = "";
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [drawingMode]);
 
@@ -59,7 +59,6 @@ const Bio = () => {
           }
         }}
       />{" "}
-      <div className="absolute left-0 right-0 top-0 h-48 bg-gradient-to-b from-background to-transparent opacity-80 " />
       {/* Bio content - hidden in drawing mode */}
       {!drawingMode ? (
         <section className="relative min-h-hero md:min-h-[70vh] pt-[40vh] md:pt-[50vh] px-default z-10">
@@ -97,13 +96,13 @@ const Bio = () => {
               // className="underline bg-background w-fit"
               href="mailto:k_kov@hotmail.com?subject=Hey%20Kiryl!%20Big%20fan%20of%20yours..."
             >
-              <span>
-                Email me
-              </span>
+              <span>Email me</span>
             </a>
             <button
               className="opacity-0 group-hover:opacity-100 cursor-pointer uppercase font-mono text-background-05 hover:text-foreground-07 transition-colors duration-100"
               type="button"
+              onTouchStart={() => navigator.vibrate(10)}
+              onTouchEnd={() => navigator.vibrate(10)}
               onClick={() => {
                 navigator.clipboard.writeText("k_kov@hotmail.com");
                 setIsCopied(true);
