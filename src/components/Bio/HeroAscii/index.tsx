@@ -11,11 +11,11 @@ import {
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTracking } from "@/hooks/useTracking";
 import {
-  DRAW_ASCII_CHARS,
   CHAR_HEIGHT,
   CHAR_WIDTH,
   FONT,
   IMAGE_ASCII_CHARS,
+  STYLES,
 } from "./constants";
 import type { CharCell, Colors } from "./types";
 import SymbolSelector from "./SymbolSelector";
@@ -41,13 +41,12 @@ export default function HeroAscii({
   const isDraggingRef = useRef(false);
   const colorsRef = useRef<Colors>({ bg: "", fg: "" });
   const animationFrameRef = useRef<number | undefined>(undefined);
-  const asciiCharsDrawRef = useRef<string[]>([
-    ...IMAGE_ASCII_CHARS,
-    ...DRAW_ASCII_CHARS,
-  ]);
+  const asciiCharsDrawRef = useRef<string[]>([...IMAGE_ASCII_CHARS]);
   const selectedSymbolRef = useRef(8);
   const drawingModeRef = useRef(drawingMode);
   const lastDrawnCellRef = useRef<{ row: number; col: number } | null>(null);
+  const invertRef = useRef<boolean>(false);
+  const styleRef = useRef<"Ascii" | "Dot">("Ascii");
 
   const [selectedSymbol, setSelectedSymbol] = useState(8);
   const [isResizing, setIsResizing] = useState<boolean>(false);
@@ -56,6 +55,8 @@ export default function HeroAscii({
   const { track } = useTracking();
   const theme = useThemeStore((state) => state.theme);
 
+  const [style, setStyle] = useState<"Ascii" | "Dot">("Ascii");
+
   useEffect(() => {
     selectedSymbolRef.current = selectedSymbol;
   }, [selectedSymbol]);
@@ -63,6 +64,11 @@ export default function HeroAscii({
   useEffect(() => {
     drawingModeRef.current = drawingMode;
   }, [drawingMode]);
+
+  const mapLevel = useCallback((level: number) => {
+    const maxLevel = asciiCharsDrawRef.current.length - 1;
+    return invertRef.current ? maxLevel - level : level;
+  }, []);
 
   const getCanvasDimensions = useCallback((canvas: HTMLCanvasElement) => {
     return {
@@ -133,12 +139,32 @@ export default function HeroAscii({
     gridRef.current.forEach((cell) => {
       const x = cell.col * CHAR_WIDTH;
       const y = cell.row * CHAR_HEIGHT;
-      ctx.fillText(asciiCharsDrawRef.current[cell.currentLevel] || "", x, y);
+      if (styleRef.current === "Dot") {
+        const radius = mapLevel(cell.currentLevel) / 1.66;
+        const centerX = x + CHAR_WIDTH / 2;
+        const centerY = y + CHAR_HEIGHT / 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+        ctx.fill();
+      } else {
+        ctx.fillText(
+          asciiCharsDrawRef.current[mapLevel(cell.currentLevel)] || "",
+          x,
+          y
+        );
+      }
     });
-  }, [updateColors]);
+  }, [updateColors, mapLevel]);
+
+  useEffect(() => {
+    styleRef.current = style;
+    renderGrid();
+  }, [style, renderGrid]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: subscribe to theme changes
   useEffect(() => {
+    invertRef.current = theme === "light";
+    console.log("theme:", theme, "invert:", invertRef.current);
     requestAnimationFrame(() => {
       renderGrid();
     });
@@ -252,7 +278,21 @@ export default function HeroAscii({
       ctx.fillRect(x, y, CHAR_WIDTH, CHAR_HEIGHT);
 
       ctx.fillStyle = fg;
-      ctx.fillText(asciiCharsDrawRef.current[cell.currentLevel] || "", x, y);
+
+      if (styleRef.current === "Dot") {
+        // Draw circle
+        const radius = cell.currentLevel / 1.66;
+        const centerX = x + CHAR_WIDTH / 2;
+        const centerY = y + CHAR_HEIGHT / 2;
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Draw ASCII character (existing code)
+
+        ctx.fillText(asciiCharsDrawRef.current[cell.currentLevel], x, y);
+      }
     },
     []
   );
@@ -309,7 +349,7 @@ export default function HeroAscii({
               case "increment":
                 cell.currentLevel = Math.min(
                   cell.currentLevel + 1,
-                  asciiCharsDrawRef.current.length - DRAW_ASCII_CHARS.length - 1
+                  asciiCharsDrawRef.current.length - 1
                 );
                 break;
               case "decrement":
@@ -576,11 +616,23 @@ export default function HeroAscii({
       {drawingMode && (
         <div className="fixed top-4 right-4 left-4 flex justify-between p-4 gap-2 z-200 bg-foreground/10 text-foreground rounded-xl backdrop-blur">
           <div className="flex gap-2">
+            <NavButton
+              text={style}
+              onClick={() =>
+                setStyle(
+                  STYLES.indexOf(style) === STYLES.length - 1
+                    ? STYLES[0]
+                    : STYLES[STYLES.indexOf(style) + 1]
+                )
+              }
+            />
+            <Divider vertical className="bg-foreground-05 mx-2" />
             <SymbolSelector
               selectedSymbol={selectedSymbol}
               onSelectSymbol={handleSelectSymbol}
               onModeSelect={() => setMode("brush")}
               isSelected={drawingMode === "brush"}
+              style={style}
             />
             <Divider vertical className="bg-foreground-05 mx-2" />
             <div className="flex gap-2">
