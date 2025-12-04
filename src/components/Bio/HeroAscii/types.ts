@@ -3,6 +3,7 @@ export interface CharCell {
   currentLevel: number;
   col: number;
   row: number;
+  isTransparent?: boolean;
 }
 
 export interface Colors {

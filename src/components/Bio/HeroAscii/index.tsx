@@ -1,12 +1,12 @@
 "use client";
 
 import {
+  Dispatch,
+  SetStateAction,
   useCallback,
   useEffect,
   useRef,
   useState,
-  Dispatch,
-  SetStateAction,
 } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTracking } from "@/hooks/useTracking";
@@ -26,6 +26,8 @@ import convertImageToGrid from "./imageToAscii";
 import { generateAsciiTxt, uploadAsciiToR2 } from "./asciiSavingUtils";
 import NavButton from "./NavButton";
 import Divider from "@/components/Divider";
+import { renderCell, RenderSettings } from "./renderingUtils";
+import { loadRandomImage } from "./imageLoader";
 
 export default function HeroAscii({
   drawingMode,
@@ -45,8 +47,10 @@ export default function HeroAscii({
   const selectedSymbolRef = useRef(8);
   const drawingModeRef = useRef(drawingMode);
   const lastDrawnCellRef = useRef<{ row: number; col: number } | null>(null);
-  const invertRef = useRef<boolean>(false);
-  const styleRef = useRef<"Ascii" | "Dot">("Ascii");
+  const renderSettingsRef = useRef<RenderSettings>({
+    style: "Ascii",
+    invert: false,
+  });
 
   const [selectedSymbol, setSelectedSymbol] = useState(8);
   const [isResizing, setIsResizing] = useState<boolean>(false);
@@ -64,11 +68,6 @@ export default function HeroAscii({
   useEffect(() => {
     drawingModeRef.current = drawingMode;
   }, [drawingMode]);
-
-  const mapLevel = useCallback((level: number) => {
-    const maxLevel = asciiCharsDrawRef.current.length - 1;
-    return invertRef.current ? maxLevel - level : level;
-  }, []);
 
   const getCanvasDimensions = useCallback((canvas: HTMLCanvasElement) => {
     return {
@@ -90,33 +89,38 @@ export default function HeroAscii({
     };
   }, []);
 
-  const initGrid = useCallback(() => {
+  const initGrid = useCallback(async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const { cols, rows } = getCanvasDimensions(canvas);
-    const newGrid: CharCell[] = [];
 
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        const gradientProgress = 1 - row / (rows - 1);
-        const gradientLevel = gradientProgress * 4;
-        const randomOffset = (Math.random() - 0.5) * 2;
-        const baseLevel = Math.max(
-          0,
-          Math.min(4, Math.floor(gradientLevel + randomOffset))
-        );
+    try {
+      const file = await loadRandomImage();
 
-        newGrid.push({
-          baseLevel,
-          currentLevel: baseLevel,
-          col,
-          row,
-        });
+      const convertedGrid = await convertImageToGrid(
+        file,
+        cols,
+        rows,
+        IMAGE_ASCII_CHARS
+      );
+      gridRef.current = convertedGrid;
+    } catch (error) {
+      console.error("Failed to load initial image, using blank canvas:", error);
+
+      const blankGrid: CharCell[] = [];
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          blankGrid.push({
+            baseLevel: 0,
+            currentLevel: 0,
+            col,
+            row,
+          });
+        }
       }
+      gridRef.current = blankGrid;
     }
-
-    gridRef.current = newGrid;
   }, [getCanvasDimensions]);
 
   const renderGrid = useCallback(() => {
@@ -139,32 +143,25 @@ export default function HeroAscii({
     gridRef.current.forEach((cell) => {
       const x = cell.col * CHAR_WIDTH;
       const y = cell.row * CHAR_HEIGHT;
-      if (styleRef.current === "Dot") {
-        const radius = mapLevel(cell.currentLevel) / 1.66;
-        const centerX = x + CHAR_WIDTH / 2;
-        const centerY = y + CHAR_HEIGHT / 2;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-        ctx.fill();
-      } else {
-        ctx.fillText(
-          asciiCharsDrawRef.current[mapLevel(cell.currentLevel)] || "",
-          x,
-          y
-        );
-      }
+      renderCell(
+        ctx,
+        cell,
+        renderSettingsRef.current,
+        x,
+        y,
+        asciiCharsDrawRef.current
+      );
     });
-  }, [updateColors, mapLevel]);
+  }, [updateColors]);
 
   useEffect(() => {
-    styleRef.current = style;
+    renderSettingsRef.current.style = style;
     renderGrid();
   }, [style, renderGrid]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: subscribe to theme changes
   useEffect(() => {
-    invertRef.current = theme === "light";
-    console.log("theme:", theme, "invert:", invertRef.current);
+    renderSettingsRef.current.invert = theme === "light";
     requestAnimationFrame(() => {
       renderGrid();
     });
@@ -206,35 +203,23 @@ export default function HeroAscii({
               row,
             });
           } else {
-            if (drawingMode) {
-              newGrid.push({
-                baseLevel: 0,
-                currentLevel: 0,
-                col,
-                row,
-              });
-            } else {
-              const gradientProgress = 1 - row / (newRows - 1);
-              const gradientLevel = gradientProgress * 4;
-              const randomOffset = (Math.random() - 0.5) * 2;
-              const baseLevel = Math.max(
-                0,
-                Math.min(4, Math.floor(gradientLevel + randomOffset))
-              );
-
-              newGrid.push({
-                baseLevel,
-                currentLevel: baseLevel,
-                col,
-                row,
-              });
-            }
+            // New cells are blank (respects invert mode)
+            newGrid.push({
+              baseLevel: renderSettingsRef.current.invert
+                ? asciiCharsDrawRef.current.length - 1
+                : 0,
+              currentLevel: renderSettingsRef.current.invert
+                ? asciiCharsDrawRef.current.length - 1
+                : 0,
+              col,
+              row,
+            });
           }
         }
       }
       gridRef.current = newGrid;
     },
-    [getCanvasDimensions, drawingMode]
+    [getCanvasDimensions]
   );
 
   const handleWindowResize = useCallback(() => {
@@ -247,7 +232,12 @@ export default function HeroAscii({
     if (gridRef.current.length > 0) {
       resizeGridPerephery(newWidth, newHeight);
     } else {
-      initGrid();
+      const reinit = async () => {
+        await initGrid();
+        renderGrid();
+      };
+      reinit();
+      return;
     }
 
     canvas.width = newWidth;
@@ -279,7 +269,7 @@ export default function HeroAscii({
 
       ctx.fillStyle = fg;
 
-      if (styleRef.current === "Dot") {
+      if (renderSettingsRef.current.style === "Dot") {
         // Draw circle
         const radius = cell.currentLevel / 1.66;
         const centerX = x + CHAR_WIDTH / 2;
@@ -548,8 +538,12 @@ export default function HeroAscii({
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    initGrid();
-    renderGrid();
+
+    const initializeGrid = async () => {
+      await initGrid();
+      renderGrid();
+    };
+    initializeGrid();
 
     window.addEventListener("resize", triggerResize);
 

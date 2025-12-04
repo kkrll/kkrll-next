@@ -206,27 +206,36 @@ See `src/components/Bio/HeroAscii/TRACKING.md` for detailed event documentation.
 
 ```
 HeroAscii/
-├── constants.ts              # ASCII chars, dimensions, font config
+├── constants.ts              # ASCII chars, dimensions, font config, styles
 ├── types.ts                  # TypeScript interfaces (CharCell, Colors)
+├── renderingUtils.ts         # Pure rendering functions (renderCell, mapLevel)
 ├── imageToAscii.ts          # Image-to-ASCII conversion utility
 ├── asciiSavingUtils.ts      # TXT generation + R2 upload utilities
 ├── ImageUploadButton.tsx    # File picker button component
 ├── NavButton.tsx             # Reusable button component
 ├── DrawingControls.tsx       # Action buttons (Clear/Save/Exit)
 ├── ResizingIndicator.tsx     # Loading overlay during resize
-├── SymbolSelector.tsx        # Brush thickness slider with tapered gradient
+├── SymbolSelector.tsx        # Brush thickness slider with visual preview
 ├── styles.css                # Custom slider styling
 ├── TRACKING.md               # PostHog event documentation
 └── index.tsx                 # Main component (~480 lines)
 ```
 
+**Rendering Modes**:
+
+- **ASCII mode**: Renders using character set (` • ∗ ※ @ W`)
+- **Dot mode**: Renders as circles with radius proportional to level
+- Toggle between modes preserves drawing
+- Theme changes invert brightness levels (light mode = inverted)
+- Rendering logic extracted to pure functions in `renderingUtils.ts`
+
 **Image-to-ASCII Conversion**:
 
 - Upload images via file picker, drag-drop, or Cmd+V paste
-- Converts pixel brightness to ASCII characters using 6-char set (` • ∗ ※ @ W`)
+- Converts pixel brightness to ASCII levels using 6-level scale
 - Maintains aspect ratio accounting for character dimensions (10px × 16px)
 - Applies monochrome conversion + gamma correction for contrast
-- Converted grid can be edited with drawing tools or exported
+- Converted grid editable with drawing tools, switchable between modes
 
 **Save & Share**:
 
@@ -234,12 +243,11 @@ HeroAscii/
 - **Save as TXT**: Downloads TXT locally + uploads to R2 + copies shareable link
 - **TXT Format**: Metadata header (chars, created, theme, dimensions) + ASCII art
 - **Storage**: R2 bucket at `ascii/{timestamp}-{random}.txt`
-- **Utils**: `generateAsciiTxt()` and `uploadAsciiToR2()` in `asciiSavingUtils.ts`
 
 **Key Features**:
 
-- Interactive fullscreen ASCII art canvas
-- Brush thickness slider controlling character selection from combined IMAGE_ASCII_CHARS + DRAW_ASCII_CHARS arrays
+- Interactive fullscreen canvas with multiple rendering modes
+- Brush thickness slider with live preview (ASCII char or dot circle)
 - Preserves drawing during window resize (center-anchored)
 - Export as PNG or TXT (both upload to R2 for sharing)
 - RAF-throttled drawing for 60fps performance
@@ -249,18 +257,17 @@ HeroAscii/
 **Performance Patterns**:
 
 - Uses refs for non-UI state (avoids re-renders)
+- Single `renderSettingsRef` for all rendering params (style, invert)
 - `selectedSymbol` state for UI + `selectedSymbolRef` for drawing logic
-- `asciiCharsDrawRef` for character array (ref to prevent re-renders)
 - `requestAnimationFrame` throttling for mousemove events
 - Color caching via `colorsRef` (avoids expensive `getComputedStyle()` calls)
-- Debounced resize with visual feedback
+- Pure rendering functions in `renderingUtils.ts` (testable, no side effects)
 
 **Resize Behavior**:
 
-- Preserves center content when resizing
+- Preserves center content when resizing (center-anchored)
 - Adds/removes columns and rows from edges
-- In drawing mode: new cells are blank
-- In normal mode: new cells get gradient
+- New cells are blank (respects invert mode for color)
 - Shows "Resizing..." indicator during resize
 
 **Do NOT**:

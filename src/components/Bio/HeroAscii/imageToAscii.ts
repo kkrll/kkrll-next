@@ -1,6 +1,5 @@
 import type { CharCell } from "./types";
 import { CHAR_WIDTH, CHAR_HEIGHT } from "./constants";
-import { useCallback } from "react";
 
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -23,7 +22,7 @@ async function convertImageToGrid(
   file: File,
   cols: number,
   rows: number,
-  asciiChars: string[],
+  asciiChars: string[]
 ): Promise<CharCell[]> {
   try {
     if (!file.type.startsWith("image/")) {
@@ -67,43 +66,41 @@ async function convertImageToGrid(
       offsetX,
       offsetY,
       drawWidth,
-      drawHeight,
+      drawHeight
     );
     const imageData = ctx.getImageData(
       0,
       0,
       tempCanvas.width,
-      tempCanvas.height,
+      tempCanvas.height
     );
     const data = imageData.data;
-
-    const adjustContrast = (normalized: number) => {
-      if (normalized < 0.4) {
-        return normalized ** (1 / 1.5);
-      }
-      if (normalized > 0.6) {
-        return normalized ** 1.3;
-      }
-      return normalized;
-    };
 
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
+      const a = data[i + 3];
 
-      const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      if (a < 56) {
+        data[i] = 0;
+        data[i + 1] = 0;
+        data[i + 2] = 0;
+        data[i + 3] = 0;
+      } else {
+        const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
-      const normalized = luminance / 255;
-      // const contrast = 1;
-      const adjusted =
-        normalized > 0.6 ? normalized ** (1 / 1.5) : normalized ** 1.3;
-      // const adjusted = adjustContrast(normalized);
-      const final = Math.round(adjusted * 255);
+        const normalized = luminance / 255;
+        // const contrast = 1;
+        const adjusted =
+          normalized > 0.6 ? normalized ** (1 / 1.5) : normalized ** 1.3;
+        // const adjusted = adjustContrast(normalized);
+        const final = Math.round(adjusted * 255);
 
-      data[i] = final;
-      data[i + 1] = final;
-      data[i + 2] = final;
+        data[i] = final;
+        data[i + 1] = final;
+        data[i + 2] = final;
+      }
     }
 
     ctx.putImageData(imageData, 0, 0);
@@ -111,18 +108,34 @@ async function convertImageToGrid(
     const grid: CharCell[] = [];
     for (let i = 0; i < data.length; i += 4) {
       const gray = data[i]; // Now all RGB channels are equal (monochrome)
-      let level = Math.floor((gray / 255) * (asciiChars.length - 1));
-      level = Math.max(0, Math.min(level, asciiChars.length - 1));
+      const alpha = data[i + 3];
+
       const index = Math.floor(i / 4);
       const col = index % cols;
       const row = Math.floor(index / cols);
 
-      grid.push({
-        baseLevel: level,
-        currentLevel: level,
-        col,
-        row,
-      });
+      if (alpha < 56) {
+        // Transparent pixel - mark it for dynamic inversion at render time
+        grid.push({
+          baseLevel: 0,
+          currentLevel: 0,
+          col,
+          row,
+          isTransparent: true,
+        });
+      } else {
+        // Opaque pixel - convert brightness to level
+        let level = Math.floor((gray / 255) * (asciiChars.length - 1));
+        level = Math.max(0, Math.min(level, asciiChars.length - 1));
+
+        grid.push({
+          baseLevel: level,
+          currentLevel: level,
+          col,
+          row,
+          isTransparent: false,
+        });
+      }
     }
     return grid;
   } catch (error) {

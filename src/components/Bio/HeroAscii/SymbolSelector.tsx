@@ -47,6 +47,7 @@ const SymbolSelector = memo(
         <span className="flex items-center justify-center font-mono text-xs w-8 h-8 rounded-lg text-center bg-background/70 text-foreground">
           {style === "Dot" ? (
             <svg width="32" height="32" viewBox="0 0 32 32">
+              <title>brush size</title>
               <circle
                 cx="16"
                 cy="16"
