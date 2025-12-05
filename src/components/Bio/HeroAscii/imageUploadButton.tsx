@@ -40,7 +40,7 @@ const ImageUploadButton = memo(
         />
       </>
     );
-  }
+  },
 );
 
 ImageUploadButton.displayName = "ImageUploadButton";

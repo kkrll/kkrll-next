@@ -31,6 +31,6 @@ export const useNavigationStore = create<NavigationStore>()(
     }),
     {
       name: "navigation-storage", // localStorage key
-    }
-  )
+    },
+  ),
 );

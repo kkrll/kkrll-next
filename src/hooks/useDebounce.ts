@@ -4,10 +4,11 @@ import { useEffect, useRef } from "react";
  * Returns a debounced version of a callback function
  * The callback will only be called after it hasn't been called for `delay` milliseconds
  */
-export function useDebounce<T extends (...args: unknown[]) => void>(
+// biome-ignore lint/suspicious/noExplicitAny: Generic callback type requires flexibility
+export function useDebounce<T extends (...args: any[]) => any>(
   callback: T,
-  delay: number
-): T {
+  delay: number,
+): (...args: Parameters<T>) => void {
   const timeoutRef = useRef<NodeJS.Timeout>(undefined);
   const callbackRef = useRef(callback);
 
@@ -25,7 +26,7 @@ export function useDebounce<T extends (...args: unknown[]) => void>(
     };
   }, []);
 
-  const debouncedCallback = useRef(((...args: Parameters<T>) => {
+  const debouncedCallback = useRef((...args: Parameters<T>) => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -33,7 +34,7 @@ export function useDebounce<T extends (...args: unknown[]) => void>(
     timeoutRef.current = setTimeout(() => {
       callbackRef.current(...args);
     }, delay);
-  }) as T);
+  });
 
   return debouncedCallback.current;
 }

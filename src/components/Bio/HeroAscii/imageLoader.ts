@@ -1,5 +1,5 @@
 export async function loadRandomImage(): Promise<File> {
-  const IMAGE_COUNT = 2;
+  const IMAGE_COUNT = 3;
 
   const randomIndex = Math.floor(Math.random() * IMAGE_COUNT) + 1;
   const imagePath = `/ascii-init/${randomIndex}.webp`;

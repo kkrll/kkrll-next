@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  Dispatch,
-  SetStateAction,
+  type Dispatch,
+  type SetStateAction,
   useCallback,
   useEffect,
   useRef,
@@ -11,23 +11,45 @@ import {
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTracking } from "@/hooks/useTracking";
 import {
-  CHAR_HEIGHT,
-  CHAR_WIDTH,
+  DEFAULT_CELL_HEIGHT,
+  DEFAULT_CELL_WIDTH,
   FONT,
   IMAGE_ASCII_CHARS,
   STYLES,
 } from "./constants";
-import type { CharCell, Colors } from "./types";
+import type {
+  CellSize,
+  ColorCharCell,
+  ColorMode,
+  Colors,
+  EditOverlay,
+  FitMode,
+  SourceImage,
+} from "./types";
 import SymbolSelector from "./SymbolSelector";
 import DrawingControls from "./DrawingControls";
 import ResizingIndicator from "./ResizingIndicator";
 import { useThemeStore } from "@/stores/useThemeStore";
-import convertImageToGrid from "./imageToAscii";
+import convertImageToGrid, { convertBitmapToGrid } from "./imageToAscii";
 import { generateAsciiTxt, uploadAsciiToR2 } from "./asciiSavingUtils";
 import NavButton from "./NavButton";
 import Divider from "@/components/Divider";
-import { renderCell, RenderSettings } from "./renderingUtils";
+import {
+  renderCell,
+  type RenderSettings,
+  createDefaultRenderSettings,
+} from "./renderingUtils";
 import { loadRandomImage } from "./imageLoader";
+import CellSizeSelector, { adjustCellSizeForStyle } from "./CellSizeSelector";
+import ColorModeToggle from "./ColorModeToggle";
+import {
+  createEditOverlay,
+  recordEdit,
+  sampleEditsForCell,
+  applyEditToLevel,
+  clearOverlay,
+  resizeOverlay,
+} from "./editOverlay";
 
 export default function HeroAscii({
   drawingMode,
@@ -38,29 +60,49 @@ export default function HeroAscii({
   onToggleDrawingMode: () => void;
   setMode: Dispatch<SetStateAction<"brush" | "increment" | "decrement" | null>>;
 }) {
+  // Canvas and grid refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gridRef = useRef<CharCell[]>([]);
-  const isDraggingRef = useRef(false);
+  const gridRef = useRef<ColorCharCell[]>([]);
   const colorsRef = useRef<Colors>({ bg: "", fg: "" });
-  const animationFrameRef = useRef<number | undefined>(undefined);
   const asciiCharsDrawRef = useRef<string[]>([...IMAGE_ASCII_CHARS]);
+
+  // Source image storage - kept for grid regeneration on cell size change
+  const sourceImageRef = useRef<SourceImage | null>(null);
+
+  // Fit mode for the current source image (cover for library, contain for uploads)
+  const fitModeRef = useRef<FitMode>("cover");
+
+  // Edit overlay - stores user edits at pixel level for preservation across cell size changes
+  const editOverlayRef = useRef<EditOverlay | null>(null);
+
+  // Drawing state refs (avoid re-renders during drawing)
+  const isDraggingRef = useRef(false);
+  const animationFrameRef = useRef<number | undefined>(undefined);
   const selectedSymbolRef = useRef(8);
   const drawingModeRef = useRef(drawingMode);
   const lastDrawnCellRef = useRef<{ row: number; col: number } | null>(null);
-  const renderSettingsRef = useRef<RenderSettings>({
-    style: "Ascii",
-    invert: false,
-  });
 
+  // Render settings ref (avoid re-renders when settings change)
+  const renderSettingsRef = useRef<RenderSettings>(
+    createDefaultRenderSettings()
+  );
+
+  // UI State
   const [selectedSymbol, setSelectedSymbol] = useState(8);
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [isConverting, setIsConverting] = useState(false);
+  const [style, setStyle] = useState<"Ascii" | "Dot">("Ascii");
+  const [cellSize, setCellSize] = useState<CellSize>({
+    width: DEFAULT_CELL_WIDTH,
+    height: DEFAULT_CELL_HEIGHT,
+  });
+  const [colorMode, setColorMode] = useState<ColorMode>("monochrome");
+  const [hasSourceImage, setHasSourceImage] = useState(false);
 
   const { track } = useTracking();
   const theme = useThemeStore((state) => state.theme);
 
-  const [style, setStyle] = useState<"Ascii" | "Dot">("Ascii");
-
+  // Sync refs with state
   useEffect(() => {
     selectedSymbolRef.current = selectedSymbol;
   }, [selectedSymbol]);
@@ -69,15 +111,18 @@ export default function HeroAscii({
     drawingModeRef.current = drawingMode;
   }, [drawingMode]);
 
+  // Get canvas dimensions based on current cell size
   const getCanvasDimensions = useCallback((canvas: HTMLCanvasElement) => {
+    const currentCellSize = renderSettingsRef.current.cellSize;
     return {
       width: canvas.width,
       height: canvas.height,
-      cols: Math.ceil(canvas.width / CHAR_WIDTH),
-      rows: Math.ceil(canvas.height / CHAR_HEIGHT),
+      cols: Math.ceil(canvas.width / currentCellSize.width),
+      rows: Math.ceil(canvas.height / currentCellSize.height),
     };
   }, []);
 
+  // Update cached colors from CSS
   const updateColors = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -89,40 +134,71 @@ export default function HeroAscii({
     };
   }, []);
 
+  // Initialize grid from random image
   const initGrid = useCallback(async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const { cols, rows } = getCanvasDimensions(canvas);
+    const currentCellSize = renderSettingsRef.current.cellSize;
+    const cols = Math.ceil(canvas.width / currentCellSize.width);
+    const rows = Math.ceil(canvas.height / currentCellSize.height);
 
     try {
       const file = await loadRandomImage();
+
+      // Create ImageBitmap for source storage
+      const bitmap = await createImageBitmap(file);
+
+      // Close previous bitmap if exists
+      if (sourceImageRef.current?.bitmap) {
+        sourceImageRef.current.bitmap.close();
+      }
+
+      sourceImageRef.current = {
+        bitmap,
+        width: bitmap.width,
+        height: bitmap.height,
+      };
+      setHasSourceImage(true);
+
+      // Initialize edit overlay
+      editOverlayRef.current = createEditOverlay(canvas.width, canvas.height);
+
+      // Use "cover" mode for library images - fills the viewport
+      fitModeRef.current = "cover";
 
       const convertedGrid = await convertImageToGrid(
         file,
         cols,
         rows,
-        IMAGE_ASCII_CHARS
+        IMAGE_ASCII_CHARS,
+        currentCellSize,
+        "cover"
       );
       gridRef.current = convertedGrid;
     } catch (error) {
       console.error("Failed to load initial image, using blank canvas:", error);
 
-      const blankGrid: CharCell[] = [];
+      const blankGrid: ColorCharCell[] = new Array(cols * rows);
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
-          blankGrid.push({
+          blankGrid[row * cols + col] = {
             baseLevel: 0,
             currentLevel: 0,
             col,
             row,
-          });
+            r: 0,
+            g: 0,
+            b: 0,
+          };
         }
       }
       gridRef.current = blankGrid;
+      editOverlayRef.current = createEditOverlay(canvas.width, canvas.height);
     }
-  }, [getCanvasDimensions]);
+  }, []);
 
+  // Render the entire grid to canvas
   const renderGrid = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -131,35 +207,38 @@ export default function HeroAscii({
     if (!ctx) return;
 
     updateColors();
-    const { bg, fg } = colorsRef.current;
+    const colors = colorsRef.current;
+    const currentCellSize = renderSettingsRef.current.cellSize;
 
-    ctx.fillStyle = bg;
+    ctx.fillStyle = colors.bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.font = FONT;
     ctx.textBaseline = "top";
-    ctx.fillStyle = fg;
+    ctx.fillStyle = colors.fg;
 
     gridRef.current.forEach((cell) => {
-      const x = cell.col * CHAR_WIDTH;
-      const y = cell.row * CHAR_HEIGHT;
+      const x = cell.col * currentCellSize.width;
+      const y = cell.row * currentCellSize.height;
       renderCell(
         ctx,
         cell,
         renderSettingsRef.current,
         x,
         y,
-        asciiCharsDrawRef.current
+        asciiCharsDrawRef.current,
+        colors
       );
     });
   }, [updateColors]);
 
+  // Handle style changes
   useEffect(() => {
     renderSettingsRef.current.style = style;
     renderGrid();
   }, [style, renderGrid]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: subscribe to theme changes
+  // Handle theme changes
   useEffect(() => {
     renderSettingsRef.current.invert = theme === "light";
     requestAnimationFrame(() => {
@@ -167,6 +246,101 @@ export default function HeroAscii({
     });
   }, [theme, renderGrid]);
 
+  // Handle cell size changes - regenerate grid from source
+  const handleCellSizeChange = useCallback(
+    async (newCellSize: CellSize) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      setIsResizing(true);
+
+      // Update render settings
+      renderSettingsRef.current.cellSize = newCellSize;
+      setCellSize(newCellSize);
+
+      const cols = Math.ceil(canvas.width / newCellSize.width);
+      const rows = Math.ceil(canvas.height / newCellSize.height);
+
+      // Regenerate grid from source image if available
+      if (sourceImageRef.current) {
+        try {
+          const newGrid = await convertBitmapToGrid(
+            sourceImageRef.current.bitmap,
+            cols,
+            rows,
+            IMAGE_ASCII_CHARS,
+            newCellSize,
+            fitModeRef.current
+          );
+
+          // Apply edits from overlay
+          const overlay = editOverlayRef.current;
+          if (overlay) {
+            newGrid.forEach((cell) => {
+              const edit = sampleEditsForCell(
+                overlay,
+                cell.col,
+                cell.row,
+                newCellSize
+              );
+              if (edit) {
+                cell.currentLevel = applyEditToLevel(
+                  cell.baseLevel,
+                  edit,
+                  IMAGE_ASCII_CHARS.length - 1
+                );
+              }
+            });
+          }
+
+          gridRef.current = newGrid;
+        } catch (error) {
+          console.error("Failed to regenerate grid:", error);
+        }
+      } else {
+        // No source image - create blank grid
+        const blankGrid: ColorCharCell[] = new Array(cols * rows);
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            blankGrid[row * cols + col] = {
+              baseLevel: 0,
+              currentLevel: 0,
+              col,
+              row,
+              r: 0,
+              g: 0,
+              b: 0,
+            };
+          }
+        }
+        gridRef.current = blankGrid;
+      }
+
+      renderGrid();
+      setIsResizing(false);
+
+      track("ascii_cell_size_changed", {
+        cell_width: newCellSize.width,
+        cell_height: newCellSize.height,
+      });
+    },
+    [renderGrid, track]
+  );
+
+  // Debounced cell size change for slider
+  const debouncedCellSizeChange = useDebounce(handleCellSizeChange, 200);
+
+  // Handle color mode toggle
+  const handleColorModeToggle = useCallback(() => {
+    const newMode = colorMode === "monochrome" ? "original" : "monochrome";
+    setColorMode(newMode);
+    renderSettingsRef.current.colorMode = newMode;
+    renderGrid();
+
+    track("ascii_color_mode_changed", { color_mode: newMode });
+  }, [colorMode, renderGrid, track]);
+
+  // Resize grid while preserving content (center-anchored)
   const resizeGridPerephery = useCallback(
     (newWidth: number, newHeight: number) => {
       const canvas = canvasRef.current;
@@ -174,17 +348,23 @@ export default function HeroAscii({
 
       const oldGrid = gridRef.current;
       const { cols: oldCols, rows: oldRows } = getCanvasDimensions(canvas);
+      const currentCellSize = renderSettingsRef.current.cellSize;
 
-      const newCols = Math.ceil(newWidth / CHAR_WIDTH);
-      const newRows = Math.ceil(newHeight / CHAR_HEIGHT);
+      const newCols = Math.ceil(newWidth / currentCellSize.width);
+      const newRows = Math.ceil(newHeight / currentCellSize.height);
 
       const colOffset = Math.floor((newCols - oldCols) / 2);
       const rowOffset = Math.floor((newRows - oldRows) / 2);
 
-      const newGrid: CharCell[] = [];
+      const newGrid: ColorCharCell[] = new Array(newCols * newRows);
+
+      const blankLevel = renderSettingsRef.current.invert
+        ? asciiCharsDrawRef.current.length - 1
+        : 0;
 
       for (let row = 0; row < newRows; row++) {
         for (let col = 0; col < newCols; col++) {
+          const newIndex = row * newCols + col;
           const oldCol = col - colOffset;
           const oldRow = row - rowOffset;
 
@@ -195,33 +375,34 @@ export default function HeroAscii({
             oldCol < oldCols
           ) {
             const oldIndex = oldRow * oldCols + oldCol;
-            const oldCell = oldGrid[oldIndex];
-
-            newGrid.push({
-              ...oldCell,
-              col,
-              row,
-            });
+            const cell = oldGrid[oldIndex];
+            cell.col = col;
+            cell.row = row;
+            newGrid[newIndex] = cell;
           } else {
-            // New cells are blank (respects invert mode)
-            newGrid.push({
-              baseLevel: renderSettingsRef.current.invert
-                ? asciiCharsDrawRef.current.length - 1
-                : 0,
-              currentLevel: renderSettingsRef.current.invert
-                ? asciiCharsDrawRef.current.length - 1
-                : 0,
+            newGrid[newIndex] = {
+              baseLevel: blankLevel,
+              currentLevel: blankLevel,
               col,
               row,
-            });
+              r: 0,
+              g: 0,
+              b: 0,
+            };
           }
         }
       }
       gridRef.current = newGrid;
+
+      // Resize edit overlay
+      if (editOverlayRef.current) {
+        resizeOverlay(editOverlayRef.current, newWidth, newHeight);
+      }
     },
     [getCanvasDimensions]
   );
 
+  // Handle window resize
   const handleWindowResize = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -258,41 +439,45 @@ export default function HeroAscii({
     debounceWindowResize();
   }, [handleResizeStart, debounceWindowResize]);
 
+  // Draw a single cell (used during drawing for incremental updates)
   const drawCell = useCallback(
-    (ctx: CanvasRenderingContext2D, cell: CharCell) => {
+    (ctx: CanvasRenderingContext2D, cell: ColorCharCell) => {
       const { bg, fg } = colorsRef.current;
-      const x = cell.col * CHAR_WIDTH;
-      const y = cell.row * CHAR_HEIGHT;
+      const currentCellSize = renderSettingsRef.current.cellSize;
+      const x = cell.col * currentCellSize.width;
+      const y = cell.row * currentCellSize.height;
 
       ctx.fillStyle = bg;
-      ctx.fillRect(x, y, CHAR_WIDTH, CHAR_HEIGHT);
+      ctx.fillRect(x, y, currentCellSize.width, currentCellSize.height);
 
       ctx.fillStyle = fg;
 
       if (renderSettingsRef.current.style === "Dot") {
-        // Draw circle
-        const radius = cell.currentLevel / 1.66;
-        const centerX = x + CHAR_WIDTH / 2;
-        const centerY = y + CHAR_HEIGHT / 2;
+        const maxRadius =
+          Math.min(currentCellSize.width, currentCellSize.height) / 2;
+        const maxLevel = asciiCharsDrawRef.current.length - 1;
+        const radius = (cell.currentLevel / maxLevel) * maxRadius;
+        const centerX = x + currentCellSize.width / 2;
+        const centerY = y + currentCellSize.height / 2;
 
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
         ctx.fill();
       } else {
-        // Draw ASCII character (existing code)
-
         ctx.fillText(asciiCharsDrawRef.current[cell.currentLevel], x, y);
       }
     },
     []
   );
 
+  // Get cell at mouse/touch position
   const getCellAtPosition = useCallback(
     (canvas: HTMLCanvasElement, x: number, y: number) => {
-      const col = Math.floor(x / CHAR_WIDTH);
-      const row = Math.floor(y / CHAR_HEIGHT);
-      const cols = Math.ceil(canvas.width / CHAR_WIDTH);
-      const rows = Math.ceil(canvas.height / CHAR_HEIGHT);
+      const currentCellSize = renderSettingsRef.current.cellSize;
+      const col = Math.floor(x / currentCellSize.width);
+      const row = Math.floor(y / currentCellSize.height);
+      const cols = Math.ceil(canvas.width / currentCellSize.width);
+      const rows = Math.ceil(canvas.height / currentCellSize.height);
 
       if (col < 0 || col >= cols || row < 0 || row >= rows) {
         return undefined;
@@ -304,6 +489,7 @@ export default function HeroAscii({
     []
   );
 
+  // Handle drawing
   const handleDraw = useCallback(
     (e: MouseEvent | TouchEvent) => {
       const canvas = canvasRef.current;
@@ -331,8 +517,12 @@ export default function HeroAscii({
             !lastDrawnCellRef.current ||
             lastDrawnCellRef.current.row !== cell.row ||
             lastDrawnCellRef.current.col !== cell.col;
+
           if (isDifferentCell) {
-            switch (drawingModeRef.current) {
+            const mode = drawingModeRef.current;
+            const currentCellSize = renderSettingsRef.current.cellSize;
+
+            switch (mode) {
               case "brush":
                 cell.currentLevel = selectedSymbolRef.current;
                 break;
@@ -346,6 +536,28 @@ export default function HeroAscii({
                 cell.currentLevel = Math.max(cell.currentLevel - 1, 0);
                 break;
             }
+
+            // Record edit to overlay for preservation across cell size changes
+            if (editOverlayRef.current && mode) {
+              recordEdit(
+                editOverlayRef.current,
+                cell.col,
+                cell.row,
+                currentCellSize,
+                {
+                  level:
+                    mode === "brush" ? selectedSymbolRef.current : undefined,
+                  delta:
+                    mode === "increment"
+                      ? 1
+                      : mode === "decrement"
+                      ? -1
+                      : undefined,
+                  mode,
+                }
+              );
+            }
+
             lastDrawnCellRef.current = { row: cell.row, col: cell.col };
             ctx.font = FONT;
             ctx.textBaseline = "top";
@@ -376,37 +588,63 @@ export default function HeroAscii({
     }
   }, []);
 
+  // Handle clear - reset to base levels and clear edit overlay
   const handleClear = useCallback(() => {
     track("ascii_canvas_cleared");
 
     gridRef.current.forEach((cell) => {
-      cell.currentLevel = 0;
+      cell.currentLevel = cell.baseLevel;
     });
 
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (ctx && canvas) {
-      updateColors();
-      ctx.fillStyle = colorsRef.current.bg;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Clear edit overlay
+    if (editOverlayRef.current) {
+      clearOverlay(editOverlayRef.current);
     }
-  }, [updateColors, track]);
 
+    renderGrid();
+  }, [renderGrid, track]);
+
+  // Handle toggle drawing mode
   const handleToggleMode = useCallback(() => {
     track(
       drawingMode ? "ascii_drawing_mode_exited" : "ascii_drawing_mode_entered"
     );
 
     if (drawingMode) {
+      // Exiting drawing mode - reset to base levels
       gridRef.current.forEach((cell) => {
         cell.currentLevel = cell.baseLevel;
       });
+      // Clear edit overlay when exiting
+      if (editOverlayRef.current) {
+        clearOverlay(editOverlayRef.current);
+      }
     }
 
     onToggleDrawingMode();
     renderGrid();
   }, [drawingMode, onToggleDrawingMode, renderGrid, track]);
 
+  // Handle style toggle - adjust cell size for new style
+  const handleStyleToggle = useCallback(() => {
+    const newStyle =
+      STYLES.indexOf(style) === STYLES.length - 1
+        ? STYLES[0]
+        : STYLES[STYLES.indexOf(style) + 1];
+
+    setStyle(newStyle);
+
+    // Adjust cell size for new style
+    const newCellSize = adjustCellSizeForStyle(cellSize, newStyle);
+    if (
+      newCellSize.width !== cellSize.width ||
+      newCellSize.height !== cellSize.height
+    ) {
+      debouncedCellSizeChange(newCellSize);
+    }
+  }, [style, cellSize, debouncedCellSizeChange]);
+
+  // Handle download PNG
   const handleDownloadPng = useCallback(async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -416,7 +654,6 @@ export default function HeroAscii({
     canvas.toBlob(async (blob) => {
       if (!blob) return;
 
-      // 1. Download PNG
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -424,7 +661,6 @@ export default function HeroAscii({
       a.click();
       URL.revokeObjectURL(url);
 
-      // 2. Also upload TXT version to R2
       const { cols, rows } = getCanvasDimensions(canvas);
       const txtContent = generateAsciiTxt({
         grid: gridRef.current,
@@ -441,6 +677,7 @@ export default function HeroAscii({
     });
   }, [getCanvasDimensions, track, theme]);
 
+  // Handle download TXT
   const handleDownloadTxt = useCallback(async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -449,7 +686,6 @@ export default function HeroAscii({
 
     const { cols, rows } = getCanvasDimensions(canvas);
 
-    // Generate TXT with metadata
     const txtContent = generateAsciiTxt({
       grid: gridRef.current,
       symbols: asciiCharsDrawRef.current,
@@ -458,7 +694,6 @@ export default function HeroAscii({
       theme,
     });
 
-    // 1. Download locally
     const blob = new Blob([txtContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -467,14 +702,13 @@ export default function HeroAscii({
     a.click();
     URL.revokeObjectURL(url);
 
-    // 2. Upload to R2
     const uploadedUrl = await uploadAsciiToR2(txtContent);
     if (uploadedUrl) {
       track("ascii_uploaded_to_r2", { url: uploadedUrl });
-      console.log("Content copied");
     }
   }, [getCanvasDimensions, track, theme]);
 
+  // Handle image upload
   const handleImageUpload = useCallback(
     async (file: File) => {
       setIsConverting(true);
@@ -482,13 +716,38 @@ export default function HeroAscii({
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const { cols, rows } = getCanvasDimensions(canvas);
+        const currentCellSize = renderSettingsRef.current.cellSize;
+        const cols = Math.ceil(canvas.width / currentCellSize.width);
+        const rows = Math.ceil(canvas.height / currentCellSize.height);
+
+        // Create ImageBitmap for source storage
+        const bitmap = await createImageBitmap(file);
+
+        // Close previous bitmap if exists
+        if (sourceImageRef.current?.bitmap) {
+          sourceImageRef.current.bitmap.close();
+        }
+
+        sourceImageRef.current = {
+          bitmap,
+          width: bitmap.width,
+          height: bitmap.height,
+        };
+        setHasSourceImage(true);
+
+        // Reset edit overlay
+        editOverlayRef.current = createEditOverlay(canvas.width, canvas.height);
+
+        // Use "contain" mode for user uploads - shows full image with letterboxing
+        fitModeRef.current = "contain";
 
         const convertedGrid = await convertImageToGrid(
           file,
           cols,
           rows,
-          IMAGE_ASCII_CHARS
+          IMAGE_ASCII_CHARS,
+          currentCellSize,
+          "contain"
         );
 
         gridRef.current = convertedGrid;
@@ -505,9 +764,10 @@ export default function HeroAscii({
         setIsConverting(false);
       }
     },
-    [getCanvasDimensions, renderGrid, track]
+    [renderGrid, track]
   );
 
+  // Handle paste
   const handlePaste = useCallback(
     (e: ClipboardEvent) => {
       e.preventDefault();
@@ -528,7 +788,8 @@ export default function HeroAscii({
     [handleImageUpload]
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: initialize canvas and attach listeners once
+  // Initialize canvas and attach listeners
+  // biome-ignore lint/correctness/useExhaustiveDependencies: we need to initialize canvas on mount
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -553,6 +814,11 @@ export default function HeroAscii({
     canvas.addEventListener("mouseleave", handleEnd);
     document.addEventListener("paste", handlePaste);
 
+    // Touch events
+    canvas.addEventListener("touchstart", handleStart);
+    canvas.addEventListener("touchmove", handleDraw);
+    canvas.addEventListener("touchend", handleEnd);
+
     return () => {
       window.removeEventListener("resize", triggerResize);
       canvas.removeEventListener("mousedown", handleStart);
@@ -561,12 +827,22 @@ export default function HeroAscii({
       canvas.removeEventListener("mouseleave", handleEnd);
       document.removeEventListener("paste", handlePaste);
 
+      canvas.removeEventListener("touchstart", handleStart);
+      canvas.removeEventListener("touchmove", handleDraw);
+      canvas.removeEventListener("touchend", handleEnd);
+
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-    };
-  }, [initGrid, handleStart, handleDraw, handleEnd, triggerResize]);
 
+      // Clean up ImageBitmap
+      if (sourceImageRef.current?.bitmap) {
+        sourceImageRef.current.bitmap.close();
+      }
+    };
+  }, []);
+
+  // Handle symbol selection
   const handleSelectSymbol = useCallback(
     (index: number) => {
       track("ascii_symbol_changed", {
@@ -581,7 +857,7 @@ export default function HeroAscii({
   return (
     // biome-ignore lint/a11y/useSemanticElements: Full-screen interactive canvas container
     <div
-      className={`absolute top-0 left-0 w-full h-screen overflow-hidden ${
+      className={`hidden md:block absolute top-0 left-0 w-full h-screen overflow-hidden ${
         drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
       } transition-opacity duration-300`}
       role="button"
@@ -609,18 +885,21 @@ export default function HeroAscii({
 
       {drawingMode && (
         <div className="fixed top-4 right-4 left-4 flex justify-between p-4 gap-2 z-200 bg-foreground/10 text-foreground rounded-xl backdrop-blur">
-          <div className="flex gap-2">
-            <NavButton
-              text={style}
-              onClick={() =>
-                setStyle(
-                  STYLES.indexOf(style) === STYLES.length - 1
-                    ? STYLES[0]
-                    : STYLES[STYLES.indexOf(style) + 1]
-                )
-              }
+          <div className="flex gap-2 items-center flex-wrap">
+            <NavButton text={style} onClick={handleStyleToggle} />
+            <Divider vertical className="bg-foreground-05 mx-2" />
+            <CellSizeSelector
+              cellSize={cellSize}
+              onCellSizeChange={debouncedCellSizeChange}
+              style={style}
             />
             <Divider vertical className="bg-foreground-05 mx-2" />
+            {/* <ColorModeToggle
+              colorMode={colorMode}
+              onToggle={handleColorModeToggle}
+              disabled={!hasSourceImage}
+            />
+            <Divider vertical className="bg-foreground-05 mx-2" /> */}
             <SymbolSelector
               selectedSymbol={selectedSymbol}
               onSelectSymbol={handleSelectSymbol}
@@ -629,7 +908,7 @@ export default function HeroAscii({
               style={style}
             />
             <Divider vertical className="bg-foreground-05 mx-2" />
-            <div className="flex gap-2">
+            <div className="flex gap-2 h-full">
               <NavButton
                 onClick={() => {
                   setMode("decrement");

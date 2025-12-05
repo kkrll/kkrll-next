@@ -19,11 +19,11 @@ const SymbolSelector = memo(
     isSelected,
     style,
   }: SymbolSelectorProps) => {
-    const symbols = [...IMAGE_ASCII_CHARS];
+    // Use IMAGE_ASCII_CHARS directly - no need to copy since we only read from it
     const radius = selectedSymbol / 1.66;
 
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 h-full">
         <NavButton
           onClick={onModeSelect}
           isSelected={isSelected}
@@ -39,7 +39,7 @@ const SymbolSelector = memo(
           id="thickness-slider"
           type="range"
           min="0"
-          max={symbols.length - 1}
+          max={IMAGE_ASCII_CHARS.length - 1}
           value={selectedSymbol}
           onChange={(e) => onSelectSymbol(Number(e.target.value))}
           className="accent-foreground slider-tapered"
@@ -56,7 +56,7 @@ const SymbolSelector = memo(
               />
             </svg>
           ) : (
-            symbols[selectedSymbol]
+            IMAGE_ASCII_CHARS[selectedSymbol]
           )}
         </span>{" "}
       </div>

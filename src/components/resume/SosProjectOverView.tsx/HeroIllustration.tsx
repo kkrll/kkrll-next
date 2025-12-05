@@ -310,14 +310,15 @@ export const Blob = ({ solid }: { solid?: boolean }) => {
   );
 };
 
-
 const HeroIllustration = () => {
   return (
     <div className="mt-4 grid max-h-[512px] w-full overflow-hidden rounded-2xl [grid-template-columns:repeat(10,minmax(0,1fr))] [grid-template-rows:repeat(10,minmax(0,1fr))]">
       <div className="relative h-full w-full [grid-area:1/1/10/10]">
         <Image
-          src={'/img/resume/sos-project-overview/cover.png'}
-          alt={"Project overview page placed on simplified version of a Customer Journey Map"}
+          src={"/img/resume/sos-project-overview/cover.png"}
+          alt={
+            "Project overview page placed on simplified version of a Customer Journey Map"
+          }
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
         />

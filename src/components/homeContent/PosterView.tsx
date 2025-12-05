@@ -15,7 +15,7 @@ const PosterView = ({ poster }: { poster: PosterMeta }) => {
             slug: poster.slug,
             cover: `/${poster.type}/${poster.slug}/${poster.cover.replace(
               "./",
-              ""
+              "",
             )}`,
             title: poster.title,
           }}

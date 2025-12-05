@@ -15,7 +15,7 @@ export const CloseIcon = ({ size = 16, className }: IconType) => (
     xmlns="http://www.w3.org/2000/svg"
     className={cn(
       "block select-none shrink-0 transition-all duration-100 text-foreground",
-      className
+      className,
     )}
   >
     <title>Close icon</title>
@@ -36,7 +36,7 @@ export const ArrowLeftIcon = ({ size = 16, className, id }: IconType) => (
     xmlns="http://www.w3.org/2000/svg"
     className={cn(
       "block select-none shrink-0 transition-all duration-100 ",
-      className
+      className,
     )}
   >
     <title>Arrow pointing left icon</title>
@@ -57,7 +57,7 @@ export const ArrowRightIcon = ({ size = 16, className, id }: IconType) => (
     xmlns="http://www.w3.org/2000/svg"
     className={cn(
       "block select-none shrink-0 transition-all duration-100",
-      className
+      className,
     )}
   >
     <title>Arrow pointing right icon</title>
@@ -77,7 +77,7 @@ export const ChevronDownIcon = ({ size = 16, className }: IconType) => (
     xmlns="http://www.w3.org/2000/svg"
     className={cn(
       "block select-none shrink-0 transition-all duration-100 text-foreground",
-      className
+      className,
     )}
   >
     <title>Chevron pointing down icon</title>
@@ -97,7 +97,7 @@ export const ChevronUpIcon = ({ size = 16, className }: IconType) => (
     xmlns="http://www.w3.org/2000/svg"
     className={cn(
       "block select-none shrink-0 transition-all duration-100 text-foreground",
-      className
+      className,
     )}
   >
     <title>Chevron pointing up icon</title>
@@ -119,7 +119,7 @@ export const LinkIcon = ({ size = 16, className }: IconType) => (
     xmlns="http://www.w3.org/2000/svg"
     className={cn(
       "block select-none shrink-0 transition-all duration-100 text-foreground",
-      className
+      className,
     )}
   >
     <title>Link icon</title>
@@ -143,7 +143,7 @@ export const SandGlassIcon = ({ size = 16, className }: IconType) => (
     xmlns="http://www.w3.org/2000/svg"
     className={cn(
       "block select-none shrink-0 transition-all duration-100 text-foreground",
-      className
+      className,
     )}
   >
     <title>Sand glass icon</title>
@@ -165,7 +165,7 @@ export const PlusIcon = ({ size = 16, className }: IconType) => (
     xmlns="http://www.w3.org/2000/svg"
     className={cn(
       "block select-none shrink-0 transition-all duration-100 text-foreground",
-      className
+      className,
     )}
   >
     <title>Plus icon</title>
@@ -185,7 +185,7 @@ export const MinusIcon = ({ size = 16, className }: IconType) => (
     xmlns="http://www.w3.org/2000/svg"
     className={cn(
       "block select-none shrink-0 transition-all duration-100 text-foreground",
-      className
+      className,
     )}
   >
     <title>Minus icon</title>

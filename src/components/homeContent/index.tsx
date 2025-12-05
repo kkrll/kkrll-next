@@ -81,14 +81,14 @@ const HomeContent = ({
     const position = window.pageYOffset;
     if (currentSelectedId && position > 240) {
       const element = document.querySelector(
-        `[data-item-id="${currentSelectedId}"]`
+        `[data-item-id="${currentSelectedId}"]`,
       );
       element?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   }, [currentSelectedId]);
 
   const selectedItem = allItems.find(
-    (item) => item.globalId === currentSelectedId
+    (item) => item.globalId === currentSelectedId,
   );
 
   return (

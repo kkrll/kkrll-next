@@ -63,20 +63,20 @@ export function getAllProjects(): Project[] {
       return fs.statSync(folderPath).isDirectory();
     })
     .map((folder) => {
-    const fullPath = path.join(projectsDirectory, folder, "index.mdx");
-    const fileContents = fs.readFileSync(fullPath, "utf8");
-    const { data, content } = matter(fileContents);
-    return {
-      slug: folder,
-      title: data.title || "Untitled",
-      date: data.date || "Unknown date",
-      media: getProjectMedia(folder),
-      description: data.description || null,
-      projectType: data.projectType,
-      link: data.link || null,
-      content,
-    } as Project;
-  });
+      const fullPath = path.join(projectsDirectory, folder, "index.mdx");
+      const fileContents = fs.readFileSync(fullPath, "utf8");
+      const { data, content } = matter(fileContents);
+      return {
+        slug: folder,
+        title: data.title || "Untitled",
+        date: data.date || "Unknown date",
+        media: getProjectMedia(folder),
+        description: data.description || null,
+        projectType: data.projectType,
+        link: data.link || null,
+        content,
+      } as Project;
+    });
   return projects.sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
@@ -90,25 +90,25 @@ export function getAllProjectsMeta(limit?: number): ProjectMetaWithViewAll[] {
       return fs.statSync(folderPath).isDirectory();
     })
     .map((folder) => {
-    const fullPath = path.join(projectsDirectory, folder, "index.mdx");
-    const fileContents = fs.readFileSync(fullPath, "utf8");
-    const { data } = matter(fileContents);
+      const fullPath = path.join(projectsDirectory, folder, "index.mdx");
+      const fileContents = fs.readFileSync(fullPath, "utf8");
+      const { data } = matter(fileContents);
 
-    const href = data.isExternal && data.link ? data.link : `/${data.slug}`;
+      const href = data.isExternal && data.link ? data.link : `/${data.slug}`;
 
-    return {
-      slug: folder,
-      title: data.title || "Untitled",
-      date: data.date || "Unknown date",
-      media: getProjectMedia(folder),
-      description: data.description || null,
-      projectType: data.projectType,
-      link: href,
-      isExternal: data.isExternal,
-      type: "projects",
-      globalId: `projects-${folder}`,
-    } as ProjectMeta;
-  });
+      return {
+        slug: folder,
+        title: data.title || "Untitled",
+        date: data.date || "Unknown date",
+        media: getProjectMedia(folder),
+        description: data.description || null,
+        projectType: data.projectType,
+        link: href,
+        isExternal: data.isExternal,
+        type: "projects",
+        globalId: `projects-${folder}`,
+      } as ProjectMeta;
+    });
 
   const sorted = projectsMeta.sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime();

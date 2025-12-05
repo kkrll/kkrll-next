@@ -20,14 +20,14 @@ const ImgPlaceholder = ({
       defaultVariants: {
         size: "md",
       },
-    }
+    },
   );
 
   return (
     <div
       className={cn(
         "absolute inset-0 z-0 flex items-center justify-center bg-background p-8 w-full animate-pulse min-h-60",
-        className
+        className,
       )}
     >
       <pre className={cn(placeholderVariants({ size }))}>

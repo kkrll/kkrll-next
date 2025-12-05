@@ -3,10 +3,7 @@ type DividerProps = {
   className?: string;
 };
 
-const Divider = ({
-  vertical = false,
-  className = "",
-}: DividerProps) => {
+const Divider = ({ vertical = false, className = "" }: DividerProps) => {
   return (
     <div
       className={`bg-foreground ${

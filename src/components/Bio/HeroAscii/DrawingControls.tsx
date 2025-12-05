@@ -38,7 +38,7 @@ const DrawingControls = memo(
         <NavButton text="Exit" onClick={onExit} />
       </div>
     );
-  }
+  },
 );
 
 export default DrawingControls;

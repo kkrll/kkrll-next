@@ -1,66 +1,66 @@
 .slider-tapered {
-    -webkit-appearance: none;
-    appearance: none;
-    cursor: pointer;
-    height: 20px;
-    width: 200px;
-    min-width: 150px;
-    position: relative;
-    background: linear-gradient(
-        90deg,
-        transparent 0%,
-        color-mix(in srgb, var(--foreground) 30%, transparent) 100%
-    );
-    transition: background 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  height: 20px;
+  width: 160px;
+  min-width: 150px;
+  position: relative;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--foreground) 30%, transparent) 100%
+  );
+  transition: background 0.2s;
 }
 
 .slider-tapered:hover {
-    background: linear-gradient(
-        90deg,
-        transparent 0%,
-        color-mix(in srgb, var(--foreground) 40%, transparent) 100%
-    );
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--foreground) 40%, transparent) 100%
+  );
 }
 
 /* Webkit browsers (Chrome, Safari, Edge) */
 .slider-tapered::-webkit-slider-track {
-    background: transparent;
-    height: 20px;
-    width: 100%;
-    border: none;
+  background: transparent;
+  height: 20px;
+  width: 100%;
+  border: none;
 }
 
 .slider-tapered::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    background: var(--foreground);
-    height: 32px;
-    width: 3px;
-    border-radius: 0;
-    cursor: grab;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--foreground);
+  height: 32px;
+  width: 3px;
+  border-radius: 0;
+  cursor: grab;
 }
 
 .slider-tapered::-webkit-slider-thumb:active {
-    cursor: grabbing;
+  cursor: grabbing;
 }
 
 /* Firefox */
 .slider-tapered::-moz-range-track {
-    background: transparent;
-    height: 20px;
-    width: 100%;
-    border: none;
+  background: transparent;
+  height: 20px;
+  width: 100%;
+  border: none;
 }
 
 .slider-tapered::-moz-range-thumb {
-    background: var(--foreground);
-    height: 32px;
-    width: 3px;
-    border: none;
-    border-radius: 0;
-    cursor: grab;
+  background: var(--foreground);
+  height: 32px;
+  width: 3px;
+  border: none;
+  border-radius: 0;
+  cursor: grab;
 }
 
 .slider-tapered::-moz-range-thumb:active {
-    cursor: grabbing;
+  cursor: grabbing;
 }
