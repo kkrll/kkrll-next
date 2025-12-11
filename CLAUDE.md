@@ -206,36 +206,59 @@ See `src/components/Bio/HeroAscii/TRACKING.md` for detailed event documentation.
 
 ```
 HeroAscii/
-├── constants.ts              # ASCII chars, dimensions, font config, styles
-├── types.ts                  # TypeScript interfaces (CharCell, Colors)
-├── renderingUtils.ts         # Pure rendering functions (renderCell, mapLevel)
-├── imageToAscii.ts          # Image-to-ASCII conversion utility
-├── asciiSavingUtils.ts      # TXT generation + R2 upload utilities
-├── ImageUploadButton.tsx    # File picker button component
+├── constants.ts              # ASCII chars, dimensions, font config, cell size limits
+├── types.ts                  # TypeScript interfaces (CharCell, ColorCharCell, CellSize, etc.)
+├── renderingUtils.ts         # Pure rendering functions (renderCell, mapLevel, colorMode)
+├── imageToAscii.ts           # Image-to-ASCII conversion (Web Worker + fallback)
+├── imageToAscii.worker.ts    # Web Worker for non-blocking image processing
+├── imageLoader.ts            # Random library image loader
+├── editOverlay.ts            # Pixel-level edit storage for cell size changes
+├── asciiSavingUtils.ts       # TXT generation + R2 upload utilities
+├── ImageUploadButton.tsx     # File picker button component
 ├── NavButton.tsx             # Reusable button component
 ├── DrawingControls.tsx       # Action buttons (Clear/Save/Exit)
 ├── ResizingIndicator.tsx     # Loading overlay during resize
 ├── SymbolSelector.tsx        # Brush thickness slider with visual preview
+├── CellSizeSelector.tsx      # Cell size slider (4-32px range)
+├── ColorModeToggle.tsx       # Original colors / monochrome toggle
 ├── styles.css                # Custom slider styling
 ├── TRACKING.md               # PostHog event documentation
-└── index.tsx                 # Main component (~480 lines)
+└── index.tsx                 # Main component (~950 lines)
 ```
+
+**Three-Layer Architecture**:
+
+The component uses a non-destructive editing pattern with three layers:
+
+1. **Source Image** (`sourceImageRef`) - GPU-backed ImageBitmap, stored once on upload
+2. **Edit Overlay** (`editOverlayRef`) - Sparse Map storing pixel-level edits
+3. **Rendered Grid** (`gridRef`) - ColorCharCell[] regenerated when cell size changes
+
+This allows zooming (cell size changes) without losing user drawings.
 
 **Rendering Modes**:
 
-- **ASCII mode**: Renders using character set (` • ∗ ※ @ W`)
-- **Dot mode**: Renders as circles with radius proportional to level
+- **ASCII mode**: Renders using character set (` • ∗ ※ @ W`), rectangular cells (10×16)
+- **Dot mode**: Renders as circles with radius proportional to level, square cells
+- **Color mode**: Original RGB colors or monochrome (toggle available when image loaded)
 - Toggle between modes preserves drawing
 - Theme changes invert brightness levels (light mode = inverted)
-- Rendering logic extracted to pure functions in `renderingUtils.ts`
+
+**Dynamic Cell Sizes**:
+
+- Slider control allows cell sizes from 4px to 32px
+- ASCII mode: maintains ~10:16 aspect ratio for character rendering
+- Dot mode: uses square cells (width = height)
+- Grid regenerates from source image when size changes
+- Edits preserved via pixel-level overlay system
 
 **Image-to-ASCII Conversion**:
 
 - Upload images via file picker, drag-drop, or Cmd+V paste
-- Converts pixel brightness to ASCII levels using 6-level scale
-- Maintains aspect ratio accounting for character dimensions (10px × 16px)
-- Applies monochrome conversion + gamma correction for contrast
-- Converted grid editable with drawing tools, switchable between modes
+- Uses Web Worker + OffscreenCanvas for non-blocking conversion
+- Preserves RGB color data per cell (ColorCharCell type)
+- **Fit modes**: "cover" for library images (fills viewport), "contain" for uploads (letterbox)
+- Gamma correction for better contrast
 
 **Save & Share**:
 
@@ -247,21 +270,24 @@ HeroAscii/
 **Key Features**:
 
 - Interactive fullscreen canvas with multiple rendering modes
-- Brush thickness slider with live preview (ASCII char or dot circle)
-- Preserves drawing during window resize (center-anchored)
+- Dynamic cell size adjustment via slider
+- Color mode toggle (original colors / monochrome)
+- Brush thickness slider with live preview
+- Preserves drawing during window resize and cell size changes
 - Export as PNG or TXT (both upload to R2 for sharing)
 - RAF-throttled drawing for 60fps performance
-- Debounced resize handling (200ms)
-- PostHog event tracking for all user actions
+- Touch event support for mobile
 
 **Performance Patterns**:
 
 - Uses refs for non-UI state (avoids re-renders)
-- Single `renderSettingsRef` for all rendering params (style, invert)
-- `selectedSymbol` state for UI + `selectedSymbolRef` for drawing logic
+- Single `renderSettingsRef` for all rendering params (style, invert, colorMode, cellSize)
+- Web Worker for image processing (non-blocking)
+- Sparse Map for edit overlay (only stores edited pixels)
+- ImageBitmap for source storage (GPU-backed, efficient resampling)
 - `requestAnimationFrame` throttling for mousemove events
 - Color caching via `colorsRef` (avoids expensive `getComputedStyle()` calls)
-- Pure rendering functions in `renderingUtils.ts` (testable, no side effects)
+- Debounced cell size changes (200ms)
 
 **Resize Behavior**:
 
