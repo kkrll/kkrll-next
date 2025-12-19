@@ -25,10 +25,33 @@ const ListItemSelector = ({
       case "projects":
         return item.projectType;
       case "writings":
-        if (item.publisher) {
-          return `${item.publisher}, ${item.date && new Date(item.date).getFullYear()
-            }`;
-        } else return item.date ? new Date(item.date).getFullYear() : null;
+      case "writings":
+        let copy;
+        if (item.publisher && item.date) {
+          copy = `${item.publisher}, ${new Date(item.date).getFullYear()}`;
+        } else if (item.date) {
+          copy = new Date(item.date).getFullYear();
+        } else {
+          copy = null;
+        }
+
+        let badge = null;
+        if (item.date) {
+          try {
+            const itemDate = new Date(item.date);
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+            oneMonthAgo.setHours(0, 0, 0, 0);
+
+            if (itemDate >= oneMonthAgo) {
+              badge = <span className="bg-foreground text-background text-[10px] font-semibold font-mono uppercase px-1 rounded-full">New</span>;
+            }
+          } catch (e) {
+            console.error("Invalid date format:", item.date);
+          }
+        }
+
+        return <div className="flex items-center gap-2">{copy} {badge}</div>
       case "work":
         return `${item.projectType}, ${item.period}`;
       default:
