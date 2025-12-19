@@ -12,7 +12,7 @@ export type Project = {
   publisher?: string;
   description?: string;
   projectType?: string;
-  link?: string;
+  link: string;
   content: string;
 };
 
@@ -23,7 +23,7 @@ export type ProjectMeta = {
   media?: string[];
   description?: string;
   projectType?: string;
-  link?: string;
+  link: string;
   isExternal?: boolean;
   type: "projects";
   globalId: string;
@@ -32,11 +32,11 @@ export type ProjectMeta = {
 export type ProjectMetaWithViewAll =
   | ProjectMeta
   | {
-      isViewAll: true;
-      totalItems: number;
-      type: "projects";
-      globalId: string;
-    };
+    isViewAll: true;
+    totalItems: number;
+    type: "projects";
+    globalId: string;
+  };
 
 export function getProjectMedia(slug: string): string[] {
   const projectDir = path.join(projectsDirectory, slug);
@@ -94,8 +94,6 @@ export function getAllProjectsMeta(limit?: number): ProjectMetaWithViewAll[] {
       const fileContents = fs.readFileSync(fullPath, "utf8");
       const { data } = matter(fileContents);
 
-      const href = data.isExternal && data.link ? data.link : `/${data.slug}`;
-
       return {
         slug: folder,
         title: data.title || "Untitled",
@@ -103,7 +101,7 @@ export function getAllProjectsMeta(limit?: number): ProjectMetaWithViewAll[] {
         media: getProjectMedia(folder),
         description: data.description || null,
         projectType: data.projectType,
-        link: href,
+        link: data.link,
         isExternal: data.isExternal,
         type: "projects",
         globalId: `projects-${folder}`,

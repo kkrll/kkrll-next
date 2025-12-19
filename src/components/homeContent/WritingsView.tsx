@@ -1,6 +1,4 @@
 import type { WritingMeta } from "@/lib/writings";
-import Link from "next/link";
-import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 
 const WritingsView = ({ writing }: { writing: WritingMeta }) => {
@@ -12,13 +10,14 @@ const WritingsView = ({ writing }: { writing: WritingMeta }) => {
       <h2 className="mb-4">{writing.title}</h2>
       {displayText && <p>{displayText}</p>}
       {writing.link && (
-        <Button
-          variant="default"
-          className="mt-8"
+        <button
+          className="nice-button mt-6"
           onClick={() => router.push(writing.link as string)}
         >
-          Continue reading ⏎
-        </Button>
+          <span>
+            Continue reading ⏎
+          </span>
+        </button>
       )}
     </div>
   );

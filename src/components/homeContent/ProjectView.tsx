@@ -6,6 +6,8 @@ import ImgPlaceholder from "../ui/imgPlaceholder";
 
 import type { ProjectMeta } from "@/lib/projects";
 import type { EmblaOptionsType } from "embla-carousel";
+import { LinkIcon } from "../ui/icons";
+import { useTracking } from "@/hooks/useTracking";
 
 const carouselOptions: EmblaOptionsType = {
   loop: true,
@@ -15,6 +17,7 @@ const carouselOptions: EmblaOptionsType = {
 };
 
 const MediaItem = ({ src, title }: { src: string; title: string }) => {
+
   const isVideo = (src: string): boolean => {
     return /\.(mp4|webm|mov|avi)$/i.test(src);
   };
@@ -42,19 +45,22 @@ const MediaItem = ({ src, title }: { src: string; title: string }) => {
 };
 
 const ProjectView = ({ project }: { project: ProjectMeta }) => {
+  const { track } = useTracking()
   return (
     <>
       <div className="mb-8">
-        <h2 className="mb-4">{project.title}</h2>
+        <div className="flex pb-4 mb-6 border-b border-background-07 justify-between items-center">
+          <h2>{project.title}</h2>
+          <a
+            href={project.link} onClick={() => track("open project", { page: "home", project: project.title })}
+            className="flex font-mono text-sm uppercase gap-2 justify-center items-center w-32 py-2 px-4 rounded-2xl transition-colors duration-100 ease-in bg-background-07 hover:bg-background-05 no-underline cursor-pointer"
+          >
+            {project.isExternal ? <>Visit <LinkIcon /></> : "View more"}
+          </a>
+        </div>
         <p>{project.description}</p>
       </div>
-      {project.media && project.media.length === 1 && (
-        <div className="relative overflow-hidden w-full min-h-[240px]">
-          <ImgPlaceholder />
-          <MediaItem src={project.media[0]} title={project.title} />
-        </div>
-      )}
-      {project.media && project.media.length > 1 && (
+      {project.media && (
         <Carousel
           carouselName={project.slug}
           options={carouselOptions}

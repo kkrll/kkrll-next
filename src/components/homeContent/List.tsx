@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import type { CategoriesTypes, ListItemProps, ListProps } from "./types";
+import { useTracking } from "@/hooks/useTracking";
 
 const ListItemSelector = ({
   item,
@@ -16,7 +16,7 @@ const ListItemSelector = ({
   itemId: string;
   category: CategoriesTypes;
 }) => {
-  const router = useRouter();
+  const { track } = useTracking()
 
   const getSecondLine = () => {
     switch (category) {
@@ -26,9 +26,8 @@ const ListItemSelector = ({
         return item.projectType;
       case "writings":
         if (item.publisher) {
-          return `${item.publisher}, ${
-            item.date && new Date(item.date).getFullYear()
-          }`;
+          return `${item.publisher}, ${item.date && new Date(item.date).getFullYear()
+            }`;
         } else return item.date ? new Date(item.date).getFullYear() : null;
       case "work":
         return `${item.projectType}, ${item.period}`;
@@ -46,12 +45,13 @@ const ListItemSelector = ({
       onClick={(e) => {
         e.preventDefault();
         const isMobile = window.matchMedia("(max-width: 768px)").matches;
+        track("open project", { page: "home", project: item.title })
 
         if (isMobile || isSelected) {
           // Mobile: always navigate, Desktop: navigate when already selected
-          if (!item.isExternal) {
-            router.push(item.link);
-          } else {
+          if (item.isExternal) {
+            // router.push(item.link);
+            // } else {
             window.open(item.link, item.link[0] === "/" ? "_self" : "_blank");
           }
         } else {
@@ -59,20 +59,18 @@ const ListItemSelector = ({
           onSelect();
         }
       }}
-      className={`py-2 px-default no-underline hover:pointer text-left block bg-background text-foreground ${
-        isSelected
-          ? "md:bg-foreground md:text-background"
-          : "hover:bg-background-07"
-      }`}
+      className={`py-2 px-default no-underline hover:pointer text-left block bg-background text-foreground ${isSelected
+        ? "md:bg-foreground md:text-background"
+        : "hover:bg-background-07"
+        }`}
     >
       {item.title}
       {secondLine && (
         <p
-          className={`${
-            isSelected
-              ? "text-foreground-07 md:text-background-07"
-              : "text-foreground-07"
-          }  text-sm`}
+          className={`${isSelected
+            ? "text-foreground-07 md:text-background-07"
+            : "text-foreground-07"
+            }  text-sm`}
         >
           {secondLine}
         </p>
@@ -108,11 +106,10 @@ const List = ({
                   key={globalId}
                   href={`/${category}`}
                   data-item-id={globalId}
-                  className={`py-2 px-default hover:pointer text-left block ${
-                    isSelected
-                      ? "md:bg-foreground md:text-background"
-                      : "hover:bg-background-07 text-foreground-07"
-                  }`}
+                  className={`py-2 px-default hover:pointer text-left block ${isSelected
+                    ? "md:bg-foreground md:text-background"
+                    : "hover:bg-background-07 text-foreground-07"
+                    }`}
                 >
                   View all {category} →
                 </a>
