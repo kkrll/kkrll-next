@@ -1,66 +1,91 @@
 .slider-tapered {
-  -webkit-appearance: none;
-  appearance: none;
-  cursor: pointer;
-  height: 20px;
-  width: 160px;
-  min-width: 150px;
-  position: relative;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    color-mix(in srgb, var(--foreground) 30%, transparent) 100%
-  );
-  transition: background 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    height: 20px;
+    width: 160px;
+    border-radius: 8px;
+    min-width: 150px;
+    position: relative;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            color-mix(in srgb, var(--foreground) 30%, transparent) 100%);
+    transition: background 0.2s;
 }
 
 .slider-tapered:hover {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    color-mix(in srgb, var(--foreground) 40%, transparent) 100%
-  );
+    background: linear-gradient(90deg,
+            transparent 0%,
+            color-mix(in srgb, var(--foreground) 40%, transparent) 100%);
 }
 
 /* Webkit browsers (Chrome, Safari, Edge) */
 .slider-tapered::-webkit-slider-track {
-  background: transparent;
-  height: 20px;
-  width: 100%;
-  border: none;
+    background: transparent;
+    height: 20px;
+    width: 100%;
+    border: none;
 }
 
 .slider-tapered::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  background: var(--foreground);
-  height: 32px;
-  width: 3px;
-  border-radius: 0;
-  cursor: grab;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--foreground);
+    height: 28px;
+    width: 8px;
+    border-radius: 4;
+    cursor: grab;
 }
 
 .slider-tapered::-webkit-slider-thumb:active {
-  cursor: grabbing;
+    cursor: grabbing;
 }
 
 /* Firefox */
 .slider-tapered::-moz-range-track {
-  background: transparent;
-  height: 20px;
-  width: 100%;
-  border: none;
+    background: transparent;
+    height: 20px;
+    width: 100%;
+    border: none;
 }
 
 .slider-tapered::-moz-range-thumb {
-  background: var(--foreground);
-  height: 32px;
-  width: 3px;
-  border: none;
-  border-radius: 0;
-  cursor: grab;
+    background: var(--foreground);
+    height: 32px;
+    width: 3px;
+    border: none;
+    border-radius: 0;
+    cursor: grab;
 }
 
 .slider-tapered::-moz-range-thumb:active {
-  cursor: grabbing;
+    cursor: grabbing;
+}
+
+.anchor-cell-size {
+    anchor-name: --anchor-cell-size;
+    text-align: center;
+}
+
+.cell-slider {
+    position: absolute;
+    position-anchor: --anchor-cell-size;
+    top: calc(anchor(bottom) + 4px);
+    position: absolute;
+    left: anchor(center);
+    transform: translateX(-50%);
+}
+
+.anchor-brush {
+    anchor-name: --anchor-brush;
+    text-align: center;
+}
+
+.brush-slider {
+    position: absolute;
+    position-anchor: --anchor-brush;
+    top: calc(anchor(bottom) + 4px);
+    position: absolute;
+    left: anchor(center);
+    transform: translateX(-50%);
 }

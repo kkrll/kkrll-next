@@ -1,13 +1,13 @@
 /**
  * Cell Size Selector Component
  *
- * A slider control for adjusting cell size in the ASCII canvas.
+ * A popover control for adjusting cell size in the ASCII canvas.
  * Behavior differs by mode:
  * - Dot mode: Square cells (width = height)
  * - ASCII mode: Maintains ~10:16 aspect ratio for character rendering
  */
 
-import { memo } from "react";
+import { memo, useRef } from "react";
 import { MAX_CELL_SIZE, MIN_CELL_SIZE } from "./constants";
 import "./styles.css";
 import type { CellSize, RenderStyle } from "./types";
@@ -44,6 +44,7 @@ function getSizeValue(cellSize: CellSize): number {
 const CellSizeSelector = memo(
   ({ cellSize, onCellSizeChange, style }: CellSizeSelectorProps) => {
     const currentSize = getSizeValue(cellSize);
+    const buttonRef = useRef<HTMLButtonElement>(null);
 
     const handleSizeChange = (value: number) => {
       const newCellSize = calculateCellSize(value, style);
@@ -51,32 +52,43 @@ const CellSizeSelector = memo(
     };
 
     return (
-      <div className="flex items-center gap-3">
-        <label
-          htmlFor="cell-size-slider"
-          className="text-xs font-mono font-medium whitespace-nowrap"
+      <div className="h-full">
+        <button
+          ref={buttonRef}
+          popoverTarget="slider"
+          className={`anchor-cell-size flex cursor-pointer gap-1 items-center bg-background/30 hover:bg-background/70 px-3 py-1 h-full rounded-xl`}
+          aria-label={`Cell size: ${cellSize.width}×${cellSize.height} pixels`}
         >
-          Cell
-        </label>
-        <input
-          id="cell-size-slider"
-          type="range"
-          min={MIN_CELL_SIZE}
-          max={MAX_CELL_SIZE}
-          value={currentSize}
-          onChange={(e) => handleSizeChange(Number(e.target.value))}
-          className="accent-foreground slider-tapered w-16"
-          aria-label={`Cell size: ${currentSize} pixels`}
-        />
-        <span className="font-mono text-xs w-12 text-center tabular-nums">
-          {cellSize.width}×{cellSize.height}
-        </span>
+          <label className="text-xs font-mono font-medium text-foreground-07 whitespace-nowrap">
+            Cell:
+          </label>
+          <span className="font-mono text-xs w-11 text-right tabular-nums">
+            {cellSize.width}×{cellSize.height}
+          </span>
+        </button>
+
+
+        <div
+          className="cell-slider px-2 pt-2 pb-[1px] bg-background border border-foreground/20 rounded-2xl shadow-lg"
+          popover=""
+          id="slider"
+        >
+          <input
+            id="cell-size-slider"
+            type="range"
+            min={MIN_CELL_SIZE}
+            max={MAX_CELL_SIZE}
+            value={currentSize}
+            onChange={(e) => handleSizeChange(Number(e.target.value))}
+            className="w-full accent-foreground slider-tapered"
+            aria-label={`Cell size: ${currentSize} pixels`}
+          />
+        </div>
+
       </div>
     );
   }
 );
-
-CellSizeSelector.displayName = "CellSizeSelector";
 
 export default CellSizeSelector;
 

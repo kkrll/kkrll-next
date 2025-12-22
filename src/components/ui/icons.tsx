@@ -4,6 +4,7 @@ type IconType = {
   size?: number;
   className?: string;
   id?: string;
+  stroke?: number
 };
 
 export const CloseIcon = ({ size = 16, className }: IconType) => (
@@ -191,4 +192,67 @@ export const MinusIcon = ({ size = 16, className }: IconType) => (
     <title>Minus icon</title>
     <rect x="2" y="9" width="16" height="2" rx="1" fill="currentColor" />
   </svg>
+);
+
+export const Darken = ({ size = 16, stroke = 1, className }: IconType) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={cn(
+      "block select-none shrink-0 transition-all duration-100 text-foreground",
+      className,
+    )}
+  >
+    <title>Darken</title>
+    <circle cx="12" cy="12" r="2" fill="currentColor" />
+    <path d="M7.5 7.5L1 1M7.5 7.5L7.5 3M7.5 7.5L3 7.5" stroke="currentColor" stroke-width={stroke} />
+    <path d="M7.5 16.5L1 23M7.5 16.5L7.5 21M7.5 16.5L3 16.5" stroke="currentColor" stroke-width={stroke} />
+    <path d="M16.5 7.5L23 1M16.5 7.5L21 7.5M16.5 7.5V3" stroke="currentColor" stroke-width={stroke} />
+    <path d="M16.5 16.5L23 23M16.5 16.5L21 16.5M16.5 16.5V21" stroke="currentColor" stroke-width={stroke} />
+  </svg>
+);
+
+export const Lighten = ({ size = 16, stroke = 1, className }: IconType) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={cn(
+      "block select-none shrink-0 transition-all duration-100 text-foreground",
+      className,
+    )}
+  >
+    <title>Lighten</title>
+    <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width={stroke} />
+    <path d="M22.5 1.5L18 6M22.5 1.5L22.5 6M22.5 1.5L18 1.5" stroke="currentColor" stroke-width={stroke} />
+    <path d="M1.5 1.5L6 6M1.5 1.5L6 1.5M1.5 1.5V6" stroke="currentColor" stroke-width={stroke} />
+    <path d="M1.5 22.5L6 18M1.5 22.5L6 22.5M1.5 22.5V18" stroke="currentColor" stroke-width={stroke} />
+    <path d="M22.5 22.5L18 18M22.5 22.5L18 22.5M22.5 22.5V18" stroke="currentColor" stroke-width={stroke} />
+  </svg>
+);
+
+export const Brush = ({ size = 16, stroke = 1, className }: IconType) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={cn(
+      "block select-none shrink-0 transition-all duration-100 text-foreground",
+      className,
+    )}
+  >
+    <title>Brush</title>
+    <path d="M14 15L11 18L8 15.5L10.5 12M14 15L23 1L10.5 12M14 15L10.5 12" stroke="currentColor" stroke-width={stroke} />
+    <path d="M4.5 17C5.49644 15.4986 7.00356 15.3347 8.00356 15.5014L11.0036 18C10.0036 24 -1.99644 22 1.00356 22C4.00356 22 3.50356 18.5014 4.5 17Z" stroke="currentColor" stroke-width={stroke} />
+  </svg>
+
+
+
 );

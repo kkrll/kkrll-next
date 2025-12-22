@@ -51,7 +51,7 @@ const ListItemSelector = ({
           }
         }
 
-        return <div className="flex items-center gap-2">{copy} {badge}</div>
+        return <span className="flex items-center gap-2">{copy} {badge}</span>
       case "work":
         return `${item.projectType}, ${item.period}`;
       default:

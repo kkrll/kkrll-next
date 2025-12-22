@@ -27,7 +27,7 @@ const ImageUploadButton = memo(
         <button
           type="button"
           onClick={handleClick}
-          className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded transition-colors"
+          className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded-xl transition-colors"
         >
           Upload Image
         </button>

@@ -50,6 +50,7 @@ import {
   clearOverlay,
   resizeOverlay,
 } from "./editOverlay";
+import { Darken, Lighten } from "@/components/ui/icons";
 
 export default function HeroAscii({
   drawingMode,
@@ -551,8 +552,8 @@ export default function HeroAscii({
                     mode === "increment"
                       ? 1
                       : mode === "decrement"
-                      ? -1
-                      : undefined,
+                        ? -1
+                        : undefined,
                   mode,
                 }
               );
@@ -857,9 +858,8 @@ export default function HeroAscii({
   return (
     // biome-ignore lint/a11y/useSemanticElements: Full-screen interactive canvas container
     <div
-      className={`hidden md:block absolute top-0 left-0 w-full h-screen overflow-hidden ${
-        drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
-      } transition-opacity duration-300`}
+      className={`hidden md:block absolute top-0 left-0 w-full h-screen overflow-hidden ${drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
+        } transition-opacity duration-300`}
       role="button"
       tabIndex={drawingMode ? -1 : 0}
       onMouseDown={() => {
@@ -878,43 +878,35 @@ export default function HeroAscii({
 
       <canvas
         ref={canvasRef}
-        className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${
-          drawingMode ? "fixed" : "absolute"
-        }`}
+        className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${drawingMode ? "fixed" : "absolute"
+          }`}
       />
 
       {drawingMode && (
-        <div className="fixed top-4 right-4 left-4 flex justify-between p-4 gap-2 z-200 bg-foreground/10 text-foreground rounded-xl backdrop-blur">
-          <div className="flex gap-2 items-center flex-wrap">
+        <div className="fixed top-4 right-4 left-4 flex justify-between p-2 gap-2 z-200 bg-foreground/10 text-foreground rounded-2xl backdrop-blur">
+          <div className="flex gap-1 items-center flex-wrap">
             <NavButton text={style} onClick={handleStyleToggle} />
-            <Divider vertical className="bg-foreground-05 mx-2" />
+            <Divider vertical className="bg-foreground-07/20 mx-2" />
             <CellSizeSelector
               cellSize={cellSize}
               onCellSizeChange={debouncedCellSizeChange}
               style={style}
             />
-            <Divider vertical className="bg-foreground-05 mx-2" />
+            <Divider vertical className="bg-foreground-07/20 mx-2" />
             {/* <ColorModeToggle
               colorMode={colorMode}
               onToggle={handleColorModeToggle}
               disabled={!hasSourceImage}
             />
             <Divider vertical className="bg-foreground-05 mx-2" /> */}
-            <SymbolSelector
-              selectedSymbol={selectedSymbol}
-              onSelectSymbol={handleSelectSymbol}
-              onModeSelect={() => setMode("brush")}
-              isSelected={drawingMode === "brush"}
-              style={style}
-            />
-            <Divider vertical className="bg-foreground-05 mx-2" />
-            <div className="flex gap-2 h-full">
+            <div className="flex gap-1 h-full">
               <NavButton
                 onClick={() => {
                   setMode("decrement");
                 }}
                 isSelected={drawingMode === "decrement"}
                 text="Darken"
+                icon={<Darken stroke={1} />}
               />
               <NavButton
                 onClick={() => {
@@ -922,6 +914,14 @@ export default function HeroAscii({
                 }}
                 isSelected={drawingMode === "increment"}
                 text="Lighten"
+                icon={<Lighten stroke={1} />}
+              />
+              <SymbolSelector
+                selectedSymbol={selectedSymbol}
+                onSelectSymbol={handleSelectSymbol}
+                onModeSelect={() => setMode("brush")}
+                isSelected={drawingMode === "brush"}
+                style={style}
               />
             </div>
           </div>
