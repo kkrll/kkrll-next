@@ -22,27 +22,28 @@ const Footer = () => {
         </p>
       </Link>
 
-      <div className="flex flex-row font-medium [&>a:not(:last-child)]:mr-4 [&>a]:text-sm [&>a]:no-underline">
-        <Link href="/now">Now</Link>
-        <a href={social.linkedin} target="_blank" rel="noreferrer">
-          LinkedIn
-        </a>
-        <a href={social.medium} target="_blank" rel="noreferrer">
-          Medium
-        </a>
-        {/* <Link href="/rss.xml">RSS</Link> */}
+      <div className="flex w-full md:w-auto justify-between gap-4">
+        <div className="flex font-medium gap-4 [&>a]:text-sm [&>a]:no-underline">
+          <Link href="/now">Now</Link>
+          <a href={social.linkedin} target="_blank" rel="noreferrer">
+            LinkedIn
+          </a>
+          <a href={social.medium} target="_blank" rel="noreferrer">
+            Medium
+          </a>
+          {/* <Link href="/rss.xml">RSS</Link> */}
+        </div>
         <a
-          href="https://internetphonebook.net/?call=626&issue=1#dial-a-site"
+          href={`https://internetphonebook.net/?call=626&issue=1#dial-a-site`}
           target="blank"
           rel="external"
+          className="z-0"
         >
           <svg
-            id="Layer_1"
-            data-name="Layer 1"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 173.11 207.91"
-            width={28}
-            className="text-foreground -translate-y-2"
+            width={24}
+            className="text-foreground -translate-y-2 z-0"
           >
             <title>This website is in the Internet Phone Book</title>
             <path

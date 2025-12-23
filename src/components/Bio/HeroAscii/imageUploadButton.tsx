@@ -1,4 +1,6 @@
+import { UploadPicture } from "@/components/ui/icons";
 import { memo, useRef } from "react";
+import NavButton from "./NavButton";
 
 interface ImageUploadButtonProps {
   onImageSelected: (file: File) => void;
@@ -24,13 +26,7 @@ const ImageUploadButton = memo(
 
     return (
       <>
-        <button
-          type="button"
-          onClick={handleClick}
-          className="px-3 py-1 text-xs font-mono bg-background/30 hover:bg-background/70 text-foreground rounded-xl transition-colors"
-        >
-          Upload Image
-        </button>
+        <NavButton text="Upload image" onClick={handleClick} icon={<UploadPicture />} />
         <input
           ref={fileInputRef}
           type="file"

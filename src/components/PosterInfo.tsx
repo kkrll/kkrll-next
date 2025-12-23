@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Divider from "./Divider";
 
 interface PosterInfoProps {
   title: string;
@@ -27,10 +28,14 @@ export default function PosterInfo({
   const handleScroll = useCallback(() => {
     const scrollTop = window.scrollY;
     const scrollDiff = Math.abs(scrollTop - lastScrollTopRef.current);
+    const scrollBottom = document.documentElement.scrollHeight - scrollTop
+    const THRESHOLD = window.innerHeight * 1.5
 
     if (scrollDiff < 32) return;
 
-    if (scrollTop > 100 && scrollTop > lastScrollTopRef.current) {
+    if (scrollBottom < THRESHOLD) {
+      setIsCollapsed(false);
+    } else if (scrollTop > 100 && scrollTop > lastScrollTopRef.current) {
       setIsCollapsed(true);
     } else {
       setIsCollapsed(false);
@@ -77,16 +82,14 @@ export default function PosterInfo({
       </div>
 
       {/* Mobile view */}
-      <div className="block md:hidden fixed font-mono bottom-0 left-0 right-0 md:sticky md:top-8 max-h-screen">
+      <div className="block md:hidden sticky font-mono bottom-0 left-0 right-0 md:top-8 max-h-screen">
         <div
-          className={`py-8 px-6 transition-all duration-150 ${
-            isCollapsed ? " bg-background/0" : "bg-background"
-          }`}
+          className={`py-8 px-default transition-all duration-150 ${isCollapsed ? " bg-background/0" : "bg-background"
+            }`}
         >
           <div
-            className={`transition-all duration-150 ${
-              isCollapsed ? "opacity-0" : "opacity-100"
-            }`}
+            className={`transition-all duration-150 ${isCollapsed ? "opacity-0" : "opacity-100"
+              }`}
           >
             <h1 className="text-md md:text-2xl mb-0 font-mono uppercase">
               {title}
@@ -112,15 +115,15 @@ export default function PosterInfo({
               href={external}
               target="_blank"
               rel="noopener noreferrer"
-              className={`inline-block px-6 py-3 text-sm font-medium uppercase w-full text-background backdrop-blur-md text-center rounded-lg hover:opacity-90 transition-opacity ${
-                isCollapsed ? "bg-foreground/50" : "bg-foreground"
-              }`}
+              className={`inline-block px-6 py-3 text-sm font-medium uppercase w-full text-background backdrop-blur-md text-center rounded-lg hover:opacity-90 transition-opacity ${isCollapsed ? "bg-foreground/50" : "bg-foreground"
+                }`}
             >
               View on Good Mood Prints
             </a>
           )}
         </div>
       </div>
+      <Divider />
     </>
   );
 }

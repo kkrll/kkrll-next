@@ -252,7 +252,24 @@ export const Brush = ({ size = 16, stroke = 1, className }: IconType) => (
     <path d="M14 15L11 18L8 15.5L10.5 12M14 15L23 1L10.5 12M14 15L10.5 12" stroke="currentColor" stroke-width={stroke} />
     <path d="M4.5 17C5.49644 15.4986 7.00356 15.3347 8.00356 15.5014L11.0036 18C10.0036 24 -1.99644 22 1.00356 22C4.00356 22 3.50356 18.5014 4.5 17Z" stroke="currentColor" stroke-width={stroke} />
   </svg>
+);
 
-
-
+export const UploadPicture = ({ size = 16, stroke = 1, className }: IconType) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={cn(
+      "block select-none shrink-0 transition-all duration-100 text-foreground",
+      className,
+    )}
+  >
+    <title>Upload picture (or just cmd+V it)</title>
+    <rect x="1.5" y="1.5" width="21" height="21" stroke="currentColor" stroke-width={stroke} />
+    <rect x="1.5" y="1.5" width="21" height="16" stroke="currentColor" stroke-width={stroke} />
+    <circle cx="18.5" cy="5.5" r="2" stroke="currentColor" stroke-width={stroke} />
+    <path d="M1.5 12L6.5 7.5L12.5 12.5M8 17.5L12.5 12.5M12.5 12.5L15 10L22.5 16.5" stroke="currentColor" stroke-width={stroke} />
+  </svg>
 );

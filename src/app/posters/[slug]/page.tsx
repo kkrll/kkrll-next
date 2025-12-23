@@ -30,9 +30,9 @@ export default async function PosterPage({
 
   return (
     <PageLayout>
-      <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] px-default gap-12">
+      <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-12">
         {/* Images column */}
-        <div className="rounded-4xl overflow-hidden space-y-1">
+        <div className="rounded-4xl overflow-hidden space-y-1 px-default ">
           {images.map((image, index) => (
             <Image
               key={image}
