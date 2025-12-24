@@ -72,11 +72,7 @@ const ListItemSelector = ({
 
         if (isMobile || isSelected) {
           // Mobile: always navigate, Desktop: navigate when already selected
-          if (item.isExternal) {
-            // router.push(item.link);
-            // } else {
-            window.open(item.link, item.link[0] === "/" ? "_self" : "_blank");
-          }
+          window.open(item.link, item.link[0] === "/" ? "_self" : "_blank");
         } else {
           // Desktop: select on first click
           onSelect();
