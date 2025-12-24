@@ -85,7 +85,7 @@ export default function HeroAscii({
 
   // Render settings ref (avoid re-renders when settings change)
   const renderSettingsRef = useRef<RenderSettings>(
-    createDefaultRenderSettings()
+    createDefaultRenderSettings(),
   );
 
   // UI State
@@ -174,7 +174,7 @@ export default function HeroAscii({
         rows,
         IMAGE_ASCII_CHARS,
         currentCellSize,
-        "cover"
+        "cover",
       );
       gridRef.current = convertedGrid;
     } catch (error) {
@@ -228,7 +228,7 @@ export default function HeroAscii({
         x,
         y,
         asciiCharsDrawRef.current,
-        colors
+        colors,
       );
     });
   }, [updateColors]);
@@ -271,7 +271,7 @@ export default function HeroAscii({
             rows,
             IMAGE_ASCII_CHARS,
             newCellSize,
-            fitModeRef.current
+            fitModeRef.current,
           );
 
           // Apply edits from overlay
@@ -282,13 +282,13 @@ export default function HeroAscii({
                 overlay,
                 cell.col,
                 cell.row,
-                newCellSize
+                newCellSize,
               );
               if (edit) {
                 cell.currentLevel = applyEditToLevel(
                   cell.baseLevel,
                   edit,
-                  IMAGE_ASCII_CHARS.length - 1
+                  IMAGE_ASCII_CHARS.length - 1,
                 );
               }
             });
@@ -325,7 +325,7 @@ export default function HeroAscii({
         cell_height: newCellSize.height,
       });
     },
-    [renderGrid, track]
+    [renderGrid, track],
   );
 
   // Debounced cell size change for slider
@@ -400,7 +400,7 @@ export default function HeroAscii({
         resizeOverlay(editOverlayRef.current, newWidth, newHeight);
       }
     },
-    [getCanvasDimensions]
+    [getCanvasDimensions],
   );
 
   // Handle window resize
@@ -453,11 +453,16 @@ export default function HeroAscii({
 
       ctx.fillStyle = fg;
 
+      const maxLevel = asciiCharsDrawRef.current.length - 1;
+      // Apply inversion for light mode, just like renderCell does
+      const level = renderSettingsRef.current.invert
+        ? maxLevel - cell.currentLevel
+        : cell.currentLevel;
+
       if (renderSettingsRef.current.style === "Dot") {
         const maxRadius =
           Math.min(currentCellSize.width, currentCellSize.height) / 2;
-        const maxLevel = asciiCharsDrawRef.current.length - 1;
-        const radius = (cell.currentLevel / maxLevel) * maxRadius;
+        const radius = (level / maxLevel) * maxRadius;
         const centerX = x + currentCellSize.width / 2;
         const centerY = y + currentCellSize.height / 2;
 
@@ -465,10 +470,10 @@ export default function HeroAscii({
         ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
         ctx.fill();
       } else {
-        ctx.fillText(asciiCharsDrawRef.current[cell.currentLevel], x, y);
+        ctx.fillText(asciiCharsDrawRef.current[level], x, y);
       }
     },
-    []
+    [],
   );
 
   // Get cell at mouse/touch position
@@ -487,7 +492,7 @@ export default function HeroAscii({
       const index = row * cols + col;
       return gridRef.current[index];
     },
-    []
+    [],
   );
 
   // Handle drawing
@@ -530,7 +535,7 @@ export default function HeroAscii({
               case "increment":
                 cell.currentLevel = Math.min(
                   cell.currentLevel + 1,
-                  asciiCharsDrawRef.current.length - 1
+                  asciiCharsDrawRef.current.length - 1,
                 );
                 break;
               case "decrement":
@@ -555,7 +560,7 @@ export default function HeroAscii({
                         ? -1
                         : undefined,
                   mode,
-                }
+                },
               );
             }
 
@@ -569,7 +574,7 @@ export default function HeroAscii({
         animationFrameRef.current = undefined;
       });
     },
-    [getCellAtPosition, drawCell]
+    [getCellAtPosition, drawCell],
   );
 
   const handleStart = useCallback(
@@ -577,7 +582,7 @@ export default function HeroAscii({
       isDraggingRef.current = true;
       handleDraw(e);
     },
-    [handleDraw]
+    [handleDraw],
   );
 
   const handleEnd = useCallback(() => {
@@ -608,7 +613,7 @@ export default function HeroAscii({
   // Handle toggle drawing mode
   const handleToggleMode = useCallback(() => {
     track(
-      drawingMode ? "ascii_drawing_mode_exited" : "ascii_drawing_mode_entered"
+      drawingMode ? "ascii_drawing_mode_exited" : "ascii_drawing_mode_entered",
     );
 
     if (drawingMode) {
@@ -748,7 +753,7 @@ export default function HeroAscii({
           rows,
           IMAGE_ASCII_CHARS,
           currentCellSize,
-          "contain"
+          "contain",
         );
 
         gridRef.current = convertedGrid;
@@ -765,7 +770,7 @@ export default function HeroAscii({
         setIsConverting(false);
       }
     },
-    [renderGrid, track]
+    [renderGrid, track],
   );
 
   // Handle paste
@@ -786,7 +791,7 @@ export default function HeroAscii({
         }
       }
     },
-    [handleImageUpload]
+    [handleImageUpload],
   );
 
   // Initialize canvas and attach listeners
@@ -852,14 +857,15 @@ export default function HeroAscii({
       });
       setSelectedSymbol(index);
     },
-    [track]
+    [track],
   );
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: Full-screen interactive canvas container
     <div
-      className={`hidden md:block absolute top-0 left-0 w-full h-screen overflow-hidden ${drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
-        } transition-opacity duration-300`}
+      className={`hidden md:block absolute top-0 left-0 w-full h-screen overflow-hidden ${
+        drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
+      } transition-opacity duration-300`}
       role="button"
       tabIndex={drawingMode ? -1 : 0}
       onMouseDown={() => {
@@ -878,8 +884,9 @@ export default function HeroAscii({
 
       <canvas
         ref={canvasRef}
-        className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${drawingMode ? "fixed" : "absolute"
-          }`}
+        className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${
+          drawingMode ? "fixed" : "absolute"
+        }`}
       />
 
       {drawingMode && (
@@ -902,17 +909,25 @@ export default function HeroAscii({
             <div className="flex gap-1 h-full">
               <NavButton
                 onClick={() => {
-                  setMode("decrement");
+                  // In light mode, swap modes so visual behavior matches button label
+                  setMode(theme === "light" ? "increment" : "decrement");
                 }}
-                isSelected={drawingMode === "decrement"}
+                isSelected={
+                  drawingMode ===
+                  (theme === "light" ? "increment" : "decrement")
+                }
                 text="Darken"
                 icon={<Darken stroke={1} />}
               />
               <NavButton
                 onClick={() => {
-                  setMode("increment");
+                  // In light mode, swap modes so visual behavior matches button label
+                  setMode(theme === "light" ? "decrement" : "increment");
                 }}
-                isSelected={drawingMode === "increment"}
+                isSelected={
+                  drawingMode ===
+                  (theme === "light" ? "decrement" : "increment")
+                }
                 text="Lighten"
                 icon={<Lighten stroke={1} />}
               />
