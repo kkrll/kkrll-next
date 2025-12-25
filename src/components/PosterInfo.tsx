@@ -123,7 +123,7 @@ export default function PosterInfo({
           )}
         </div>
       </div>
-      <Divider />
+      <Divider className="block md:hidden" />
     </>
   );
 }
