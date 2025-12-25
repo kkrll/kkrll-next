@@ -59,7 +59,7 @@ export default function HeroAscii({
 }: {
   drawingMode: "brush" | "increment" | "decrement" | null;
   onToggleDrawingMode: () => void;
-  setMode: Dispatch<SetStateAction<"brush" | "increment" | "decrement" | null>>;
+  setMode: (mode: "brush" | "increment" | "decrement" | null) => void;
 }) {
   // Canvas and grid refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -863,9 +863,8 @@ export default function HeroAscii({
   return (
     // biome-ignore lint/a11y/useSemanticElements: Full-screen interactive canvas container
     <div
-      className={`hidden md:block absolute top-0 left-0 w-full h-screen overflow-hidden ${
-        drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
-      } transition-opacity duration-300`}
+      className={`hidden md:block absolute top-0 left-0 w-full h-screen overflow-hidden ${drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
+        } transition-opacity duration-300`}
       role="button"
       tabIndex={drawingMode ? -1 : 0}
       onMouseDown={() => {
@@ -884,9 +883,8 @@ export default function HeroAscii({
 
       <canvas
         ref={canvasRef}
-        className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${
-          drawingMode ? "fixed" : "absolute"
-        }`}
+        className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${drawingMode ? "fixed" : "absolute"
+          }`}
       />
 
       {drawingMode && (
