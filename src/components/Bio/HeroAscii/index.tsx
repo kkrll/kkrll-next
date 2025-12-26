@@ -861,94 +861,107 @@ export default function HeroAscii({
   );
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: Full-screen interactive canvas container
-    <div
-      className={`hidden md:block absolute top-0 left-0 w-full h-screen overflow-hidden ${drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
-        } transition-opacity duration-300`}
-      role="button"
-      tabIndex={drawingMode ? -1 : 0}
-      onMouseDown={() => {
-        if (!drawingMode) {
-          handleToggleMode();
-        }
-      }}
-      onKeyDown={(e) => {
-        if (drawingMode && (e.metaKey || e.ctrlKey) && e.key === "s") {
-          e.preventDefault();
-          handleDownloadPng();
-        }
-      }}
-    >
-      <ResizingIndicator isResizing={isResizing} drawingMode={drawingMode} />
+    <>
+      {drawingMode && <div className={`flex flex-col text-center p-8 font-mono text-sm items-center justify-center md:hidden absolute top-0 left-0 w-full h-screen overflow-hidden ${drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"}`}>
+        <p>
+          There's quiet a nice drawing tool on this website, but atm it's only available on the desktop.
+        </p>
+        <p className="my-6">
+          See you there.
+        </p>
+        <button onClick={() => { setMode(null) }} className="nice-button">
+          <span>back to the website</span>
+        </button>
+      </div>}
+      {/*biome-ignore lint/a11y/useSemanticElements: Full-screen interactive canvas container*/}
+      <div
+        className={`hidden md:block absolute top-0 left-0 w-full h-screen overflow-hidden ${drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
+          } transition-opacity duration-300`}
+        role="button"
+        tabIndex={drawingMode ? -1 : 0}
+        onMouseDown={() => {
+          if (!drawingMode) {
+            handleToggleMode();
+          }
+        }}
+        onKeyDown={(e) => {
+          if (drawingMode && (e.metaKey || e.ctrlKey) && e.key === "s") {
+            e.preventDefault();
+            handleDownloadPng();
+          }
+        }}
+      >
+        <ResizingIndicator isResizing={isResizing} drawingMode={drawingMode} />
 
-      <canvas
-        ref={canvasRef}
-        className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${drawingMode ? "fixed" : "absolute"
-          }`}
-      />
+        <canvas
+          ref={canvasRef}
+          className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${drawingMode ? "fixed" : "absolute"
+            }`}
+        />
 
-      {drawingMode && (
-        <div className="fixed top-4 right-4 left-4 flex justify-between p-2 gap-2 z-200 bg-foreground/10 text-foreground rounded-2xl backdrop-blur">
-          <div className="flex gap-1 items-center flex-wrap">
-            <NavButton text={style} onClick={handleStyleToggle} />
-            <Divider vertical className="bg-foreground-07/20 mx-2" />
-            <CellSizeSelector
-              cellSize={cellSize}
-              onCellSizeChange={debouncedCellSizeChange}
-              style={style}
-            />
-            <Divider vertical className="bg-foreground-07/20 mx-2" />
-            {/* <ColorModeToggle
+        {drawingMode && (
+          <div className="fixed top-4 right-4 left-4 flex justify-between p-2 gap-2 z-200 bg-foreground/10 text-foreground rounded-2xl backdrop-blur">
+            <div className="flex gap-1 items-center flex-wrap">
+              <NavButton text={style} onClick={handleStyleToggle} />
+              <Divider vertical className="bg-foreground-07/20 mx-2" />
+              <CellSizeSelector
+                cellSize={cellSize}
+                onCellSizeChange={debouncedCellSizeChange}
+                style={style}
+              />
+              <Divider vertical className="bg-foreground-07/20 mx-2" />
+              {/* <ColorModeToggle
               colorMode={colorMode}
               onToggle={handleColorModeToggle}
               disabled={!hasSourceImage}
             />
             <Divider vertical className="bg-foreground-05 mx-2" /> */}
-            <div className="flex gap-1 h-full">
-              <NavButton
-                onClick={() => {
-                  // In light mode, swap modes so visual behavior matches button label
-                  setMode(theme === "light" ? "increment" : "decrement");
-                }}
-                isSelected={
-                  drawingMode ===
-                  (theme === "light" ? "increment" : "decrement")
-                }
-                text="Darken"
-                icon={<Darken stroke={1} />}
-              />
-              <NavButton
-                onClick={() => {
-                  // In light mode, swap modes so visual behavior matches button label
-                  setMode(theme === "light" ? "decrement" : "increment");
-                }}
-                isSelected={
-                  drawingMode ===
-                  (theme === "light" ? "decrement" : "increment")
-                }
-                text="Lighten"
-                icon={<Lighten stroke={1} />}
-              />
-              <SymbolSelector
-                selectedSymbol={selectedSymbol}
-                onSelectSymbol={handleSelectSymbol}
-                onModeSelect={() => setMode("brush")}
-                isSelected={drawingMode === "brush"}
-                style={style}
-              />
+              <div className="flex gap-1 h-full">
+                <NavButton
+                  onClick={() => {
+                    // In light mode, swap modes so visual behavior matches button label
+                    setMode(theme === "light" ? "increment" : "decrement");
+                  }}
+                  isSelected={
+                    drawingMode ===
+                    (theme === "light" ? "increment" : "decrement")
+                  }
+                  text="Darken"
+                  icon={<Darken stroke={1} />}
+                />
+                <NavButton
+                  onClick={() => {
+                    // In light mode, swap modes so visual behavior matches button label
+                    setMode(theme === "light" ? "decrement" : "increment");
+                  }}
+                  isSelected={
+                    drawingMode ===
+                    (theme === "light" ? "decrement" : "increment")
+                  }
+                  text="Lighten"
+                  icon={<Lighten stroke={1} />}
+                />
+                <SymbolSelector
+                  selectedSymbol={selectedSymbol}
+                  onSelectSymbol={handleSelectSymbol}
+                  onModeSelect={() => setMode("brush")}
+                  isSelected={drawingMode === "brush"}
+                  style={style}
+                />
+              </div>
             </div>
-          </div>
 
-          <DrawingControls
-            onClear={handleClear}
-            onDownloadPng={handleDownloadPng}
-            onDownloadTxt={handleDownloadTxt}
-            onExit={handleToggleMode}
-            onImageUpload={handleImageUpload}
-            isConverting={isConverting}
-          />
-        </div>
-      )}
-    </div>
+            <DrawingControls
+              onClear={handleClear}
+              onDownloadPng={handleDownloadPng}
+              onDownloadTxt={handleDownloadTxt}
+              onExit={handleToggleMode}
+              onImageUpload={handleImageUpload}
+              isConverting={isConverting}
+            />
+          </div>
+        )}
+      </div>
+    </>
   );
 }
