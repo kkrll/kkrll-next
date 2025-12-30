@@ -18,6 +18,15 @@ This is a Next.js 15 personal portfolio site using the App Router, TypeScript, a
 - `bun run lint` - Check code with Biome
 - `bun run format` - Format code with Biome
 
+### IMPORTANT: Do NOT run `bun run build` locally
+
+The `prebuild` script replaces symlinks in `public/` (writings, projects, posters) with copied files. In development, these are symlinks to `content/` for convenience. Running build will break them.
+
+If you accidentally run build, restore symlinks with:
+```bash
+rm -rf public/writings public/projects public/posters && ln -s ../content/writings public/writings && ln -s ../content/projects public/projects && ln -s ../content/posters public/posters
+```
+
 ### Biome Linter/Formatter
 
 This project uses Biome instead of ESLint/Prettier. Biome is configured for Next.js and React recommendations, with automatic import organization enabled.

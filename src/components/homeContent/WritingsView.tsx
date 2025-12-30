@@ -8,15 +8,13 @@ const WritingsView = ({ writing }: { writing: WritingMeta }) => {
   return (
     <div className="mb-8">
       <h2 className="mb-4">{writing.title}</h2>
-      {displayText && <p>{displayText}</p>}
+      {displayText && <p className="whitespace-pre-line">{displayText}</p>}
       {writing.link && (
         <button
           className="nice-button mt-6"
           onClick={() => router.push(writing.link as string)}
         >
-          <span>
-            Continue reading ⏎
-          </span>
+          <span>Continue reading ⏎</span>
         </button>
       )}
     </div>

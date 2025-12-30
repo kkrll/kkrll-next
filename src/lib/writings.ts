@@ -39,21 +39,38 @@ export type WritingMetaWithViewAll =
       globalId: string;
     };
 
-function extractExcerpt(content: string, maxLength = 250): string {
+function extractExcerpt(content: string, maxLength = 500): string {
   const lines = content.split("\n");
-  let excerpt = "";
-  let linesUsed = 0;
+  const paragraphs: string[] = [];
+  let currentParagraph = "";
+  let paragraphCount = 0;
+  let hitParagraphLimit = false;
 
   for (const line of lines) {
     const trimmed = line.trim();
+
+    // Skip non-content lines
     if (
-      !trimmed || // Empty
-      trimmed.startsWith("import ") || // Imports
-      trimmed.startsWith("export ") || // Exports
-      trimmed.startsWith("<") || // JSX
-      trimmed.startsWith("```") || // Code blocks
-      trimmed.startsWith("#") // Headers
+      trimmed.startsWith("import ") ||
+      trimmed.startsWith("export ") ||
+      trimmed.startsWith("<") ||
+      trimmed.startsWith("```") ||
+      trimmed.startsWith("#")
     ) {
+      continue;
+    }
+
+    // Empty line = paragraph break
+    if (!trimmed) {
+      if (currentParagraph) {
+        paragraphs.push(currentParagraph);
+        paragraphCount++;
+        currentParagraph = "";
+        if (paragraphCount >= 3) {
+          hitParagraphLimit = true;
+          break;
+        }
+      }
       continue;
     }
 
@@ -62,21 +79,30 @@ function extractExcerpt(content: string, maxLength = 250): string {
       .replace(/[*_]{1,2}([^*_]+)[*_]{1,2}/g, "$1") // Bold/italic
       .replace(/`([^`]+)`/g, "$1"); // Inline code
 
-    const potentialExcerpt = excerpt + (excerpt ? " " : "") + cleaned;
-
-    if (potentialExcerpt.length > maxLength) {
-      const remaining = maxLength - excerpt.length;
-      excerpt += (excerpt ? " " : "") + cleaned.substring(0, remaining);
-      break;
-    }
-
-    excerpt = potentialExcerpt;
-    linesUsed++;
-
-    if (linesUsed >= 5) break;
+    currentParagraph += (currentParagraph ? " " : "") + cleaned;
   }
 
-  return excerpt.trim() + (excerpt.length >= maxLength ? "..." : "");
+  // Don't forget the last paragraph if we didn't hit a blank line
+  if (currentParagraph && paragraphCount < 3) {
+    paragraphs.push(currentParagraph);
+  }
+
+  // Check if there's more content after what we captured
+  let excerpt = paragraphs.join("\n\n");
+
+  if (excerpt.length > maxLength) {
+    excerpt = excerpt.substring(0, maxLength);
+    // Try to cut at a word boundary
+    const lastSpace = excerpt.lastIndexOf(" ");
+    if (lastSpace > maxLength * 0.8) {
+      excerpt = excerpt.substring(0, lastSpace);
+    }
+    excerpt += "...";
+  } else if (hitParagraphLimit) {
+    excerpt += "...";
+  }
+
+  return excerpt;
 }
 
 export function getAllWritings(): Writing[] {
