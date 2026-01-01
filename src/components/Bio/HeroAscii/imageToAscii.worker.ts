@@ -11,6 +11,7 @@
  * 4. Worker sends back the ColorCharCell grid array
  */
 
+import { adjustContrast } from "./renderingUtils";
 import type {
   ColorCharCell,
   WorkerInput,
@@ -30,6 +31,8 @@ function processCellRegion(
   cellWidth: number,
   cellHeight: number,
   maxLevel: number,
+  blackPoint: number,
+  whitePoint: number,
 ): { r: number; g: number; b: number; level: number; isTransparent: boolean } {
   // Sample center pixel of the cell
   const centerX = Math.min(
@@ -52,10 +55,9 @@ function processCellRegion(
   // Calculate perceived luminance using standard ITU coefficients
   const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
-  // Normalize and apply gamma correction for better contrast
+  // Normalize and apply contrast adjustment
   const normalized = luminance / 255;
-  const adjusted =
-    normalized > 0.6 ? normalized ** (1 / 1.5) : normalized ** 1.3;
+  const adjusted = adjustContrast(normalized, blackPoint, whitePoint);
 
   // Convert to level
   let level = Math.floor(adjusted * maxLevel);
@@ -69,7 +71,17 @@ function processCellRegion(
  * Now preserves original RGB values for color mode support.
  */
 function processImage(data: WorkerInput): ColorCharCell[] {
-  const { imageBitmap, cols, rows, asciiChars, cellWidth, cellHeight, fitMode } = data;
+  const {
+    imageBitmap,
+    cols,
+    rows,
+    asciiChars,
+    cellWidth,
+    cellHeight,
+    fitMode,
+    blackPoint,
+    whitePoint,
+  } = data;
 
   // Create canvas at the actual pixel dimensions we need
   // This gives us more accurate color sampling
@@ -94,9 +106,10 @@ function processImage(data: WorkerInput): ColorCharCell[] {
   // Fit image while preserving aspect ratio
   // "contain" - fit entire image inside (letterbox)
   // "cover" - fill entire canvas (crop edges)
-  const shouldScaleToSmaller = fitMode === "contain"
-    ? imgAspect > canvasAspect  // contain: wider image → fit to width
-    : imgAspect < canvasAspect; // cover: wider image → fit to height (overflow width)
+  const shouldScaleToSmaller =
+    fitMode === "contain"
+      ? imgAspect > canvasAspect // contain: wider image → fit to width
+      : imgAspect < canvasAspect; // cover: wider image → fit to height (overflow width)
 
   if (shouldScaleToSmaller) {
     drawHeight = Math.round(canvasWidth / imgAspect);
@@ -133,6 +146,8 @@ function processImage(data: WorkerInput): ColorCharCell[] {
         cellWidth,
         cellHeight,
         maxLevel,
+        blackPoint,
+        whitePoint,
       );
 
       const index = row * cols + col;

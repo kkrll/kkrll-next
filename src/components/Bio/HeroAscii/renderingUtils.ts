@@ -160,33 +160,16 @@ export function renderCell(
   }
 }
 
-/**
- * Render a single cell during drawing (optimized for incremental updates).
- * Clears the cell area first, then renders.
- *
- * @param ctx - Canvas 2D context
- * @param cell - The cell to render
- * @param settings - Current render settings
- * @param chars - ASCII character set
- * @param colors - Canvas colors (bg for clearing, fg for drawing)
- */
-export function renderCellIncremental(
-  ctx: CanvasRenderingContext2D,
-  cell: CharCell,
-  settings: RenderSettings,
-  chars: string[],
-  colors: Colors,
-): void {
-  const x = cell.col * settings.cellSize.width;
-  const y = cell.row * settings.cellSize.height;
+export function adjustContrast(normalized: number, blackPoint: number = 0, whitePoint: number = 1) {
+  let luminance = normalized
 
-  // Clear the cell area first
-  ctx.fillStyle = colors.bg;
-  ctx.fillRect(x, y, settings.cellSize.width, settings.cellSize.height);
+  // Adjust white and black point
+  if (normalized < blackPoint) { luminance = 0 }
+  if (normalized > whitePoint) { luminance = 1 }
+  luminance = (luminance - blackPoint) / (whitePoint - blackPoint)
 
-  // Render the cell
-  // Note: During drawing, we typically don't use colorMode since user
-  // is painting with selected brush level, not preserving original colors
-  ctx.fillStyle = colors.fg;
-  renderCell(ctx, cell, settings, x, y, chars, colors);
+  if (whitePoint <= blackPoint) return luminance > 0.5 ? 1 : 0;
+
+  //update the contrast
+  return luminance > 0.6 ? luminance ** (1 / 1.5) : luminance ** 1.3;
 }

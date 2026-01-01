@@ -7,18 +7,23 @@ interface NavButtonProps {
   disabled?: boolean;
   "aria-label"?: string;
   icon?: ReactNode
+  popoverTarget?: string;
+  className?: string
 }
 
 const NavButton = ({
+  popoverTarget,
   text,
   onClick,
   isSelected = false,
   disabled = false,
   "aria-label": ariaLabel,
-  icon
+  icon,
+  className
 }: NavButtonProps) => {
   return (
     <button
+      popoverTarget={popoverTarget}
       type="button"
       onClick={onClick}
       disabled={disabled}
@@ -28,8 +33,7 @@ const NavButton = ({
         : isSelected
           ? "bg-background pointer-none:"
           : "bg-background/30 hover:bg-background/70"
-        } ${icon ? "w-8" : "px-3"
-        }
+        } ${icon ? "w-8" : "px-3"} ${className}
         `}
     >
       {icon ? icon : text}

@@ -63,6 +63,7 @@ export default function HeroAscii({
 }) {
   // Canvas and grid refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const bgCanvasRef = useRef<HTMLCanvasElement>(null);
   const gridRef = useRef<ColorCharCell[]>([]);
   const colorsRef = useRef<Colors>({ bg: "", fg: "" });
   const asciiCharsDrawRef = useRef<string[]>([...IMAGE_ASCII_CHARS]);
@@ -82,6 +83,14 @@ export default function HeroAscii({
   const selectedSymbolRef = useRef(8);
   const drawingModeRef = useRef(drawingMode);
   const lastDrawnCellRef = useRef<{ row: number; col: number } | null>(null);
+  const blackPointRef = useRef(0);
+  const whitePointRef = useRef(1);
+  const bgOffsetRef = useRef({
+    x: 0,
+    y: 0,
+    originalWidth: 0,
+    originalHeight: 0,
+  });
 
   // Render settings ref (avoid re-renders when settings change)
   const renderSettingsRef = useRef<RenderSettings>(
@@ -99,6 +108,8 @@ export default function HeroAscii({
   });
   const [colorMode, setColorMode] = useState<ColorMode>("monochrome");
   const [hasSourceImage, setHasSourceImage] = useState(false);
+  const [blackPoint, setBlackPoint] = useState(0);
+  const [whitePoint, setWhitePoint] = useState(1);
 
   const { track } = useTracking();
   const theme = useThemeStore((state) => state.theme);
@@ -111,6 +122,58 @@ export default function HeroAscii({
   useEffect(() => {
     drawingModeRef.current = drawingMode;
   }, [drawingMode]);
+
+  // Background canvas
+  const drawBackground = useCallback(() => {
+    const bgCanvas = bgCanvasRef.current;
+    if (!bgCanvas) return;
+
+    const ctx = bgCanvas.getContext("2d");
+    if (!ctx) return;
+
+    const colors = colorsRef.current;
+    const currentColorMode = renderSettingsRef.current.colorMode;
+
+    if (currentColorMode === "mixed" && sourceImageRef.current) {
+      // Draw blurred source image
+      const { bitmap, width: srcW, height: srcH } = sourceImageRef.current;
+      const originalCanvasW = bgOffsetRef.current.originalWidth;
+      const originalCanvasH = bgOffsetRef.current.originalHeight;
+
+      // Calculate fit (same as imageToAscii)
+      let dx: number, dy: number, dw: number, dh: number;
+
+      if (fitModeRef.current === "cover") {
+        const scale = Math.max(originalCanvasW / srcW, originalCanvasH / srcH);
+        dw = srcW * scale;
+        dh = srcH * scale;
+        dx = (originalCanvasW - dw) / 2;
+        dy = (originalCanvasH - dh) / 2;
+      } else {
+        const scale = Math.min(originalCanvasW / srcW, originalCanvasH / srcH);
+        dw = srcW * scale;
+        dh = srcH * scale;
+        dx = (originalCanvasW - dw) / 2;
+        dy = (originalCanvasH - dh) / 2;
+      }
+
+      dx += bgOffsetRef.current.x;
+      dy += bgOffsetRef.current.y;
+
+      // Clear and draw with blur
+      ctx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+      ctx.fillStyle = colors.bg;
+      ctx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+      ctx.filter = "blur(4px)";
+      ctx.drawImage(bitmap, dx, dy, dw, dh);
+      ctx.filter = "none";
+    } else {
+      // Solid color background
+      ctx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+      ctx.fillStyle = colors.bg;
+      ctx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+    }
+  }, []);
 
   // Get canvas dimensions based on current cell size
   const getCanvasDimensions = useCallback((canvas: HTMLCanvasElement) => {
@@ -155,6 +218,12 @@ export default function HeroAscii({
         sourceImageRef.current.bitmap.close();
       }
 
+      bgOffsetRef.current = {
+        x: 0,
+        y: 0,
+        originalWidth: canvas.width,
+        originalHeight: canvas.height,
+      };
       sourceImageRef.current = {
         bitmap,
         width: bitmap.width,
@@ -175,6 +244,8 @@ export default function HeroAscii({
         IMAGE_ASCII_CHARS,
         currentCellSize,
         "cover",
+        blackPointRef.current,
+        whitePointRef.current,
       );
       gridRef.current = convertedGrid;
     } catch (error) {
@@ -211,12 +282,12 @@ export default function HeroAscii({
     const colors = colorsRef.current;
     const currentCellSize = renderSettingsRef.current.cellSize;
 
-    ctx.fillStyle = colors.bg;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    drawBackground();
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.font = FONT;
     ctx.textBaseline = "top";
-    ctx.fillStyle = colors.fg;
 
     gridRef.current.forEach((cell) => {
       const x = cell.col * currentCellSize.width;
@@ -231,7 +302,7 @@ export default function HeroAscii({
         colors,
       );
     });
-  }, [updateColors]);
+  }, [updateColors, drawBackground]);
 
   // Handle style changes
   useEffect(() => {
@@ -272,6 +343,8 @@ export default function HeroAscii({
             IMAGE_ASCII_CHARS,
             newCellSize,
             fitModeRef.current,
+            blackPointRef.current,
+            whitePointRef.current,
           );
 
           // Apply edits from overlay
@@ -317,6 +390,8 @@ export default function HeroAscii({
         gridRef.current = blankGrid;
       }
 
+      bgOffsetRef.current.x = 0;
+      bgOffsetRef.current.y = 0;
       renderGrid();
       setIsResizing(false);
 
@@ -329,11 +404,14 @@ export default function HeroAscii({
   );
 
   // Debounced cell size change for slider
-  const debouncedCellSizeChange = useDebounce(handleCellSizeChange, 200);
+  const debouncedCellSizeChange = useDebounce(handleCellSizeChange, 100);
 
   // Handle color mode toggle
   const handleColorModeToggle = useCallback(() => {
-    const newMode = colorMode === "monochrome" ? "original" : "monochrome";
+    const modes: ColorMode[] = ["monochrome", "original", "mixed"];
+    const currentIndex = modes.indexOf(colorMode);
+    const newMode = modes[(currentIndex + 1) % modes.length];
+
     setColorMode(newMode);
     renderSettingsRef.current.colorMode = newMode;
     renderGrid();
@@ -356,6 +434,9 @@ export default function HeroAscii({
 
       const colOffset = Math.floor((newCols - oldCols) / 2);
       const rowOffset = Math.floor((newRows - oldRows) / 2);
+
+      bgOffsetRef.current.x += colOffset * currentCellSize.width;
+      bgOffsetRef.current.y += rowOffset * currentCellSize.height;
 
       const newGrid: ColorCharCell[] = new Array(newCols * newRows);
 
@@ -406,7 +487,8 @@ export default function HeroAscii({
   // Handle window resize
   const handleWindowResize = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const bgCanvas = bgCanvasRef.current;
+    if (!canvas || !bgCanvas) return;
 
     const newWidth = window.innerWidth;
     const newHeight = window.innerHeight;
@@ -424,6 +506,8 @@ export default function HeroAscii({
 
     canvas.width = newWidth;
     canvas.height = newHeight;
+    bgCanvas.width = newWidth;
+    bgCanvas.height = newHeight;
 
     renderGrid();
     setIsResizing(false);
@@ -448,10 +532,13 @@ export default function HeroAscii({
       const x = cell.col * currentCellSize.width;
       const y = cell.row * currentCellSize.height;
 
-      ctx.fillStyle = bg;
-      ctx.fillRect(x, y, currentCellSize.width, currentCellSize.height);
+      ctx.clearRect(x, y, currentCellSize.width, currentCellSize.height);
 
-      ctx.fillStyle = fg;
+      if (renderSettingsRef.current.colorMode === "original") {
+        ctx.fillStyle = `rgb(${cell.r}, ${cell.g}, ${cell.b})`;
+      } else {
+        ctx.fillStyle = fg;
+      }
 
       const maxLevel = asciiCharsDrawRef.current.length - 1;
       // Apply inversion for light mode, just like renderCell does
@@ -594,9 +681,80 @@ export default function HeroAscii({
     }
   }, []);
 
-  // Handle clear - reset to base levels and clear edit overlay
-  const handleClear = useCallback(() => {
+  // Handle contrast change - regenerates grid with new black/white points
+  const handleContrastChange = useCallback(
+    async (newBlackPoint: number, newWhitePoint: number) => {
+      blackPointRef.current = newBlackPoint;
+      whitePointRef.current = newWhitePoint;
+      setBlackPoint(newBlackPoint);
+      setWhitePoint(newWhitePoint);
+
+      track("ascii_contrast_changed", {
+        black_point: newBlackPoint,
+        white_point: newWhitePoint,
+      });
+
+      if (!sourceImageRef.current) return;
+
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const currentCellSize = renderSettingsRef.current.cellSize;
+      const cols = Math.ceil(canvas.width / currentCellSize.width);
+      const rows = Math.ceil(canvas.height / currentCellSize.height);
+
+      try {
+        const newGrid = await convertBitmapToGrid(
+          sourceImageRef.current.bitmap,
+          cols,
+          rows,
+          IMAGE_ASCII_CHARS,
+          currentCellSize,
+          fitModeRef.current,
+          newBlackPoint,
+          newWhitePoint,
+        );
+
+        // Apply edits from overlay
+        const overlay = editOverlayRef.current;
+        if (overlay) {
+          newGrid.forEach((cell) => {
+            const edit = sampleEditsForCell(
+              overlay,
+              cell.col,
+              cell.row,
+              currentCellSize,
+            );
+            if (edit) {
+              cell.currentLevel = applyEditToLevel(
+                cell.baseLevel,
+                edit,
+                IMAGE_ASCII_CHARS.length - 1,
+              );
+            }
+          });
+        }
+
+        gridRef.current = newGrid;
+        renderGrid();
+      } catch (error) {
+        console.error("Failed to regenerate grid with new contrast:", error);
+      }
+    },
+    [renderGrid, track],
+  );
+
+  const debouncedContrastChange = useDebounce(handleContrastChange, 100);
+
+  // Handle reset - reset to base levels, clear edits, and reset contrast
+  const handleReset = useCallback(() => {
     track("ascii_canvas_cleared");
+
+    // Reset contrast to defaults
+    blackPointRef.current = 0;
+    whitePointRef.current = 1;
+    setBlackPoint(0);
+    setWhitePoint(1);
 
     gridRef.current.forEach((cell) => {
       cell.currentLevel = cell.baseLevel;
@@ -607,8 +765,13 @@ export default function HeroAscii({
       clearOverlay(editOverlayRef.current);
     }
 
-    renderGrid();
-  }, [renderGrid, track]);
+    // Regenerate grid with default contrast if source image exists
+    if (sourceImageRef.current) {
+      handleContrastChange(0, 1);
+    } else {
+      renderGrid();
+    }
+  }, [renderGrid, track, handleContrastChange]);
 
   // Handle toggle drawing mode
   const handleToggleMode = useCallback(() => {
@@ -640,6 +803,8 @@ export default function HeroAscii({
 
     setStyle(newStyle);
 
+    track("ascii_style_changed", { style: newStyle });
+
     // Adjust cell size for new style
     const newCellSize = adjustCellSizeForStyle(cellSize, newStyle);
     if (
@@ -648,16 +813,26 @@ export default function HeroAscii({
     ) {
       debouncedCellSizeChange(newCellSize);
     }
-  }, [style, cellSize, debouncedCellSizeChange]);
+  }, [style, cellSize, debouncedCellSizeChange, track]);
 
   // Handle download PNG
   const handleDownloadPng = useCallback(async () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const bgCanvas = bgCanvasRef.current;
+    if (!canvas || !bgCanvas) return;
 
     track("ascii_saved_as_png");
 
-    canvas.toBlob(async (blob) => {
+    const exportCanvas = document.createElement("canvas");
+    exportCanvas.width = canvas.width;
+    exportCanvas.height = canvas.height;
+    const exportCtx = exportCanvas.getContext("2d");
+    if (!exportCtx) return;
+
+    exportCtx.drawImage(bgCanvas, 0, 0);
+    exportCtx.drawImage(canvas, 0, 0);
+
+    exportCanvas.toBlob(async (blob) => {
       if (!blob) return;
 
       const url = URL.createObjectURL(blob);
@@ -754,6 +929,8 @@ export default function HeroAscii({
           IMAGE_ASCII_CHARS,
           currentCellSize,
           "contain",
+          blackPointRef.current,
+          whitePointRef.current,
         );
 
         gridRef.current = convertedGrid;
@@ -798,13 +975,16 @@ export default function HeroAscii({
   // biome-ignore lint/correctness/useExhaustiveDependencies: we need to initialize canvas on mount
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const bgCanvas = bgCanvasRef.current;
+    if (!canvas || !bgCanvas) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    bgCanvas.width = window.innerWidth;
+    bgCanvas.height = window.innerHeight;
 
     const initializeGrid = async () => {
       await initGrid();
@@ -860,22 +1040,44 @@ export default function HeroAscii({
     [track],
   );
 
+  // Handle drawing mode selection
+  const handleModeSelect = useCallback(
+    (mode: "brush" | "increment" | "decrement") => {
+      track("ascii_drawing_mode_selected", { mode });
+      setMode(mode);
+    },
+    [track, setMode],
+  );
+
   return (
     <>
-      {drawingMode && <div className={`flex flex-col text-center p-8 font-mono text-sm items-center justify-center md:hidden absolute top-0 left-0 w-full h-screen overflow-hidden ${drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"}`}>
-        <p>
-          There's quiet a nice drawing tool on this website, but atm it's only available on the desktop.
-        </p>
-        <p className="my-6">
-          See you there.
-        </p>
-        <button onClick={() => { setMode(null) }} className="nice-button">
-          <span>back to the website</span>
-        </button>
-      </div>}
+      {drawingMode && (
+        <div
+          className={`flex flex-col text-center p-8 font-mono text-sm items-center justify-center md:hidden absolute top-0 left-0 w-full h-screen overflow-hidden ${drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"}`}
+        >
+          <p>
+            There's quiet a nice drawing tool on this website, but atm it's only
+            available on the desktop.
+          </p>
+          <p className="my-6">See you there.</p>
+          <button
+            type="button"
+            onClick={() => {
+              setMode(null);
+            }}
+            className="nice-button"
+          >
+            <span>back to the website</span>
+          </button>
+        </div>
+      )}
       {/*biome-ignore lint/a11y/useSemanticElements: Full-screen interactive canvas container*/}
       <div
-        className={`hidden md:block absolute top-0 left-0 w-full h-screen overflow-hidden ${drawingMode ? "opacity-100 z-100" : "opacity-15 z-0"
+        className={`hidden md:block absolute top-0 left-0 w-full h-screen overflow-hidden ${!drawingMode
+          ? renderSettingsRef.current.invert
+            ? "opacity-[7%] z-0"
+            : "opacity-15 z-0"
+          : "opacity-100 z-100"
           } transition-opacity duration-300`}
         role="button"
         tabIndex={drawingMode ? -1 : 0}
@@ -894,9 +1096,12 @@ export default function HeroAscii({
         <ResizingIndicator isResizing={isResizing} drawingMode={drawingMode} />
 
         <canvas
+          ref={bgCanvasRef}
+          className={`inset-0 ${drawingMode ? "fixed" : "absolute"} bg-background text-foreground-07`}
+        />
+        <canvas
           ref={canvasRef}
-          className={`inset-0 bg-background text-foreground-07 cursor-crosshair ${drawingMode ? "fixed" : "absolute"
-            }`}
+          className={`inset-0 cursor-crosshair ${drawingMode ? "fixed" : "absolute"}`}
         />
 
         {drawingMode && (
@@ -910,17 +1115,19 @@ export default function HeroAscii({
                 style={style}
               />
               <Divider vertical className="bg-foreground-07/20 mx-2" />
-              {/* <ColorModeToggle
-              colorMode={colorMode}
-              onToggle={handleColorModeToggle}
-              disabled={!hasSourceImage}
-            />
-            <Divider vertical className="bg-foreground-05 mx-2" /> */}
+              <ColorModeToggle
+                colorMode={colorMode}
+                onToggle={handleColorModeToggle}
+                disabled={!hasSourceImage}
+              />
+              <Divider vertical className="bg-foreground-05 mx-2" />
               <div className="flex gap-1 h-full">
                 <NavButton
                   onClick={() => {
                     // In light mode, swap modes so visual behavior matches button label
-                    setMode(theme === "light" ? "increment" : "decrement");
+                    handleModeSelect(
+                      theme === "light" ? "increment" : "decrement",
+                    );
                   }}
                   isSelected={
                     drawingMode ===
@@ -932,7 +1139,9 @@ export default function HeroAscii({
                 <NavButton
                   onClick={() => {
                     // In light mode, swap modes so visual behavior matches button label
-                    setMode(theme === "light" ? "decrement" : "increment");
+                    handleModeSelect(
+                      theme === "light" ? "decrement" : "increment",
+                    );
                   }}
                   isSelected={
                     drawingMode ===
@@ -944,7 +1153,7 @@ export default function HeroAscii({
                 <SymbolSelector
                   selectedSymbol={selectedSymbol}
                   onSelectSymbol={handleSelectSymbol}
-                  onModeSelect={() => setMode("brush")}
+                  onModeSelect={() => handleModeSelect("brush")}
                   isSelected={drawingMode === "brush"}
                   style={style}
                 />
@@ -952,12 +1161,20 @@ export default function HeroAscii({
             </div>
 
             <DrawingControls
-              onClear={handleClear}
               onDownloadPng={handleDownloadPng}
               onDownloadTxt={handleDownloadTxt}
               onExit={handleToggleMode}
               onImageUpload={handleImageUpload}
+              onReset={handleReset}
               isConverting={isConverting}
+              blackPoint={blackPoint}
+              whitePoint={whitePoint}
+              onBlackPointChange={(v) =>
+                debouncedContrastChange(v, whitePointRef.current)
+              }
+              onWhitePointChange={(v) =>
+                debouncedContrastChange(blackPointRef.current, v)
+              }
             />
           </div>
         )}

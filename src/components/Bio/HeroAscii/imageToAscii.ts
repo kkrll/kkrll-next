@@ -18,6 +18,7 @@ import type {
   WorkerOutput,
 } from "./types";
 import { DEFAULT_CELL_WIDTH, DEFAULT_CELL_HEIGHT } from "./constants";
+import { adjustContrast } from "./renderingUtils";
 
 // Lazy-loaded worker instance (created on first use)
 let worker: Worker | null = null;
@@ -62,6 +63,8 @@ async function convertWithWorker(
   asciiChars: string[],
   cellSize: CellSize,
   fitMode: FitMode,
+  blackPoint: number,
+  whitePoint: number,
 ): Promise<ColorCharCell[]> {
   // Create ImageBitmap from file - this is transferable to workers
   const imageBitmap = await createImageBitmap(file);
@@ -98,6 +101,8 @@ async function convertWithWorker(
       cellWidth: cellSize.width,
       cellHeight: cellSize.height,
       fitMode,
+      blackPoint,
+      whitePoint,
     };
 
     workerInstance.postMessage(input, [imageBitmap]);
@@ -134,6 +139,8 @@ async function convertOnMainThread(
   asciiChars: string[],
   cellSize: CellSize,
   fitMode: FitMode,
+  blackPoint: number,
+  whitePoint: number,
 ): Promise<ColorCharCell[]> {
   const img = await loadImage(file);
 
@@ -160,9 +167,8 @@ async function convertOnMainThread(
 
   // "contain" - fit entire image inside (letterbox)
   // "cover" - fill entire canvas (crop edges)
-  const shouldScaleToSmaller = fitMode === "contain"
-    ? imgAspect > canvasAspect
-    : imgAspect < canvasAspect;
+  const shouldScaleToSmaller =
+    fitMode === "contain" ? imgAspect > canvasAspect : imgAspect < canvasAspect;
 
   if (shouldScaleToSmaller) {
     drawHeight = Math.round(canvasWidth / imgAspect);
@@ -216,8 +222,7 @@ async function convertOnMainThread(
         // Calculate luminance and level
         const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
         const normalized = luminance / 255;
-        const adjusted =
-          normalized > 0.6 ? normalized ** (1 / 1.5) : normalized ** 1.3;
+        const adjusted = adjustContrast(normalized, blackPoint, whitePoint);
         let level = Math.floor(adjusted * maxLevel);
         level = Math.max(0, Math.min(level, maxLevel));
 
@@ -251,6 +256,8 @@ async function convertOnMainThread(
  * @param asciiChars - Character set for level mapping
  * @param cellSize - Optional cell dimensions (defaults to 10x16)
  * @param fitMode - How to fit image: "contain" (default) or "cover"
+ * @param blackPoint - Black point for contrast adjustment (0-1, default 0)
+ * @param whitePoint - White point for contrast adjustment (0-1, default 1)
  */
 async function convertImageToGrid(
   file: File,
@@ -262,6 +269,8 @@ async function convertImageToGrid(
     height: DEFAULT_CELL_HEIGHT,
   },
   fitMode: FitMode = "contain",
+  blackPoint = 0,
+  whitePoint = 1,
 ): Promise<ColorCharCell[]> {
   // Validate input
   if (!file.type.startsWith("image/")) {
@@ -276,17 +285,44 @@ async function convertImageToGrid(
   // Use worker if supported, otherwise fall back to main thread
   if (isWorkerSupported()) {
     try {
-      return await convertWithWorker(file, cols, rows, asciiChars, cellSize, fitMode);
+      return await convertWithWorker(
+        file,
+        cols,
+        rows,
+        asciiChars,
+        cellSize,
+        fitMode,
+        blackPoint,
+        whitePoint,
+      );
     } catch (error) {
       console.warn(
         "Worker conversion failed, falling back to main thread:",
         error,
       );
-      return convertOnMainThread(file, cols, rows, asciiChars, cellSize, fitMode);
+      return convertOnMainThread(
+        file,
+        cols,
+        rows,
+        asciiChars,
+        cellSize,
+        fitMode,
+        blackPoint,
+        whitePoint,
+      );
     }
   }
 
-  return convertOnMainThread(file, cols, rows, asciiChars, cellSize, fitMode);
+  return convertOnMainThread(
+    file,
+    cols,
+    rows,
+    asciiChars,
+    cellSize,
+    fitMode,
+    blackPoint,
+    whitePoint,
+  );
 }
 
 export default convertImageToGrid;
@@ -302,6 +338,8 @@ export async function convertBitmapToGrid(
   asciiChars: string[],
   cellSize: CellSize,
   fitMode: FitMode = "contain",
+  blackPoint = 0,
+  whitePoint = 1,
 ): Promise<ColorCharCell[]> {
   // For now, use main thread for bitmap conversion
   // Worker would need a different entry point
@@ -327,9 +365,8 @@ export async function convertBitmapToGrid(
 
   // "contain" - fit entire image inside (letterbox)
   // "cover" - fill entire canvas (crop edges)
-  const shouldScaleToSmaller = fitMode === "contain"
-    ? imgAspect > canvasAspect
-    : imgAspect < canvasAspect;
+  const shouldScaleToSmaller =
+    fitMode === "contain" ? imgAspect > canvasAspect : imgAspect < canvasAspect;
 
   if (shouldScaleToSmaller) {
     drawHeight = Math.round(canvasWidth / imgAspect);
@@ -378,8 +415,7 @@ export async function convertBitmapToGrid(
       } else {
         const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
         const normalized = luminance / 255;
-        const adjusted =
-          normalized > 0.6 ? normalized ** (1 / 1.5) : normalized ** 1.3;
+        const adjusted = adjustContrast(normalized, blackPoint, whitePoint);
         let level = Math.floor(adjusted * maxLevel);
         level = Math.max(0, Math.min(level, maxLevel));
 

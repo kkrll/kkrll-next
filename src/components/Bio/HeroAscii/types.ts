@@ -89,7 +89,7 @@ export interface CellSize {
 }
 
 /** Color rendering mode */
-export type ColorMode = "monochrome" | "original";
+export type ColorMode = "monochrome" | "original" | "mixed";
 
 /** Style/rendering mode */
 export type RenderStyle = "Ascii" | "Dot";
@@ -126,6 +126,8 @@ export interface WorkerInput {
   cellHeight: number;
   /** How to fit image: "contain" (letterbox) or "cover" (fill, crop edges) */
   fitMode: FitMode;
+  blackPoint: number;
+  whitePoint: number;
 }
 
 /** Successful result from the worker */
