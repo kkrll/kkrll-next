@@ -34,7 +34,7 @@ export const MIN_CELL_SIZE = 4;
 export const MAX_CELL_SIZE = 24;
 
 /** Default cell width for ASCII mode */
-export const DEFAULT_CELL_WIDTH = 10;
+export const DEFAULT_CELL_WIDTH = 8;
 
 /** Default cell height for ASCII mode (taller for character aspect ratio) */
 export const DEFAULT_CELL_HEIGHT = 16;
@@ -73,7 +73,7 @@ export const FONT = `14px ${FONT_FAMILY}`;
  * Maintains 87.5% ratio (14px font in 16px cell) for consistent appearance.
  */
 export function getFontForCellSize(cellHeight: number): string {
-  const fontSize = Math.max(4, Math.floor(cellHeight * 0.875));
+  const fontSize = Math.max(4, Math.floor(cellHeight * 0.8));
   return `${fontSize}px ${FONT_FAMILY}`;
 }
 

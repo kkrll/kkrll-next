@@ -30,7 +30,7 @@ function calculateCellSize(size: number, style: RenderStyle): CellSize {
   // ASCII mode - maintain ~10:16 aspect ratio
   return {
     width: size,
-    height: Math.round(size * 1.6),
+    height: Math.round(size * 2),
   };
 }
 

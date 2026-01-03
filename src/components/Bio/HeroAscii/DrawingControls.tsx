@@ -10,6 +10,7 @@ interface DrawingControlsProps {
   onExit: () => void;
   onImageUpload: (file: File) => void;
   onReset: () => void;
+  onClear: () => void;
   isConverting: boolean;
   blackPoint: number;
   whitePoint: number;
@@ -24,6 +25,7 @@ const DrawingControls = memo(
     onExit,
     onImageUpload,
     onReset,
+    onClear,
     isConverting,
     blackPoint,
     whitePoint,
@@ -44,6 +46,8 @@ const DrawingControls = memo(
         <Divider vertical className="bg-foreground-07/20 mx-2" />
         <NavButton text="Save as PNG" onClick={onDownloadPng} />
         <NavButton text="Save as TXT" onClick={onDownloadTxt} />
+        <Divider vertical className="bg-foreground-07/20 mx-2" />
+        <NavButton text="Clear" onClick={onClear} />
         <Divider vertical className="bg-foreground-07/20 mx-2" />
         <NavButton text="Exit" onClick={onExit} icon={<CloseIcon />} />
       </div>

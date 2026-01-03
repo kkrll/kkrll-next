@@ -773,6 +773,58 @@ export default function HeroAscii({
     }
   }, [renderGrid, track, handleContrastChange]);
 
+  // Handle clear - remove image and all symbols, empty canvas
+  const handleClear = useCallback(() => {
+    track("ascii_canvas_cleared");
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Close and clear source image
+    if (sourceImageRef.current?.bitmap) {
+      sourceImageRef.current.bitmap.close();
+    }
+    sourceImageRef.current = null;
+    setHasSourceImage(false);
+
+    // Reset contrast to defaults
+    blackPointRef.current = 0;
+    whitePointRef.current = 1;
+    setBlackPoint(0);
+    setWhitePoint(1);
+
+    // Clear edit overlay
+    if (editOverlayRef.current) {
+      clearOverlay(editOverlayRef.current);
+    }
+
+    // Create blank grid
+    const currentCellSize = renderSettingsRef.current.cellSize;
+    const cols = Math.ceil(canvas.width / currentCellSize.width);
+    const rows = Math.ceil(canvas.height / currentCellSize.height);
+    const blankLevel = renderSettingsRef.current.invert
+      ? IMAGE_ASCII_CHARS.length - 1
+      : 0;
+
+    const blankGrid: ColorCharCell[] = new Array(cols * rows);
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        blankGrid[row * cols + col] = {
+          baseLevel: blankLevel,
+          currentLevel: blankLevel,
+          row,
+          col,
+          r: 0,
+          g: 0,
+          b: 0,
+        };
+      }
+    }
+    gridRef.current = blankGrid;
+
+    renderGrid();
+  }, [renderGrid, track]);
+
   // Handle toggle drawing mode
   const handleToggleMode = useCallback(() => {
     track(
@@ -1166,6 +1218,7 @@ export default function HeroAscii({
               onExit={handleToggleMode}
               onImageUpload={handleImageUpload}
               onReset={handleReset}
+              onClear={handleClear}
               isConverting={isConverting}
               blackPoint={blackPoint}
               whitePoint={whitePoint}
