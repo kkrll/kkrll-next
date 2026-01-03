@@ -62,8 +62,20 @@ export const CHAR_HEIGHT = DEFAULT_CELL_HEIGHT;
 // Font & Rendering
 // ============================================
 
-/** Font for ASCII character rendering */
-export const FONT = "14px 'Geist Mono', monospace";
+/** Font family for ASCII character rendering */
+export const FONT_FAMILY = "'Geist Mono', monospace";
+
+/** Default font for ASCII character rendering (14px at default cell height) */
+export const FONT = `14px ${FONT_FAMILY}`;
+
+/**
+ * Calculate font size proportionally to cell height.
+ * Maintains 87.5% ratio (14px font in 16px cell) for consistent appearance.
+ */
+export function getFontForCellSize(cellHeight: number): string {
+  const fontSize = Math.max(4, Math.floor(cellHeight * 0.875));
+  return `${fontSize}px ${FONT_FAMILY}`;
+}
 
 /** Available rendering styles */
 export const STYLES: RenderStyle[] = ["Ascii", "Dot"];

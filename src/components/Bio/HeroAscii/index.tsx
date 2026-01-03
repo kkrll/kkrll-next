@@ -13,9 +13,9 @@ import { useTracking } from "@/hooks/useTracking";
 import {
   DEFAULT_CELL_HEIGHT,
   DEFAULT_CELL_WIDTH,
-  FONT,
   IMAGE_ASCII_CHARS,
   STYLES,
+  getFontForCellSize,
 } from "./constants";
 import type {
   CellSize,
@@ -286,7 +286,7 @@ export default function HeroAscii({
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.font = FONT;
+    ctx.font = getFontForCellSize(currentCellSize.height);
     ctx.textBaseline = "top";
 
     gridRef.current.forEach((cell) => {
@@ -652,7 +652,7 @@ export default function HeroAscii({
             }
 
             lastDrawnCellRef.current = { row: cell.row, col: cell.col };
-            ctx.font = FONT;
+            ctx.font = getFontForCellSize(currentCellSize.height);
             ctx.textBaseline = "top";
             drawCell(ctx, cell);
           }
