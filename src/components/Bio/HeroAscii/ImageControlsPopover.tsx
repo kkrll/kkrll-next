@@ -13,6 +13,8 @@ import { UploadPicture } from "@/components/ui/icons";
 import "./styles.css";
 import Divider from "@/components/Divider";
 import NavButton from "./NavButton";
+import OffsetControl2D from "./OffsetControl2D";
+import type { ColorMode } from "./types";
 
 interface ImageControlsPopoverProps {
   blackPoint: number;
@@ -22,6 +24,16 @@ interface ImageControlsPopoverProps {
   onImageUpload: (file: File) => void;
   onReset: () => void;
   isConverting: boolean;
+  bgBlur: number;
+  bgScale: number;
+  bgOffsetX: number;
+  bgOffsetY: number;
+  onBgBlurChange: (value: number) => void;
+  onBgScaleChange: (value: number) => void;
+  onBgOffsetChange: (x: number, y: number) => void;
+  hasSourceImage: boolean;
+  colorMode: ColorMode;
+  onSetMixedMode: () => void;
 }
 
 const ImageControlsPopover = memo(
@@ -33,6 +45,16 @@ const ImageControlsPopover = memo(
     onImageUpload,
     onReset,
     isConverting,
+    bgBlur,
+    bgScale,
+    bgOffsetX,
+    bgOffsetY,
+    onBgBlurChange,
+    onBgScaleChange,
+    onBgOffsetChange,
+    hasSourceImage,
+    colorMode,
+    onSetMixedMode,
   }: ImageControlsPopoverProps) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -119,6 +141,89 @@ const ImageControlsPopover = memo(
               onChange={(e) => onWhitePointChange(Number(e.target.value) / 100)}
               className="w-full accent-foreground slider-tapered"
             />
+          </div>
+
+          <Divider className="bg-foreground-05/50 my-3" />
+
+          {/* Background Image Section */}
+          <div className="relative">
+            {/* Blur Slider */}
+            <div className="mb-4">
+              <label
+                htmlFor="bg-blur-slider"
+                className="text-xs font-mono font-medium text-foreground-07 block mb-2"
+              >
+                Blur
+              </label>
+              <input
+                id="bg-blur-slider"
+                type="range"
+                min={0}
+                max={20}
+                step={1}
+                value={bgBlur}
+                onChange={(e) => onBgBlurChange(Number(e.target.value))}
+                className="w-full accent-foreground slider-tapered"
+                disabled={!hasSourceImage}
+              />
+            </div>
+
+            {/* Offset and Scale Controls - Side by Side */}
+            <div className="mb-3">
+              {/* Labels Row */}
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-xs font-mono font-medium text-foreground-07">
+                  Offset
+                </label>
+                <label className="text-xs font-mono font-medium text-foreground-07">
+                  {Math.round(bgScale * 100)}%
+                </label>
+              </div>
+
+              {/* Controls Row */}
+              <div className="flex gap-3 items-center">
+                <OffsetControl2D
+                  offsetX={bgOffsetX}
+                  offsetY={bgOffsetY}
+                  onChange={onBgOffsetChange}
+                  disabled={!hasSourceImage}
+                />
+
+                {/* Vertical Scale Slider */}
+                <div
+                  className="relative"
+                  style={{ width: 24, height: 120 }}
+                >
+                  <input
+                    id="bg-scale-slider"
+                    type="range"
+                    min={0.5}
+                    max={3}
+                    step={0.1}
+                    value={bgScale}
+                    onChange={(e) => onBgScaleChange(Number(e.target.value))}
+                    className="accent-foreground slider-vertical"
+                    disabled={!hasSourceImage}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Overlay when not in mixed mode */}
+            {colorMode !== "mixed" && (
+              <div className="absolute inset-0 bg-overlay backdrop-blur-sm border-background-05 border-1 rounded-lg flex flex-col items-center justify-center gap-3 p-4">
+                <p className="text-xs font-mono text-center text-foreground-07">
+                  Image is not displayed in this mode
+                </p>
+                <button
+                  type="button"
+                  onClick={onSetMixedMode}
+                  className="w-full flex items-center justify-center gap-2 cursor-pointer py-2 text-xs font-mono text-foreground rounded-xl bg-background-07 hover:bg-background-05 mb-3"
+                >
+                  Mixed mode
+                </button>
+              </div>
+            )}
           </div>
 
           <Divider className="bg-foreground-05/50 my-3" />

@@ -11,6 +11,24 @@
             transparent 0%,
             color-mix(in srgb, var(--foreground) 30%, transparent) 100%);
     transition: background 0.2s;
+    border: 1px solid var(--color-foreground-05);
+}
+
+.slider-vertical {
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    height: 8px;
+    width: 120px;
+    border-radius: 8px;
+    min-width: 120px;
+    position: absolute;
+    transform-origin: center center;
+    transform: rotate(-90deg) translateX(4px) translateY(-54px);
+    left: 50%;
+    top: 50%;
+    background: var(--color-background-07);
+    border: 1px solid var(--color-foreground-07);
 }
 
 .slider-tapered:hover {
@@ -19,14 +37,17 @@
             color-mix(in srgb, var(--foreground) 40%, transparent) 100%);
 }
 
+
 /* Webkit browsers (Chrome, Safari, Edge) */
-.slider-tapered::-webkit-slider-track {
+.slider-tapered::-webkit-slider-track,
+.slider-vertical::-webkit-slider-track {
     background: transparent;
     height: 20px;
     width: 100%;
     border: none;
 }
 
+.slider-vertical::-webkit-slider-thumb,
 .slider-tapered::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -37,19 +58,22 @@
     cursor: grab;
 }
 
-.slider-tapered::-webkit-slider-thumb:active {
+.slider-tapered::-webkit-slider-thumb:active,
+.slider-vertical::-webkit-slider-thumb:active {
     cursor: grabbing;
 }
 
 /* Firefox */
-.slider-tapered::-moz-range-track {
+.slider-tapered::-moz-range-track,
+.slider-vertical::-moz-range-track {
     background: transparent;
     height: 20px;
     width: 100%;
     border: none;
 }
 
-.slider-tapered::-moz-range-thumb {
+.slider-tapered::-moz-range-thumb,
+.slider-vertical::-moz-range-thumb {
     background: var(--foreground);
     height: 32px;
     width: 3px;
@@ -58,7 +82,8 @@
     cursor: grab;
 }
 
-.slider-tapered::-moz-range-thumb:active {
+.slider-tapered::-moz-range-thumb:active,
+.slider-vertical::-moz-range-thumb:active {
     cursor: grabbing;
 }
 

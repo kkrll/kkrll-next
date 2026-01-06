@@ -27,7 +27,7 @@ function calculateCellSize(size: number, style: RenderStyle): CellSize {
   if (style === "Dot") {
     return { width: size, height: size };
   }
-  // ASCII mode - maintain ~10:16 aspect ratio
+  // ASCII mode - maintain ~1:2 aspect ratio
   return {
     width: size,
     height: Math.round(size * 2),

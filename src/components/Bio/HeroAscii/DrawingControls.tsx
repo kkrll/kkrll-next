@@ -3,6 +3,7 @@ import Divider from "../../Divider";
 import ImageControlsPopover from "./ImageControlsPopover";
 import NavButton from "./NavButton";
 import { CloseIcon } from "@/components/ui/icons";
+import type { ColorMode } from "./types";
 
 interface DrawingControlsProps {
   onDownloadPng: () => void;
@@ -16,6 +17,16 @@ interface DrawingControlsProps {
   whitePoint: number;
   onBlackPointChange: (value: number) => void;
   onWhitePointChange: (value: number) => void;
+  bgBlur: number;
+  bgScale: number;
+  bgOffsetX: number;
+  bgOffsetY: number;
+  onBgBlurChange: (value: number) => void;
+  onBgScaleChange: (value: number) => void;
+  onBgOffsetChange: (x: number, y: number) => void;
+  hasSourceImage: boolean;
+  colorMode: ColorMode;
+  onSetMixedMode: () => void;
 }
 
 const DrawingControls = memo(
@@ -31,6 +42,16 @@ const DrawingControls = memo(
     whitePoint,
     onBlackPointChange,
     onWhitePointChange,
+    bgBlur,
+    bgScale,
+    bgOffsetX,
+    bgOffsetY,
+    onBgBlurChange,
+    onBgScaleChange,
+    onBgOffsetChange,
+    hasSourceImage,
+    colorMode,
+    onSetMixedMode,
   }: DrawingControlsProps) => {
     return (
       <div className="flex gap-1 animate-[fadeIn_200ms_ease-in-out]">
@@ -42,6 +63,16 @@ const DrawingControls = memo(
           onImageUpload={onImageUpload}
           onReset={onReset}
           isConverting={isConverting}
+          bgBlur={bgBlur}
+          bgScale={bgScale}
+          bgOffsetX={bgOffsetX}
+          bgOffsetY={bgOffsetY}
+          onBgBlurChange={onBgBlurChange}
+          onBgScaleChange={onBgScaleChange}
+          onBgOffsetChange={onBgOffsetChange}
+          hasSourceImage={hasSourceImage}
+          colorMode={colorMode}
+          onSetMixedMode={onSetMixedMode}
         />
         <Divider vertical className="bg-foreground-07/20 mx-2" />
         <NavButton text="Save as PNG" onClick={onDownloadPng} />

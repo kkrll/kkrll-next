@@ -91,6 +91,8 @@ export default function HeroAscii({
     originalWidth: 0,
     originalHeight: 0,
   });
+  const bgBlurRef = useRef(4);
+  const bgScaleRef = useRef(1);
 
   // Render settings ref (avoid re-renders when settings change)
   const renderSettingsRef = useRef<RenderSettings>(
@@ -110,6 +112,10 @@ export default function HeroAscii({
   const [hasSourceImage, setHasSourceImage] = useState(false);
   const [blackPoint, setBlackPoint] = useState(0);
   const [whitePoint, setWhitePoint] = useState(1);
+  const [bgBlur, setBgBlur] = useState(4);
+  const [bgScale, setBgScale] = useState(1);
+  const [bgOffsetX, setBgOffsetX] = useState(0);
+  const [bgOffsetY, setBgOffsetY] = useState(0);
 
   const { track } = useTracking();
   const theme = useThemeStore((state) => state.theme);
@@ -157,6 +163,14 @@ export default function HeroAscii({
         dy = (originalCanvasH - dh) / 2;
       }
 
+      // Apply user scale
+      dw *= bgScaleRef.current;
+      dh *= bgScaleRef.current;
+
+      // Recenter after scaling
+      dx = (originalCanvasW - dw) / 2;
+      dy = (originalCanvasH - dh) / 2;
+
       dx += bgOffsetRef.current.x;
       dy += bgOffsetRef.current.y;
 
@@ -164,7 +178,7 @@ export default function HeroAscii({
       ctx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
       ctx.fillStyle = colors.bg;
       ctx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
-      ctx.filter = "blur(4px)";
+      ctx.filter = `blur(${bgBlurRef.current}px)`;
       ctx.drawImage(bitmap, dx, dy, dw, dh);
       ctx.filter = "none";
     } else {
@@ -390,8 +404,6 @@ export default function HeroAscii({
         gridRef.current = blankGrid;
       }
 
-      bgOffsetRef.current.x = 0;
-      bgOffsetRef.current.y = 0;
       renderGrid();
       setIsResizing(false);
 
@@ -419,6 +431,15 @@ export default function HeroAscii({
     track("ascii_color_mode_changed", { color_mode: newMode });
   }, [colorMode, renderGrid, track]);
 
+  // Handle setting mixed mode directly
+  const handleSetMixedMode = useCallback(() => {
+    setColorMode("mixed");
+    renderSettingsRef.current.colorMode = "mixed";
+    renderGrid();
+
+    track("ascii_color_mode_changed", { color_mode: "mixed" });
+  }, [renderGrid, track]);
+
   // Resize grid while preserving content (center-anchored)
   const resizeGridPerephery = useCallback(
     (newWidth: number, newHeight: number) => {
@@ -437,6 +458,8 @@ export default function HeroAscii({
 
       bgOffsetRef.current.x += colOffset * currentCellSize.width;
       bgOffsetRef.current.y += rowOffset * currentCellSize.height;
+      setBgOffsetX(bgOffsetRef.current.x);
+      setBgOffsetY(bgOffsetRef.current.y);
 
       const newGrid: ColorCharCell[] = new Array(newCols * newRows);
 
@@ -746,6 +769,44 @@ export default function HeroAscii({
 
   const debouncedContrastChange = useDebounce(handleContrastChange, 100);
 
+  // Handle background blur change
+  const handleBgBlurChange = useCallback(
+    (value: number) => {
+      bgBlurRef.current = value;
+      setBgBlur(value);
+      drawBackground();
+      track("ascii_bg_blur_changed", { blur: value });
+    },
+    [drawBackground, track],
+  );
+
+  // Handle background scale change
+  const handleBgScaleChange = useCallback(
+    (value: number) => {
+      bgScaleRef.current = value;
+      setBgScale(value);
+      drawBackground();
+      track("ascii_bg_scale_changed", { scale: value });
+    },
+    [drawBackground, track],
+  );
+
+  // Handle background offset change
+  const handleBgOffsetChange = useCallback(
+    (x: number, y: number) => {
+      bgOffsetRef.current.x = x;
+      bgOffsetRef.current.y = y;
+      setBgOffsetX(x);
+      setBgOffsetY(y);
+      drawBackground();
+      track("ascii_bg_offset_changed", {
+        offset_x: x,
+        offset_y: y,
+      });
+    },
+    [drawBackground, track],
+  );
+
   // Handle reset - reset to base levels, clear edits, and reset contrast
   const handleReset = useCallback(() => {
     track("ascii_canvas_cleared");
@@ -755,6 +816,16 @@ export default function HeroAscii({
     whitePointRef.current = 1;
     setBlackPoint(0);
     setWhitePoint(1);
+
+    // Reset background controls to defaults
+    bgBlurRef.current = 4;
+    bgScaleRef.current = 1;
+    bgOffsetRef.current.x = 0;
+    bgOffsetRef.current.y = 0;
+    setBgBlur(4);
+    setBgScale(1);
+    setBgOffsetX(0);
+    setBgOffsetY(0);
 
     gridRef.current.forEach((cell) => {
       cell.currentLevel = cell.baseLevel;
@@ -1228,6 +1299,16 @@ export default function HeroAscii({
               onWhitePointChange={(v) =>
                 debouncedContrastChange(blackPointRef.current, v)
               }
+              bgBlur={bgBlur}
+              bgScale={bgScale}
+              bgOffsetX={bgOffsetX}
+              bgOffsetY={bgOffsetY}
+              onBgBlurChange={handleBgBlurChange}
+              onBgScaleChange={handleBgScaleChange}
+              onBgOffsetChange={handleBgOffsetChange}
+              hasSourceImage={hasSourceImage}
+              colorMode={colorMode}
+              onSetMixedMode={handleSetMixedMode}
             />
           </div>
         )}
