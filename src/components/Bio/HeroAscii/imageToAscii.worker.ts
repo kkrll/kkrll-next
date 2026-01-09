@@ -33,6 +33,7 @@ function processCellRegion(
   maxLevel: number,
   blackPoint: number,
   whitePoint: number,
+  invert: boolean,
 ): { r: number; g: number; b: number; level: number; isTransparent: boolean } {
   // Sample center pixel of the cell
   const centerX = Math.min(
@@ -47,9 +48,10 @@ function processCellRegion(
   const b = pixels[pixelIndex + 2];
   const a = pixels[pixelIndex + 3];
 
-  // Check transparency
+  // Check transparency - blank level depends on theme
   if (a < 56) {
-    return { r: 0, g: 0, b: 0, level: 0, isTransparent: true };
+    const level = invert ? maxLevel : 0;
+    return { r: 0, g: 0, b: 0, level, isTransparent: true };
   }
 
   // Calculate perceived luminance using standard ITU coefficients
@@ -81,6 +83,7 @@ function processImage(data: WorkerInput): ColorCharCell[] {
     fitMode,
     blackPoint,
     whitePoint,
+    invert,
   } = data;
 
   // Create canvas at the actual pixel dimensions we need
@@ -148,6 +151,7 @@ function processImage(data: WorkerInput): ColorCharCell[] {
         maxLevel,
         blackPoint,
         whitePoint,
+        invert,
       );
 
       const index = row * cols + col;

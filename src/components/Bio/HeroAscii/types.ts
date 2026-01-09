@@ -128,6 +128,8 @@ export interface WorkerInput {
   fitMode: FitMode;
   blackPoint: number;
   whitePoint: number;
+  /** Invert levels at conversion time for light mode */
+  invert: boolean;
 }
 
 /** Successful result from the worker */

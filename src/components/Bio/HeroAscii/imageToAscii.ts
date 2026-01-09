@@ -65,6 +65,7 @@ async function convertWithWorker(
   fitMode: FitMode,
   blackPoint: number,
   whitePoint: number,
+  invert: boolean,
 ): Promise<ColorCharCell[]> {
   // Create ImageBitmap from file - this is transferable to workers
   const imageBitmap = await createImageBitmap(file);
@@ -103,6 +104,7 @@ async function convertWithWorker(
       fitMode,
       blackPoint,
       whitePoint,
+      invert,
     };
 
     workerInstance.postMessage(input, [imageBitmap]);
@@ -141,6 +143,7 @@ async function convertOnMainThread(
   fitMode: FitMode,
   blackPoint: number,
   whitePoint: number,
+  invert: boolean,
 ): Promise<ColorCharCell[]> {
   const img = await loadImage(file);
 
@@ -207,10 +210,11 @@ async function convertOnMainThread(
       const index = row * cols + col;
 
       if (a < 56) {
-        // Transparent
+        // Transparent - blank level depends on theme
+        const level = invert ? maxLevel : 0;
         grid[index] = {
-          baseLevel: 0,
-          currentLevel: 0,
+          baseLevel: level,
+          currentLevel: level,
           col,
           row,
           r: 0,
@@ -258,6 +262,7 @@ async function convertOnMainThread(
  * @param fitMode - How to fit image: "contain" (default) or "cover"
  * @param blackPoint - Black point for contrast adjustment (0-1, default 0)
  * @param whitePoint - White point for contrast adjustment (0-1, default 1)
+ * @param invert - Invert levels at conversion time for light mode (default false)
  */
 async function convertImageToGrid(
   file: File,
@@ -271,6 +276,7 @@ async function convertImageToGrid(
   fitMode: FitMode = "contain",
   blackPoint = 0,
   whitePoint = 1,
+  invert = false,
 ): Promise<ColorCharCell[]> {
   // Validate input
   if (!file.type.startsWith("image/")) {
@@ -294,6 +300,7 @@ async function convertImageToGrid(
         fitMode,
         blackPoint,
         whitePoint,
+        invert,
       );
     } catch (error) {
       console.warn(
@@ -309,6 +316,7 @@ async function convertImageToGrid(
         fitMode,
         blackPoint,
         whitePoint,
+        invert,
       );
     }
   }
@@ -322,6 +330,7 @@ async function convertImageToGrid(
     fitMode,
     blackPoint,
     whitePoint,
+    invert,
   );
 }
 
@@ -340,6 +349,7 @@ export async function convertBitmapToGrid(
   fitMode: FitMode = "contain",
   blackPoint = 0,
   whitePoint = 1,
+  invert = false,
 ): Promise<ColorCharCell[]> {
   // For now, use main thread for bitmap conversion
   // Worker would need a different entry point
@@ -402,9 +412,11 @@ export async function convertBitmapToGrid(
       const index = row * cols + col;
 
       if (a < 56) {
+        // Transparent - blank level depends on theme
+        const level = invert ? maxLevel : 0;
         grid[index] = {
-          baseLevel: 0,
-          currentLevel: 0,
+          baseLevel: level,
+          currentLevel: level,
           col,
           row,
           r: 0,

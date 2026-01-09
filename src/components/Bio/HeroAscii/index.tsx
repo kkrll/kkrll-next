@@ -36,6 +36,7 @@ import NavButton from "./NavButton";
 import Divider from "@/components/Divider";
 import {
   renderCell,
+  mapLevel,
   type RenderSettings,
   createDefaultRenderSettings,
 } from "./renderingUtils";
@@ -260,6 +261,7 @@ export default function HeroAscii({
         "cover",
         blackPointRef.current,
         whitePointRef.current,
+        renderSettingsRef.current.invert,
       );
       gridRef.current = convertedGrid;
     } catch (error) {
@@ -359,6 +361,7 @@ export default function HeroAscii({
             fitModeRef.current,
             blackPointRef.current,
             whitePointRef.current,
+            renderSettingsRef.current.invert,
           );
 
           // Apply edits from overlay
@@ -463,9 +466,8 @@ export default function HeroAscii({
 
       const newGrid: ColorCharCell[] = new Array(newCols * newRows);
 
-      const blankLevel = renderSettingsRef.current.invert
-        ? asciiCharsDrawRef.current.length - 1
-        : 0;
+      const maxLevel = asciiCharsDrawRef.current.length - 1;
+      const blankLevel = mapLevel(0, maxLevel, renderSettingsRef.current.invert);
 
       for (let row = 0; row < newRows; row++) {
         for (let col = 0; col < newCols; col++) {
@@ -564,10 +566,11 @@ export default function HeroAscii({
       }
 
       const maxLevel = asciiCharsDrawRef.current.length - 1;
-      // Apply inversion for light mode, just like renderCell does
-      const level = renderSettingsRef.current.invert
-        ? maxLevel - cell.currentLevel
-        : cell.currentLevel;
+      const level = mapLevel(
+        cell.currentLevel,
+        maxLevel,
+        renderSettingsRef.current.invert,
+      );
 
       if (renderSettingsRef.current.style === "Dot") {
         const maxRadius =
@@ -637,16 +640,19 @@ export default function HeroAscii({
           if (isDifferentCell) {
             const mode = drawingModeRef.current;
             const currentCellSize = renderSettingsRef.current.cellSize;
+            const maxLevel = asciiCharsDrawRef.current.length - 1;
 
             switch (mode) {
               case "brush":
-                cell.currentLevel = selectedSymbolRef.current;
+                // Pre-invert so render-time mapLevel produces the displayed symbol
+                cell.currentLevel = mapLevel(
+                  selectedSymbolRef.current,
+                  maxLevel,
+                  renderSettingsRef.current.invert,
+                );
                 break;
               case "increment":
-                cell.currentLevel = Math.min(
-                  cell.currentLevel + 1,
-                  asciiCharsDrawRef.current.length - 1,
-                );
+                cell.currentLevel = Math.min(cell.currentLevel + 1, maxLevel);
                 break;
               case "decrement":
                 cell.currentLevel = Math.max(cell.currentLevel - 1, 0);
@@ -662,7 +668,13 @@ export default function HeroAscii({
                 currentCellSize,
                 {
                   level:
-                    mode === "brush" ? selectedSymbolRef.current : undefined,
+                    mode === "brush"
+                      ? mapLevel(
+                        selectedSymbolRef.current,
+                        maxLevel,
+                        renderSettingsRef.current.invert,
+                      )
+                      : undefined,
                   delta:
                     mode === "increment"
                       ? 1
@@ -736,6 +748,7 @@ export default function HeroAscii({
           fitModeRef.current,
           newBlackPoint,
           newWhitePoint,
+          renderSettingsRef.current.invert,
         );
 
         // Apply edits from overlay
@@ -873,9 +886,8 @@ export default function HeroAscii({
     const currentCellSize = renderSettingsRef.current.cellSize;
     const cols = Math.ceil(canvas.width / currentCellSize.width);
     const rows = Math.ceil(canvas.height / currentCellSize.height);
-    const blankLevel = renderSettingsRef.current.invert
-      ? IMAGE_ASCII_CHARS.length - 1
-      : 0;
+    const maxLevel = IMAGE_ASCII_CHARS.length - 1;
+    const blankLevel = mapLevel(0, maxLevel, renderSettingsRef.current.invert);
 
     const blankGrid: ColorCharCell[] = new Array(cols * rows);
     for (let row = 0; row < rows; row++) {
@@ -1054,6 +1066,7 @@ export default function HeroAscii({
           "contain",
           blackPointRef.current,
           whitePointRef.current,
+          renderSettingsRef.current.invert,
         );
 
         gridRef.current = convertedGrid;
