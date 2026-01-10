@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 
 import { useNavigationStore } from "@/stores/useNavigationStore";
+import { useDrawingModeStore } from "@/stores/useDrawingModeStore";
 import { useHomeTracking } from "@/hooks/useHomeTracking";
 
 import List from "@/components/homeContent/List";
@@ -23,6 +24,7 @@ const HomeContent = ({
 }) => {
   const { selectedItemId, setSelectedItemId, selectNext, selectPrevious } =
     useNavigationStore();
+  const { drawingMode } = useDrawingModeStore();
 
   const allItems = [...projects, ...writings];
   const allItemsIds = allItems.map((item) => item.globalId);
@@ -42,25 +44,27 @@ const HomeContent = ({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        trackNavigation("down");
-        selectNext(allItemsIds);
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        trackNavigation("up");
-        selectPrevious(allItemsIds);
-      } else if (e.key === "Enter" && currentSelectedId) {
-        e.preventDefault();
-        const item = allItems.find((i) => i.globalId === currentSelectedId);
-        if (item) {
-          trackOpen(item, "keyboard");
-        }
-        const link = document
-          .querySelector(`[data-item-id="${currentSelectedId}"]`)
-          ?.getAttribute("href");
-        if (link) {
-          window.location.href = link;
+      if (!drawingMode) {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          trackNavigation("down");
+          selectNext(allItemsIds);
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          trackNavigation("up");
+          selectPrevious(allItemsIds);
+        } else if (e.key === "Enter" && currentSelectedId) {
+          e.preventDefault();
+          const item = allItems.find((i) => i.globalId === currentSelectedId);
+          if (item) {
+            trackOpen(item, "keyboard");
+          }
+          const link = document
+            .querySelector(`[data-item-id="${currentSelectedId}"]`)
+            ?.getAttribute("href");
+          if (link) {
+            window.location.href = link;
+          }
         }
       }
     };
@@ -73,7 +77,8 @@ const HomeContent = ({
     currentSelectedId,
     trackNavigation,
     trackOpen,
-    allItems.find,
+    allItems,
+    drawingMode,
   ]);
 
   // Scroll selected item into view when it changes

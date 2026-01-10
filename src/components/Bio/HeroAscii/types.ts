@@ -2,7 +2,7 @@
 // Mode Types
 // ============================================
 
-export type DrawingModes = "brush" | "increment" | "decrement" | null
+export type DrawingModes = "brush" | "increment" | "decrement" | "eraser" | null
 
 // ============================================
 // Core Cell Types
@@ -75,8 +75,9 @@ export interface EditPixel {
   /** Level delta when using increment/decrement mode */
   delta?: number;
   /** Which drawing mode created this edit */
-  mode: "brush" | "increment" | "decrement";
+  mode: DrawingModes;
 }
+
 
 // ============================================
 // Configuration Types
@@ -92,7 +93,7 @@ export interface CellSize {
 export type ColorMode = "monochrome" | "original" | "mixed";
 
 /** Style/rendering mode */
-export type RenderStyle = "Ascii" | "Dot";
+export type RenderStyle = "Ascii" | "Dot" | "Palette";
 
 /** Image fitting mode (similar to CSS object-fit) */
 export type FitMode = "contain" | "cover";

@@ -16,6 +16,7 @@ import type {
   ColorCharCell,
   ColorMode,
   Colors,
+  RenderStyle,
 } from "./types";
 
 /**
@@ -23,7 +24,7 @@ import type {
  * Stored in a ref in the main component to avoid re-renders.
  */
 export interface RenderSettings {
-  style: "Ascii" | "Dot";
+  style: RenderStyle;
   invert: boolean;
   colorMode: ColorMode;
   cellSize: CellSize;
@@ -67,9 +68,21 @@ function getCellColor(
   cell: CharCell,
   colorMode: ColorMode,
   fallbackColor: string,
+  renderStyle: RenderStyle,
+  level: number,
+  maxLevel: number
 ): string {
   if (colorMode === "original" && hasColorData(cell)) {
     return `rgb(${cell.r}, ${cell.g}, ${cell.b})`;
+  }
+  if (renderStyle === "Palette") {
+    if (colorMode === "mixed" && hasColorData(cell)) {
+      return `rgb(${cell.r}, ${cell.g}, ${cell.b})`;
+    }
+
+    // let color = Math.round((level / maxLevel) * 255);
+    let color = cell.isTransparent ? 0 : Math.round((level / maxLevel) * 255);
+    return `rgb(${color}, ${color}, ${color})`;
   }
   return fallbackColor;
 }
@@ -99,6 +112,19 @@ function renderDot(
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
   ctx.fill();
+
+}
+
+function renderPallete(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  level: number,
+  cellSize: CellSize,
+  maxLevel: number,
+): void {
+  if (level <= 0) return
+  ctx.fillRect(x, y, cellSize.width, cellSize.height)
 }
 
 /**
@@ -148,16 +174,29 @@ export function renderCell(
     cell,
     settings.colorMode,
     colors?.fg || ctx.fillStyle.toString(),
+    settings.style,
+    level,
+    maxLevel
   );
 
   // Set the fill color (only if different to avoid state changes)
   ctx.fillStyle = fillColor;
 
-  if (settings.style === "Dot") {
-    renderDot(ctx, x, y, level, settings.cellSize, maxLevel);
-  } else {
-    renderChar(ctx, x, y, chars[level]);
+
+  switch (settings.style) {
+    case "Ascii":
+      renderChar(ctx, x, y, chars[level]);
+      break
+    case "Dot":
+      renderDot(ctx, x, y, level, settings.cellSize, maxLevel);
+      break
+    case "Palette":
+      renderPallete(ctx, x, y, level, settings.cellSize, maxLevel)
+      break
+    default:
+      return
   }
+
 }
 
 export function adjustContrast(normalized: number, blackPoint: number = 0, whitePoint: number = 1) {

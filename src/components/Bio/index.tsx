@@ -1,22 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import HeroAscii from "./HeroAscii";
 import { DrawingModes } from "./HeroAscii/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import BioContent from "../BioContent";
+import { useDrawingModeStore } from "@/stores/useDrawingModeStore";
 
 const Bio = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [drawingMode, setDrawingMode] = useState<DrawingModes>(() => {
-    return searchParams.get("draw") === "true" ? "brush" : null
-  });
-
+  const { drawingMode, setDrawingMode: setDrawingModeStore } = useDrawingModeStore();
 
   function switchDrawingMode(mode: DrawingModes) {
-    setDrawingMode(mode)
+    setDrawingModeStore(mode)
     if (mode === null) {
       router.replace("/", { scroll: false })
     } else {
@@ -24,17 +22,25 @@ const Bio = () => {
     }
   }
 
+  // Initialize drawing mode from URL params on mount
+  useEffect(() => {
+    const shouldDraw = searchParams.get("draw") === "true";
+    if (shouldDraw && !drawingMode) {
+      setDrawingModeStore("brush");
+    }
+  }, [searchParams, drawingMode, setDrawingModeStore]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "b" || e.key === "1") {
+      if (e.key === "1" && e.altKey) {
         e.preventDefault();
         switchDrawingMode("brush");
       }
-      if ((drawingMode && e.key === "2") || (drawingMode && e.key === "d")) {
+      if (drawingMode && e.key === "2" && e.altKey) {
         e.preventDefault();
         switchDrawingMode("decrement");
       }
-      if ((drawingMode && e.key === "3") || (drawingMode && e.key === "l")) {
+      if (drawingMode && e.key === "3" && e.altKey) {
         e.preventDefault();
         switchDrawingMode("increment");
       }

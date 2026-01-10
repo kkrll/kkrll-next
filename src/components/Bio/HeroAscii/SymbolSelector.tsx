@@ -12,13 +12,14 @@ import "./styles.css";
 import NavButton from "./NavButton";
 import Divider from "@/components/Divider";
 import { Brush } from "@/components/ui/icons";
+import { RenderStyle } from "./types";
 
 interface SymbolSelectorProps {
   selectedSymbol: number;
   onSelectSymbol: (index: number) => void;
   onModeSelect: () => void;
   isSelected: boolean;
-  style: "Ascii" | "Dot";
+  style: RenderStyle;
 }
 
 const SymbolSelector = memo(
@@ -30,63 +31,80 @@ const SymbolSelector = memo(
     style,
   }: SymbolSelectorProps) => {
     const radius = selectedSymbol / 1.66;
-    const buttonRef = useRef<HTMLButtonElement>(null);
+    const maxLength = IMAGE_ASCII_CHARS.length - 1;
+    function getColor(index: number) {
+      return `rgb(${index * 255 / maxLength}, ${index * 255 / maxLength}, ${index * 255 / maxLength})`;
+    }
 
     return (
       <div className="flex items-center gap-1 h-full">
-        <NavButton
-          onClick={onModeSelect}
-          isSelected={isSelected}
-          text="Brush"
-          icon={<Brush />}
-        />
-
-        {isSelected && (
-          <>
-            <Divider vertical className="bg-foreground-07/20 mx-2" />
+        <div
+          className={`anchor-brush flex gap-2 pl-2 duration-150 items-center py-1 min-h-8 min-w-8 h-full text-xs font-mono text-foreground rounded-xl transition-all ${isSelected
+            ? "bg-background pr-1 max-w-32"
+            : "bg-background/30 hover:bg-background/70 max-w-8 cursor-pointer"}
+            `}
+        >
+          <button
+            onClick={() => {
+              if (!isSelected) onModeSelect();
+            }}
+            type="button"
+            className="min-w-0 min-h-0 p-0 bg-transparent border-0"
+          >
+            <Brush />
+          </button>
+          {isSelected && (
             <button
               type="button"
-              ref={buttonRef}
               popoverTarget="brush-slider"
-              className="anchor-brush flex cursor-pointer gap-1 items-center bg-background/30 hover:bg-background/70 pl-3 pr-1 py-1 h-full rounded-xl"
-            >
-              <span className="text-xs font-mono font-medium text-foreground-07 whitespace-nowrap">
-                Size:
-              </span>
-              <span className="flex items-center h-6 w-6 justify-center font-mono text-xs rounded-lg text-center bg-background/70 text-foreground">
-                {style === "Dot" ? (
-                  <svg width="24" height="24" viewBox="0 0 32 32">
-                    <title>brush size</title>
-                    <circle
-                      cx="16"
-                      cy="16"
-                      r={Math.min(radius, 12)}
-                      fill="currentColor"
-                    />
-                  </svg>
-                ) : (
-                  IMAGE_ASCII_CHARS[selectedSymbol]
-                )}
-              </span>
-            </button>
+              className={` cursor-pointer flex items-center h-6 w-6 justify-center font-mono text-xs rounded-lg text-center border-1 border-foreground-05 text-foreground transition-all duration-200 ${isSelected
+                ? "opacity-100 translate-x-0"
+                : "opacity-0 -translate-x-3"
+                }`}
+                style={{
+                  backgroundColor: style === "Palette" ? getColor(selectedSymbol) : "var(--background-05)",
+                }}>
 
-            <div
-              className="brush-slider px-2 pt-2 pb-[1px] bg-background border border-foreground/20 rounded-2xl shadow-lg"
-              popover=""
-              id="brush-slider"
-            >
-              <input
-                id="thickness-slider"
-                type="range"
-                min="0"
-                max={IMAGE_ASCII_CHARS.length - 1}
-                value={selectedSymbol}
-                onChange={(e) => onSelectSymbol(Number(e.target.value))}
-                className="w-full accent-foreground slider-tapered"
-                aria-label={`Brush thickness: ${selectedSymbol}`}
-              />
-            </div>
-          </>
+              {style === "Dot" && (
+                <svg width="24" height="24" viewBox="0 0 32 32">
+                  <title>brush size</title>
+                  <circle
+                    cx="16"
+                    cy="16"
+                    r={Math.min(radius, 12)}
+                    fill="currentColor"
+                  />
+                </svg>
+              )}
+
+              {style === "Ascii" && (
+                <span className="leading-none">
+                  {IMAGE_ASCII_CHARS[selectedSymbol]}
+                </span>
+              )}
+
+            </button>
+          )
+          }
+        </div>
+
+        {isSelected && (
+          <div
+            className="brush-slider px-2 pt-2 pb-[1px] bg-background border border-foreground/20 rounded-2xl shadow-lg"
+            popover=""
+            id="brush-slider"
+          >
+            <input
+              id="thickness-slider"
+              type="range"
+              min="0"
+              max={IMAGE_ASCII_CHARS.length - 1}
+              value={selectedSymbol}
+              onChange={(e) => onSelectSymbol(Number(e.target.value))}
+              className="w-full accent-foreground slider-tapered"
+              aria-label={`Brush thickness: ${selectedSymbol}`}
+            />
+          </div>
         )}
       </div>
     );

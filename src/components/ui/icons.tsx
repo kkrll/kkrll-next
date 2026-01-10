@@ -254,6 +254,31 @@ export const Brush = ({ size = 16, stroke = 1, className }: IconType) => (
   </svg>
 );
 
+export const Eraser = ({ size = 16, stroke = 1, className }: IconType) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={cn(
+      "block select-none shrink-0 transition-all duration-100 text-foreground",
+      className,
+    )}
+  >
+    <title>Erase</title>
+    <g clipPath="url(#clip0_3957_45489)">
+      <path d="M6.82419 13.5288L2.30016 19.0289L6.5 22.5L10.7422 22.5L13.4615 19.0982M6.82419 13.5288L14.9844 3.69531L21.614 9.2582L13.4615 19.0982M6.82419 13.5288L13.4615 19.0982" stroke="white" />
+      <path d="M2.24787 22.506L21.8003 22.5229" stroke="white" />
+    </g>
+    <defs>
+      <clipPath id="clip0_3957_45489">
+        <rect width="24" height="24" fill="white" />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
 export const UploadPicture = ({ size = 16, stroke = 1, className }: IconType) => (
   <svg
     width={size}

@@ -130,12 +130,13 @@ function loadImage(file: File): Promise<HTMLImageElement> {
 }
 
 /**
- * Convert image on main thread (fallback for older browsers)
- * This blocks the UI during processing but ensures compatibility
- * Now preserves RGB values for color mode support
+ * Shared conversion logic for any canvas-drawable source
+ * Works with HTMLImageElement, ImageBitmap, or any CanvasImageSource
  */
-async function convertOnMainThread(
-  file: File,
+function convertSourceToGrid(
+  source: CanvasImageSource,
+  sourceWidth: number,
+  sourceHeight: number,
   cols: number,
   rows: number,
   asciiChars: string[],
@@ -144,9 +145,7 @@ async function convertOnMainThread(
   blackPoint: number,
   whitePoint: number,
   invert: boolean,
-): Promise<ColorCharCell[]> {
-  const img = await loadImage(file);
-
+): ColorCharCell[] {
   // Create canvas at full pixel resolution
   const canvasWidth = cols * cellSize.width;
   const canvasHeight = rows * cellSize.height;
@@ -160,7 +159,7 @@ async function convertOnMainThread(
   }
 
   // Calculate aspect ratios for proper image fitting
-  const imgAspect = img.width / img.height;
+  const imgAspect = sourceWidth / sourceHeight;
   const canvasAspect = canvasWidth / canvasHeight;
 
   let drawWidth = canvasWidth;
@@ -183,7 +182,7 @@ async function convertOnMainThread(
 
   // Clear and draw
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-  ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+  ctx.drawImage(source, offsetX, offsetY, drawWidth, drawHeight);
 
   const imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
   const pixels = imageData.data;
@@ -245,6 +244,37 @@ async function convertOnMainThread(
   }
 
   return grid;
+}
+
+/**
+ * Convert image on main thread (fallback for older browsers)
+ * This blocks the UI during processing but ensures compatibility
+ */
+async function convertOnMainThread(
+  file: File,
+  cols: number,
+  rows: number,
+  asciiChars: string[],
+  cellSize: CellSize,
+  fitMode: FitMode,
+  blackPoint: number,
+  whitePoint: number,
+  invert: boolean,
+): Promise<ColorCharCell[]> {
+  const img = await loadImage(file);
+  return convertSourceToGrid(
+    img,
+    img.width,
+    img.height,
+    cols,
+    rows,
+    asciiChars,
+    cellSize,
+    fitMode,
+    blackPoint,
+    whitePoint,
+    invert,
+  );
 }
 
 /**
@@ -340,7 +370,7 @@ export default convertImageToGrid;
  * Convert directly from an ImageBitmap (used for grid regeneration)
  * This avoids re-reading the file when just changing cell size
  */
-export async function convertBitmapToGrid(
+export function convertBitmapToGrid(
   bitmap: ImageBitmap,
   cols: number,
   rows: number,
@@ -350,100 +380,18 @@ export async function convertBitmapToGrid(
   blackPoint = 0,
   whitePoint = 1,
   invert = false,
-): Promise<ColorCharCell[]> {
-  // For now, use main thread for bitmap conversion
-  // Worker would need a different entry point
-  const canvasWidth = cols * cellSize.width;
-  const canvasHeight = rows * cellSize.height;
-  const tempCanvas = document.createElement("canvas");
-  tempCanvas.width = canvasWidth;
-  tempCanvas.height = canvasHeight;
-
-  const ctx = tempCanvas.getContext("2d");
-  if (!ctx) {
-    throw new Error("Failed to get canvas context");
-  }
-
-  // Calculate aspect ratios
-  const imgAspect = bitmap.width / bitmap.height;
-  const canvasAspect = canvasWidth / canvasHeight;
-
-  let drawWidth = canvasWidth;
-  let drawHeight = canvasHeight;
-  let offsetX = 0;
-  let offsetY = 0;
-
-  // "contain" - fit entire image inside (letterbox)
-  // "cover" - fill entire canvas (crop edges)
-  const shouldScaleToSmaller =
-    fitMode === "contain" ? imgAspect > canvasAspect : imgAspect < canvasAspect;
-
-  if (shouldScaleToSmaller) {
-    drawHeight = Math.round(canvasWidth / imgAspect);
-    offsetY = Math.round((canvasHeight - drawHeight) / 2);
-  } else {
-    drawWidth = Math.round(canvasHeight * imgAspect);
-    offsetX = Math.round((canvasWidth - drawWidth) / 2);
-  }
-
-  ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-  ctx.drawImage(bitmap, offsetX, offsetY, drawWidth, drawHeight);
-
-  const imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-  const pixels = imageData.data;
-
-  const grid: ColorCharCell[] = new Array(cols * rows);
-  const maxLevel = asciiChars.length - 1;
-
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      const centerX = Math.min(
-        col * cellSize.width + Math.floor(cellSize.width / 2),
-        canvasWidth - 1,
-      );
-      const centerY = row * cellSize.height + Math.floor(cellSize.height / 2);
-      const pixelIndex = (centerY * canvasWidth + centerX) * 4;
-
-      const r = pixels[pixelIndex];
-      const g = pixels[pixelIndex + 1];
-      const b = pixels[pixelIndex + 2];
-      const a = pixels[pixelIndex + 3];
-
-      const index = row * cols + col;
-
-      if (a < 56) {
-        // Transparent - blank level depends on theme
-        const level = invert ? maxLevel : 0;
-        grid[index] = {
-          baseLevel: level,
-          currentLevel: level,
-          col,
-          row,
-          r: 0,
-          g: 0,
-          b: 0,
-          isTransparent: true,
-        };
-      } else {
-        const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        const normalized = luminance / 255;
-        const adjusted = adjustContrast(normalized, blackPoint, whitePoint);
-        let level = Math.floor(adjusted * maxLevel);
-        level = Math.max(0, Math.min(level, maxLevel));
-
-        grid[index] = {
-          baseLevel: level,
-          currentLevel: level,
-          col,
-          row,
-          r,
-          g,
-          b,
-          isTransparent: false,
-        };
-      }
-    }
-  }
-
-  return grid;
+): ColorCharCell[] {
+  return convertSourceToGrid(
+    bitmap,
+    bitmap.width,
+    bitmap.height,
+    cols,
+    rows,
+    asciiChars,
+    cellSize,
+    fitMode,
+    blackPoint,
+    whitePoint,
+    invert,
+  );
 }

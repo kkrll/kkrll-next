@@ -46,6 +46,7 @@ export const DEFAULT_DOT_SIZE = 8;
 export const DEFAULT_CELL_SIZES: Record<RenderStyle, CellSize> = {
   Ascii: { width: DEFAULT_CELL_WIDTH, height: DEFAULT_CELL_HEIGHT },
   Dot: { width: DEFAULT_DOT_SIZE, height: DEFAULT_DOT_SIZE },
+  Palette: { width: DEFAULT_DOT_SIZE, height: DEFAULT_DOT_SIZE },
 };
 
 // ============================================
@@ -78,7 +79,7 @@ export function getFontForCellSize(cellHeight: number): string {
 }
 
 /** Available rendering styles */
-export const STYLES: RenderStyle[] = ["Ascii", "Dot"];
+export const STYLES: RenderStyle[] = ["Ascii", "Dot", "Palette"];
 
 // ============================================
 // Edit Overlay Configuration

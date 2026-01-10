@@ -2,7 +2,7 @@ import { memo } from "react";
 
 interface ResizingIndicatorProps {
   isResizing: boolean;
-  drawingMode: "brush" | "increment" | "decrement" | null;
+  drawingMode: "brush" | "increment" | "decrement" | "eraser" | null;
 }
 
 const ResizingIndicator = memo(

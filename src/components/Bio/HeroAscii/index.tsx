@@ -25,8 +25,11 @@ import type {
   EditOverlay,
   FitMode,
   SourceImage,
+  RenderStyle,
+  DrawingModes
 } from "./types";
 import SymbolSelector from "./SymbolSelector";
+import PaletteColorPicker from "./PaletteColorPicker";
 import DrawingControls from "./DrawingControls";
 import ResizingIndicator from "./ResizingIndicator";
 import { useThemeStore } from "@/stores/useThemeStore";
@@ -51,16 +54,16 @@ import {
   clearOverlay,
   resizeOverlay,
 } from "./editOverlay";
-import { Darken, Lighten } from "@/components/ui/icons";
+import { Darken, Eraser, Lighten } from "@/components/ui/icons";
 
 export default function HeroAscii({
   drawingMode,
   onToggleDrawingMode,
   setMode,
 }: {
-  drawingMode: "brush" | "increment" | "decrement" | null;
+  drawingMode: DrawingModes;
   onToggleDrawingMode: () => void;
-  setMode: (mode: "brush" | "increment" | "decrement" | null) => void;
+  setMode: (mode: DrawingModes) => void;
 }) {
   // Canvas and grid refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -82,6 +85,7 @@ export default function HeroAscii({
   const isDraggingRef = useRef(false);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const selectedSymbolRef = useRef(8);
+  const selectedPaletteColorRef = useRef("#000000");
   const drawingModeRef = useRef(drawingMode);
   const lastDrawnCellRef = useRef<{ row: number; col: number } | null>(null);
   const blackPointRef = useRef(0);
@@ -102,9 +106,10 @@ export default function HeroAscii({
 
   // UI State
   const [selectedSymbol, setSelectedSymbol] = useState(8);
+  const [selectedPaletteColor, setSelectedPaletteColor] = useState("#000000");
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [isConverting, setIsConverting] = useState(false);
-  const [style, setStyle] = useState<"Ascii" | "Dot">("Ascii");
+  const [style, setStyle] = useState<RenderStyle>("Ascii");
   const [cellSize, setCellSize] = useState<CellSize>({
     width: DEFAULT_CELL_WIDTH,
     height: DEFAULT_CELL_HEIGHT,
@@ -125,6 +130,10 @@ export default function HeroAscii({
   useEffect(() => {
     selectedSymbolRef.current = selectedSymbol;
   }, [selectedSymbol]);
+
+  useEffect(() => {
+    selectedPaletteColorRef.current = selectedPaletteColor;
+  }, [selectedPaletteColor]);
 
   useEffect(() => {
     drawingModeRef.current = drawingMode;
@@ -336,7 +345,7 @@ export default function HeroAscii({
 
   // Handle cell size changes - regenerate grid from source
   const handleCellSizeChange = useCallback(
-    async (newCellSize: CellSize) => {
+    (newCellSize: CellSize) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
 
@@ -351,43 +360,39 @@ export default function HeroAscii({
 
       // Regenerate grid from source image if available
       if (sourceImageRef.current) {
-        try {
-          const newGrid = await convertBitmapToGrid(
-            sourceImageRef.current.bitmap,
-            cols,
-            rows,
-            IMAGE_ASCII_CHARS,
-            newCellSize,
-            fitModeRef.current,
-            blackPointRef.current,
-            whitePointRef.current,
-            renderSettingsRef.current.invert,
-          );
+        const newGrid = convertBitmapToGrid(
+          sourceImageRef.current.bitmap,
+          cols,
+          rows,
+          IMAGE_ASCII_CHARS,
+          newCellSize,
+          fitModeRef.current,
+          blackPointRef.current,
+          whitePointRef.current,
+          renderSettingsRef.current.invert,
+        );
 
-          // Apply edits from overlay
-          const overlay = editOverlayRef.current;
-          if (overlay) {
-            newGrid.forEach((cell) => {
-              const edit = sampleEditsForCell(
-                overlay,
-                cell.col,
-                cell.row,
-                newCellSize,
+        // Apply edits from overlay
+        const overlay = editOverlayRef.current;
+        if (overlay) {
+          newGrid.forEach((cell) => {
+            const edit = sampleEditsForCell(
+              overlay,
+              cell.col,
+              cell.row,
+              newCellSize,
+            );
+            if (edit) {
+              cell.currentLevel = applyEditToLevel(
+                cell.baseLevel,
+                edit,
+                IMAGE_ASCII_CHARS.length - 1,
               );
-              if (edit) {
-                cell.currentLevel = applyEditToLevel(
-                  cell.baseLevel,
-                  edit,
-                  IMAGE_ASCII_CHARS.length - 1,
-                );
-              }
-            });
-          }
-
-          gridRef.current = newGrid;
-        } catch (error) {
-          console.error("Failed to regenerate grid:", error);
+            }
+          });
         }
+
+        gridRef.current = newGrid;
       } else {
         // No source image - create blank grid
         const blankGrid: ColorCharCell[] = new Array(cols * rows);
@@ -552,38 +557,35 @@ export default function HeroAscii({
   // Draw a single cell (used during drawing for incremental updates)
   const drawCell = useCallback(
     (ctx: CanvasRenderingContext2D, cell: ColorCharCell) => {
-      const { bg, fg } = colorsRef.current;
+      const colors = colorsRef.current;
       const currentCellSize = renderSettingsRef.current.cellSize;
       const x = cell.col * currentCellSize.width;
       const y = cell.row * currentCellSize.height;
 
+      // Clear cell area before redrawing
       ctx.clearRect(x, y, currentCellSize.width, currentCellSize.height);
 
-      if (renderSettingsRef.current.colorMode === "original") {
-        ctx.fillStyle = `rgb(${cell.r}, ${cell.g}, ${cell.b})`;
+      // If erasing (transparent), copy from background canvas
+      if (cell.isTransparent && bgCanvasRef.current) {
+        const bgCtx = bgCanvasRef.current.getContext("2d");
+        if (bgCtx) {
+          ctx.drawImage(
+            bgCanvasRef.current,
+            x, y, currentCellSize.width, currentCellSize.height,
+            x, y, currentCellSize.width, currentCellSize.height
+          );
+        }
       } else {
-        ctx.fillStyle = fg;
-      }
-
-      const maxLevel = asciiCharsDrawRef.current.length - 1;
-      const level = mapLevel(
-        cell.currentLevel,
-        maxLevel,
-        renderSettingsRef.current.invert,
-      );
-
-      if (renderSettingsRef.current.style === "Dot") {
-        const maxRadius =
-          Math.min(currentCellSize.width, currentCellSize.height) / 2;
-        const radius = (level / maxLevel) * maxRadius;
-        const centerX = x + currentCellSize.width / 2;
-        const centerY = y + currentCellSize.height / 2;
-
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-        ctx.fill();
-      } else {
-        ctx.fillText(asciiCharsDrawRef.current[level], x, y);
+        // Use shared rendering logic
+        renderCell(
+          ctx,
+          cell,
+          renderSettingsRef.current,
+          x,
+          y,
+          asciiCharsDrawRef.current,
+          colors,
+        );
       }
     },
     [],
@@ -644,18 +646,57 @@ export default function HeroAscii({
 
             switch (mode) {
               case "brush":
-                // Pre-invert so render-time mapLevel produces the displayed symbol
-                cell.currentLevel = mapLevel(
-                  selectedSymbolRef.current,
-                  maxLevel,
-                  renderSettingsRef.current.invert,
-                );
+                if (renderSettingsRef.current.style === "Palette" && renderSettingsRef.current.colorMode !== "monochrome") {
+                  // Palette mode with color
+                  const hex = selectedPaletteColorRef.current;
+                  const r = Number.parseInt(hex.slice(1, 3), 16);
+                  const g = Number.parseInt(hex.slice(3, 5), 16);
+                  const b = Number.parseInt(hex.slice(5, 7), 16);
+
+                  // Set RGB values if cell supports color data
+                  if ("r" in cell && "g" in cell && "b" in cell) {
+                    cell.r = r;
+                    cell.g = g;
+                    cell.b = b;
+                    cell.currentLevel = maxLevel; // Full opacity
+                  }
+                  cell.isTransparent = false;
+                } else {
+                  // Ascii/Dot mode: Pre-invert so render-time mapLevel produces the displayed symbol
+                  cell.currentLevel = mapLevel(
+                    selectedSymbolRef.current,
+                    maxLevel,
+                    renderSettingsRef.current.invert,
+                  );
+                  cell.isTransparent = false;
+                }
                 break;
               case "increment":
-                cell.currentLevel = Math.min(cell.currentLevel + 1, maxLevel);
+                cell.isTransparent = false;
+                // In Palette mode with original/mixed, only adjust color brightness
+                if (renderSettingsRef.current.style === "Palette" && renderSettingsRef.current.colorMode !== "monochrome" && "r" in cell) {
+                  cell.r = Math.min(cell.r + 10, 255);
+                  cell.g = Math.min(cell.g + 10, 255);
+                  cell.b = Math.min(cell.b + 10, 255);
+                } else {
+                  cell.currentLevel = Math.min(cell.currentLevel + 1, maxLevel);
+                }
                 break;
               case "decrement":
-                cell.currentLevel = Math.max(cell.currentLevel - 1, 0);
+                cell.isTransparent = false;
+                // In Palette mode with original/mixed, only adjust color brightness
+                if (renderSettingsRef.current.style === "Palette" && renderSettingsRef.current.colorMode !== "monochrome" && "r" in cell) {
+                  cell.r = Math.max(cell.r - 10, 0);
+                  cell.g = Math.max(cell.g - 10, 0);
+                  cell.b = Math.max(cell.b - 10, 0);
+                } else {
+                  cell.currentLevel = Math.max(cell.currentLevel - 1, 0);
+                }
+                break;
+              case "eraser":
+                // Set cell to transparent
+                cell.isTransparent = true;
+                cell.currentLevel = renderSettingsRef.current.invert ? maxLevel : 0;
                 break;
             }
 
@@ -718,7 +759,7 @@ export default function HeroAscii({
 
   // Handle contrast change - regenerates grid with new black/white points
   const handleContrastChange = useCallback(
-    async (newBlackPoint: number, newWhitePoint: number) => {
+    (newBlackPoint: number, newWhitePoint: number) => {
       blackPointRef.current = newBlackPoint;
       whitePointRef.current = newWhitePoint;
       setBlackPoint(newBlackPoint);
@@ -737,45 +778,40 @@ export default function HeroAscii({
       const currentCellSize = renderSettingsRef.current.cellSize;
       const cols = Math.ceil(canvas.width / currentCellSize.width);
       const rows = Math.ceil(canvas.height / currentCellSize.height);
+      const newGrid = convertBitmapToGrid(
+        sourceImageRef.current.bitmap,
+        cols,
+        rows,
+        IMAGE_ASCII_CHARS,
+        currentCellSize,
+        fitModeRef.current,
+        newBlackPoint,
+        newWhitePoint,
+        renderSettingsRef.current.invert,
+      );
 
-      try {
-        const newGrid = await convertBitmapToGrid(
-          sourceImageRef.current.bitmap,
-          cols,
-          rows,
-          IMAGE_ASCII_CHARS,
-          currentCellSize,
-          fitModeRef.current,
-          newBlackPoint,
-          newWhitePoint,
-          renderSettingsRef.current.invert,
-        );
-
-        // Apply edits from overlay
-        const overlay = editOverlayRef.current;
-        if (overlay) {
-          newGrid.forEach((cell) => {
-            const edit = sampleEditsForCell(
-              overlay,
-              cell.col,
-              cell.row,
-              currentCellSize,
+      // Apply edits from overlay
+      const overlay = editOverlayRef.current;
+      if (overlay) {
+        newGrid.forEach((cell) => {
+          const edit = sampleEditsForCell(
+            overlay,
+            cell.col,
+            cell.row,
+            currentCellSize,
+          );
+          if (edit) {
+            cell.currentLevel = applyEditToLevel(
+              cell.baseLevel,
+              edit,
+              IMAGE_ASCII_CHARS.length - 1,
             );
-            if (edit) {
-              cell.currentLevel = applyEditToLevel(
-                cell.baseLevel,
-                edit,
-                IMAGE_ASCII_CHARS.length - 1,
-              );
-            }
-          });
-        }
-
-        gridRef.current = newGrid;
-        renderGrid();
-      } catch (error) {
-        console.error("Failed to regenerate grid with new contrast:", error);
+          }
+        });
       }
+
+      gridRef.current = newGrid;
+      renderGrid();
     },
     [renderGrid, track],
   );
@@ -1176,9 +1212,18 @@ export default function HeroAscii({
     [track],
   );
 
+  // Handle palette color selection
+  const handleSelectPaletteColor = useCallback(
+    (color: string) => {
+      track("ascii_palette_color_changed", { color });
+      setSelectedPaletteColor(color);
+    },
+    [track],
+  );
+
   // Handle drawing mode selection
   const handleModeSelect = useCallback(
-    (mode: "brush" | "increment" | "decrement") => {
+    (mode: "brush" | "increment" | "decrement" | "eraser") => {
       track("ascii_drawing_mode_selected", { mode });
       setMode(mode);
     },
@@ -1286,13 +1331,28 @@ export default function HeroAscii({
                   text="Lighten"
                   icon={<Lighten stroke={1} />}
                 />
-                <SymbolSelector
-                  selectedSymbol={selectedSymbol}
-                  onSelectSymbol={handleSelectSymbol}
-                  onModeSelect={() => handleModeSelect("brush")}
-                  isSelected={drawingMode === "brush"}
-                  style={style}
+                <NavButton
+                  onClick={() => handleModeSelect("eraser")}
+                  isSelected={drawingMode === "eraser"}
+                  text="Eraser"
+                  icon={<Eraser stroke={1} />}
                 />
+                {style === "Palette" && colorMode !== "monochrome" ? (
+                  <PaletteColorPicker
+                    selectedColor={selectedPaletteColor}
+                    onSelectColor={handleSelectPaletteColor}
+                    onModeSelect={() => handleModeSelect("brush")}
+                    isSelected={drawingMode === "brush"}
+                  />
+                ) : (
+                  <SymbolSelector
+                    selectedSymbol={selectedSymbol}
+                    onSelectSymbol={handleSelectSymbol}
+                    onModeSelect={() => handleModeSelect("brush")}
+                    isSelected={drawingMode === "brush"}
+                    style={style}
+                  />
+                )}
               </div>
             </div>
 
