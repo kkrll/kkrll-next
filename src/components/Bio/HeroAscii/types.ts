@@ -83,10 +83,37 @@ export interface EditPixel {
 // Configuration Types
 // ============================================
 
-/** Cell dimensions in pixels */
+/** Cell dimensions in pixels (uniform for all cells) */
 export interface CellSize {
   width: number;
   height: number;
+}
+
+/**
+ * Variable cell dimensions for Palette mode.
+ * Each column can have a different width, each row a different height.
+ * Offsets are cumulative sums for O(log n) cell lookup via binary search.
+ */
+export interface VariableCellDimensions {
+  /** Width of each column in pixels */
+  columnWidths: number[];
+  /** Height of each row in pixels */
+  rowHeights: number[];
+  /** Cumulative x positions: columnOffsets[i] = sum of columnWidths[0..i-1] */
+  columnOffsets: number[];
+  /** Cumulative y positions: rowOffsets[i] = sum of rowHeights[0..i-1] */
+  rowOffsets: number[];
+}
+
+/**
+ * Range settings for variable cell dimensions in Palette mode.
+ * Random dimensions are generated within these bounds.
+ */
+export interface CellSizeRange {
+  minWidth: number;
+  maxWidth: number;
+  minHeight: number;
+  maxHeight: number;
 }
 
 /** Color rendering mode */

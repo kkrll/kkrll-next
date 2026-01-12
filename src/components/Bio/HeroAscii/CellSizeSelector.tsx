@@ -3,25 +3,32 @@
  *
  * A popover control for adjusting cell size in the ASCII canvas.
  * Behavior differs by mode:
- * - Dot mode: Square cells (width = height)
- * - ASCII mode: Maintains ~10:16 aspect ratio for character rendering
+ * - Dot mode: Square cells (width = height) via slider
+ * - ASCII mode: Maintains ~10:16 aspect ratio via slider
+ * - Palette mode: Variable cell dimensions with range inputs + Shuffle
  */
 
 import { memo, useRef, useState, useEffect } from "react";
-import { MAX_CELL_SIZE, MIN_CELL_SIZE } from "./constants";
+import { DEFAULT_CELL_WIDTH, MAX_CELL_SIZE, MIN_CELL_SIZE } from "./constants";
 import "./styles.css";
-import type { CellSize, RenderStyle } from "./types";
+import type { CellSize, CellSizeRange, RenderStyle } from "./types";
 
 interface CellSizeSelectorProps {
   cellSize: CellSize;
   onCellSizeChange: (size: CellSize) => void;
   style: RenderStyle;
+  /** Range settings for Palette mode variable dimensions */
+  cellSizeRange?: CellSizeRange;
+  /** Called when range changes in Palette mode */
+  onCellSizeRangeChange?: (range: CellSizeRange) => void;
+  /** Called when Shuffle button is clicked in Palette mode */
+  onShuffle?: () => void;
 }
 
 /**
  * Calculate cell size based on a single "size" value and the current style.
  * - Dot mode: width = height = size (square)
- * - ASCII mode: width = size, height = size * 1.6 (character aspect ratio)
+ * - ASCII mode: width = size, height = size * 2 (character aspect ratio)
  */
 function calculateCellSize(width: number, style: RenderStyle, height?: number): CellSize {
   if (style === "Ascii") {
@@ -42,13 +49,30 @@ function getSizeValue(cellSize: CellSize): number {
 }
 
 const CellSizeSelector = memo(
-  ({ cellSize, onCellSizeChange, style }: CellSizeSelectorProps) => {
+  ({
+    cellSize,
+    onCellSizeChange,
+    style,
+    cellSizeRange,
+    onCellSizeRangeChange,
+    onShuffle,
+  }: CellSizeSelectorProps) => {
     const currentSize = getSizeValue(cellSize);
     const buttonRef = useRef<HTMLButtonElement>(null);
 
-    // Local state for Palette mode text inputs (committed on Enter/blur)
-    const [widthInput, setWidthInput] = useState(cellSize.width.toString());
-    const [heightInput, setHeightInput] = useState(cellSize.height.toString());
+    // Local state for range inputs (Palette mode)
+    const [minWidthInput, setMinWidthInput] = useState(
+      cellSizeRange?.minWidth.toString() ?? DEFAULT_CELL_WIDTH.toString()
+    );
+    const [maxWidthInput, setMaxWidthInput] = useState(
+      cellSizeRange?.maxWidth.toString() ?? DEFAULT_CELL_WIDTH.toString()
+    );
+    const [minHeightInput, setMinHeightInput] = useState(
+      cellSizeRange?.minHeight.toString() ?? DEFAULT_CELL_WIDTH.toString()
+    );
+    const [maxHeightInput, setMaxHeightInput] = useState(
+      cellSizeRange?.maxHeight.toString() ?? DEFAULT_CELL_WIDTH.toString()
+    );
 
     const handleSizeChange = (value: number) => {
       const newCellSize = calculateCellSize(value, style);
@@ -62,39 +86,62 @@ const CellSizeSelector = memo(
       return Math.max(min, Math.min(max, Math.floor(num)));
     };
 
-    // Commit width/height changes (called on Enter or blur)
-    const commitWidthChange = () => {
-      const validWidth = validateValue(widthInput, 1, 10000);
-      setWidthInput(validWidth.toString());
-      onCellSizeChange({ width: validWidth, height: cellSize.height });
-    };
+    // Commit range changes (called on Enter or blur)
+    const commitRangeChange = () => {
+      if (!onCellSizeRangeChange) return;
 
-    const commitHeightChange = () => {
-      const validHeight = validateValue(heightInput, 1, 10000);
-      setHeightInput(validHeight.toString());
-      onCellSizeChange({ width: cellSize.width, height: validHeight });
+      const minW = validateValue(minWidthInput, 1, 2000);
+      const maxW = validateValue(maxWidthInput, 1, 2000);
+      const minH = validateValue(minHeightInput, 1, 2000);
+      const maxH = validateValue(maxHeightInput, 1, 2000);
+
+      // Update local state with validated values
+      setMinWidthInput(minW.toString());
+      setMaxWidthInput(maxW.toString());
+      setMinHeightInput(minH.toString());
+      setMaxHeightInput(maxH.toString());
+
+      // Ensure min <= max
+      const newRange: CellSizeRange = {
+        minWidth: Math.min(minW, maxW),
+        maxWidth: Math.max(minW, maxW),
+        minHeight: Math.min(minH, maxH),
+        maxHeight: Math.max(minH, maxH),
+      };
+
+      onCellSizeRangeChange(newRange);
     };
 
     // Handle Enter key to commit changes
-    const handleWidthKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
-        commitWidthChange();
+        commitRangeChange();
         e.currentTarget.blur();
       }
     };
 
-    const handleHeightKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
-        commitHeightChange();
-        e.currentTarget.blur();
-      }
-    };
-
-    // Sync local state when cellSize changes externally (e.g., Random button)
+    // Sync local state when cellSizeRange changes externally
     useEffect(() => {
-      setWidthInput(cellSize.width.toString());
-      setHeightInput(cellSize.height.toString());
-    }, [cellSize.width, cellSize.height]);
+      if (!cellSizeRange) return;
+      setMinWidthInput(cellSizeRange.minWidth.toString());
+      setMaxWidthInput(cellSizeRange.maxWidth.toString());
+      setMinHeightInput(cellSizeRange.minHeight.toString());
+      setMaxHeightInput(cellSizeRange.maxHeight.toString());
+    }, [cellSizeRange]);
+
+    // Display text for button - show range if variable, single size otherwise
+    const getDisplayText = () => {
+      if (style === "Palette" && cellSizeRange) {
+        const isUniform =
+          cellSizeRange.minWidth === cellSizeRange.maxWidth &&
+          cellSizeRange.minHeight === cellSizeRange.maxHeight;
+        if (isUniform) {
+          return `${cellSizeRange.minWidth}×${cellSizeRange.minHeight}`;
+        }
+        return "Random";
+      }
+      return `${cellSize.width}×${cellSize.height}`;
+    };
 
     return (
       <div className="h-full">
@@ -102,13 +149,13 @@ const CellSizeSelector = memo(
           ref={buttonRef}
           popoverTarget="slider"
           className={`anchor-cell-size flex cursor-pointer gap-1 items-center bg-background/30 hover:bg-background/70 px-3 py-1 h-full rounded-xl`}
-          aria-label={`Cell size: ${cellSize.width}×${cellSize.height} pixels`}
+          aria-label={`Cell size: ${getDisplayText()} pixels`}
         >
           <label className="text-xs font-mono font-medium text-foreground-07 whitespace-nowrap">
             Cell:
           </label>
-          <span className="font-mono text-xs w-11 text-right tabular-nums">
-            {cellSize.width}×{cellSize.height}
+          <span className="font-mono text-xs text-right tabular-nums">
+            {getDisplayText()}
           </span>
         </button>
 
@@ -119,52 +166,73 @@ const CellSizeSelector = memo(
           id="slider"
         >
           {style === "Palette" ? (
-            // Palette mode: text inputs with random button
+            // Palette mode: range inputs with shuffle button
             <div className="flex flex-col gap-2 pb-2">
+              {/* Width range */}
               <div className="flex gap-2 items-center">
-                <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-xs font-mono text-foreground-07">
-                    W:
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={10000}
-                    value={widthInput}
-                    onChange={(e) => setWidthInput(e.target.value)}
-                    onKeyDown={handleWidthKeyDown}
-                    onBlur={commitWidthChange}
-                    className="w-full px-2 py-1 text-xs font-mono bg-background-05 border border-foreground-05 rounded text-foreground"
-                    aria-label="Cell width"
-                  />
-                </div>
-                <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-xs font-mono text-foreground-07">
-                    H:
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={10000}
-                    value={heightInput}
-                    onChange={(e) => setHeightInput(e.target.value)}
-                    onKeyDown={handleHeightKeyDown}
-                    onBlur={commitHeightChange}
-                    className="w-full px-2 py-1 text-xs font-mono bg-background-05 border border-foreground-05 rounded text-foreground"
-                    aria-label="Cell height"
-                  />
-                </div>
+                <label className="text-xs font-mono text-foreground-07 w-6">W:</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={2000}
+                  value={minWidthInput}
+                  onChange={(e) => setMinWidthInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onBlur={commitRangeChange}
+                  className="w-16 px-2 py-1 text-xs font-mono bg-background-05 border border-foreground-05 rounded-xl text-foreground"
+                  aria-label="Minimum width"
+                  placeholder="from"
+                />
+                <span className="text-xs text-foreground-07">→</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={2000}
+                  value={maxWidthInput}
+                  onChange={(e) => setMaxWidthInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onBlur={commitRangeChange}
+                  className="w-16 px-2 py-1 text-xs font-mono bg-background-05 border border-foreground-05 rounded-xl text-foreground"
+                  aria-label="Maximum width"
+                  placeholder="to"
+                />
               </div>
+              {/* Height range */}
+              <div className="flex gap-2 items-center">
+                <label className="text-xs font-mono text-foreground-07 w-6">H:</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={2000}
+                  value={minHeightInput}
+                  onChange={(e) => setMinHeightInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onBlur={commitRangeChange}
+                  className="w-16 px-2 py-1 text-xs font-mono bg-background-05 border border-foreground-05 rounded-xl text-foreground"
+                  aria-label="Minimum height"
+                  placeholder="from"
+                />
+                <span className="text-xs text-foreground-07">→</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={2000}
+                  value={maxHeightInput}
+                  onChange={(e) => setMaxHeightInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onBlur={commitRangeChange}
+                  className="w-16 px-2 py-1 text-xs font-mono bg-background-05 border border-foreground-05 rounded-xl text-foreground"
+                  aria-label="Maximum height"
+                  placeholder="to"
+                />
+              </div>
+              {/* Shuffle button */}
               <button
                 type="button"
-                onClick={() => {
-                  const randomWidth = Math.floor(Math.random() * (MAX_CELL_SIZE * 4 - MIN_CELL_SIZE + 1)) + MIN_CELL_SIZE;
-                  const randomHeight = Math.floor(Math.random() * (MAX_CELL_SIZE * 4 - MIN_CELL_SIZE + 1)) + MIN_CELL_SIZE;
-                  onCellSizeChange({ width: randomWidth, height: randomHeight });
-                }}
-                className="px-2 py-1 text-xs font-mono bg-background-05 hover:bg-background-07 border border-foreground-05 rounded text-foreground transition-colors"
+                onClick={() => onShuffle?.()}
+                className="px-2 py-2 mt-1 text-xs font-mono bg-background-05 hover:bg-background-07 border border-foreground-05 rounded-xl text-foreground transition-colors"
               >
-                Random
+                Shuffle
               </button>
             </div>
           ) : (

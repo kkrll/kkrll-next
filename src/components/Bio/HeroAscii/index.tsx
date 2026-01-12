@@ -19,6 +19,7 @@ import {
 } from "./constants";
 import type {
   CellSize,
+  CellSizeRange,
   ColorCharCell,
   ColorMode,
   Colors,
@@ -26,7 +27,8 @@ import type {
   FitMode,
   SourceImage,
   RenderStyle,
-  DrawingModes
+  DrawingModes,
+  VariableCellDimensions,
 } from "./types";
 import SymbolSelector from "./SymbolSelector";
 import PaletteColorPicker from "./PaletteColorPicker";
@@ -55,6 +57,12 @@ import {
   resizeOverlay,
 } from "./editOverlay";
 import { Darken, Eraser, Lighten } from "@/components/ui/icons";
+import {
+  generateVariableDimensions,
+  findColumnAtX,
+  findRowAtY,
+  DEFAULT_CELL_SIZE_RANGE,
+} from "./variableDimensions";
 
 export default function HeroAscii({
   drawingMode,
@@ -114,6 +122,11 @@ export default function HeroAscii({
     width: DEFAULT_CELL_WIDTH,
     height: DEFAULT_CELL_HEIGHT,
   });
+  const [cellSizeRange, setCellSizeRange] = useState<CellSizeRange>(
+    DEFAULT_CELL_SIZE_RANGE
+  );
+  // Variable dimensions for Palette mode (null = use uniform cellSize)
+  const variableDimensionsRef = useRef<VariableCellDimensions | null>(null);
   const [colorMode, setColorMode] = useState<ColorMode>("monochrome");
   const [hasSourceImage, setHasSourceImage] = useState(false);
   const [blackPoint, setBlackPoint] = useState(0);
@@ -306,6 +319,9 @@ export default function HeroAscii({
     updateColors();
     const colors = colorsRef.current;
     const currentCellSize = renderSettingsRef.current.cellSize;
+    const varDims = variableDimensionsRef.current;
+    const isPaletteWithVarDims =
+      renderSettingsRef.current.style === "Palette" && varDims !== null;
 
     drawBackground();
 
@@ -315,8 +331,24 @@ export default function HeroAscii({
     ctx.textBaseline = "top";
 
     gridRef.current.forEach((cell) => {
-      const x = cell.col * currentCellSize.width;
-      const y = cell.row * currentCellSize.height;
+      let x: number;
+      let y: number;
+      let cellSizeOverride: CellSize | undefined;
+
+      if (isPaletteWithVarDims) {
+        // Variable dimensions: use per-column/per-row sizes
+        x = varDims.columnOffsets[cell.col];
+        y = varDims.rowOffsets[cell.row];
+        cellSizeOverride = {
+          width: varDims.columnWidths[cell.col],
+          height: varDims.rowHeights[cell.row],
+        };
+      } else {
+        // Uniform dimensions
+        x = cell.col * currentCellSize.width;
+        y = cell.row * currentCellSize.height;
+      }
+
       renderCell(
         ctx,
         cell,
@@ -325,6 +357,7 @@ export default function HeroAscii({
         y,
         asciiCharsDrawRef.current,
         colors,
+        cellSizeOverride,
       );
     });
   }, [updateColors, drawBackground]);
@@ -425,6 +458,169 @@ export default function HeroAscii({
 
   // Debounced cell size change for slider
   const debouncedCellSizeChange = useDebounce(handleCellSizeChange, 100);
+
+  // Generate grid with variable cell dimensions (Palette mode)
+  const generateGridWithVariableDimensions = useCallback(
+    (varDims: VariableCellDimensions) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const cols = varDims.columnWidths.length;
+      const rows = varDims.rowHeights.length;
+
+      if (sourceImageRef.current) {
+        // Create temp canvas to sample from source image
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tempCtx = tempCanvas.getContext("2d");
+        if (!tempCtx) return;
+
+        // Draw source image to temp canvas with fit logic
+        const { bitmap, width: srcW, height: srcH } = sourceImageRef.current;
+        let dx: number, dy: number, dw: number, dh: number;
+
+        if (fitModeRef.current === "cover") {
+          const scale = Math.max(canvas.width / srcW, canvas.height / srcH);
+          dw = srcW * scale;
+          dh = srcH * scale;
+          dx = (canvas.width - dw) / 2;
+          dy = (canvas.height - dh) / 2;
+        } else {
+          const scale = Math.min(canvas.width / srcW, canvas.height / srcH);
+          dw = srcW * scale;
+          dh = srcH * scale;
+          dx = (canvas.width - dw) / 2;
+          dy = (canvas.height - dh) / 2;
+        }
+
+        tempCtx.drawImage(bitmap, dx, dy, dw, dh);
+        const imageData = tempCtx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imageData.data;
+
+        // Create grid by sampling center of each variable-sized cell
+        const newGrid: ColorCharCell[] = new Array(cols * rows);
+        const maxLevel = IMAGE_ASCII_CHARS.length - 1;
+
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            const cellX = varDims.columnOffsets[col];
+            const cellY = varDims.rowOffsets[row];
+            const cellW = varDims.columnWidths[col];
+            const cellH = varDims.rowHeights[row];
+
+            // Sample center pixel of this cell
+            const centerX = Math.floor(cellX + cellW / 2);
+            const centerY = Math.floor(cellY + cellH / 2);
+            const pixelIndex = (centerY * canvas.width + centerX) * 4;
+
+            const r = pixels[pixelIndex] || 0;
+            const g = pixels[pixelIndex + 1] || 0;
+            const b = pixels[pixelIndex + 2] || 0;
+            const a = pixels[pixelIndex + 3] || 255;
+
+            // Calculate luminance and level
+            const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            const normalized = luminance / 255;
+            let level = Math.floor(normalized * maxLevel);
+
+            // Apply inversion for light mode
+            if (renderSettingsRef.current.invert) {
+              level = maxLevel - level;
+            }
+
+            newGrid[row * cols + col] = {
+              baseLevel: level,
+              currentLevel: level,
+              col,
+              row,
+              r,
+              g,
+              b,
+              isTransparent: a < 56,
+            };
+          }
+        }
+
+        gridRef.current = newGrid;
+      } else {
+        // No source image - create blank grid
+        const blankGrid: ColorCharCell[] = new Array(cols * rows);
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            blankGrid[row * cols + col] = {
+              baseLevel: 0,
+              currentLevel: 0,
+              col,
+              row,
+              r: 0,
+              g: 0,
+              b: 0,
+            };
+          }
+        }
+        gridRef.current = blankGrid;
+      }
+    },
+    [],
+  );
+
+  // Handle shuffle button - regenerate random dimensions
+  const handleShuffleDimensions = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || renderSettingsRef.current.style !== "Palette") return;
+
+    setIsResizing(true);
+
+    // Generate new random dimensions
+    const varDims = generateVariableDimensions(
+      canvas.width,
+      canvas.height,
+      cellSizeRange
+    );
+    variableDimensionsRef.current = varDims;
+
+    // Regenerate grid with new dimensions
+    generateGridWithVariableDimensions(varDims);
+
+    renderGrid();
+    setIsResizing(false);
+
+    track("ascii_dimensions_shuffled", {
+      cols: varDims.columnWidths.length,
+      rows: varDims.rowHeights.length,
+    });
+  }, [cellSizeRange, generateGridWithVariableDimensions, renderGrid, track]);
+
+  // Handle cell size range change (Palette mode)
+  const handleCellSizeRangeChange = useCallback(
+    (newRange: CellSizeRange) => {
+      setCellSizeRange(newRange);
+
+      const canvas = canvasRef.current;
+      if (!canvas || renderSettingsRef.current.style !== "Palette") return;
+
+      setIsResizing(true);
+
+      // Generate new dimensions with updated range
+      const varDims = generateVariableDimensions(
+        canvas.width,
+        canvas.height,
+        newRange
+      );
+      variableDimensionsRef.current = varDims;
+
+      // Regenerate grid
+      generateGridWithVariableDimensions(varDims);
+
+      renderGrid();
+      setIsResizing(false);
+    },
+    [generateGridWithVariableDimensions, renderGrid],
+  );
+
+  // Debounced range change for sliders/inputs
+  const debouncedCellSizeRangeChange = useDebounce(handleCellSizeRangeChange, 200);
 
   // Handle color mode toggle
   const handleColorModeToggle = useCallback(() => {
@@ -558,12 +754,34 @@ export default function HeroAscii({
   const drawCell = useCallback(
     (ctx: CanvasRenderingContext2D, cell: ColorCharCell) => {
       const colors = colorsRef.current;
-      const currentCellSize = renderSettingsRef.current.cellSize;
-      const x = cell.col * currentCellSize.width;
-      const y = cell.row * currentCellSize.height;
+      const varDims = variableDimensionsRef.current;
+      const isPaletteWithVarDims =
+        renderSettingsRef.current.style === "Palette" && varDims !== null;
+
+      let x: number;
+      let y: number;
+      let cellW: number;
+      let cellH: number;
+      let cellSizeOverride: CellSize | undefined;
+
+      if (isPaletteWithVarDims) {
+        // Variable dimensions: use per-column/per-row sizes
+        x = varDims.columnOffsets[cell.col];
+        y = varDims.rowOffsets[cell.row];
+        cellW = varDims.columnWidths[cell.col];
+        cellH = varDims.rowHeights[cell.row];
+        cellSizeOverride = { width: cellW, height: cellH };
+      } else {
+        // Uniform dimensions
+        const currentCellSize = renderSettingsRef.current.cellSize;
+        x = cell.col * currentCellSize.width;
+        y = cell.row * currentCellSize.height;
+        cellW = currentCellSize.width;
+        cellH = currentCellSize.height;
+      }
 
       // Clear cell area before redrawing
-      ctx.clearRect(x, y, currentCellSize.width, currentCellSize.height);
+      ctx.clearRect(x, y, cellW, cellH);
 
       // If erasing (transparent), copy from background canvas
       if (cell.isTransparent && bgCanvasRef.current) {
@@ -571,8 +789,8 @@ export default function HeroAscii({
         if (bgCtx) {
           ctx.drawImage(
             bgCanvasRef.current,
-            x, y, currentCellSize.width, currentCellSize.height,
-            x, y, currentCellSize.width, currentCellSize.height
+            x, y, cellW, cellH,
+            x, y, cellW, cellH
           );
         }
       } else {
@@ -585,6 +803,7 @@ export default function HeroAscii({
           y,
           asciiCharsDrawRef.current,
           colors,
+          cellSizeOverride,
         );
       }
     },
@@ -594,11 +813,29 @@ export default function HeroAscii({
   // Get cell at mouse/touch position
   const getCellAtPosition = useCallback(
     (canvas: HTMLCanvasElement, x: number, y: number) => {
-      const currentCellSize = renderSettingsRef.current.cellSize;
-      const col = Math.floor(x / currentCellSize.width);
-      const row = Math.floor(y / currentCellSize.height);
-      const cols = Math.ceil(canvas.width / currentCellSize.width);
-      const rows = Math.ceil(canvas.height / currentCellSize.height);
+      const varDims = variableDimensionsRef.current;
+      const isPaletteWithVarDims =
+        renderSettingsRef.current.style === "Palette" && varDims !== null;
+
+      let col: number;
+      let row: number;
+      let cols: number;
+      let rows: number;
+
+      if (isPaletteWithVarDims) {
+        // Variable dimensions: use binary search
+        col = findColumnAtX(x, varDims.columnOffsets);
+        row = findRowAtY(y, varDims.rowOffsets);
+        cols = varDims.columnWidths.length;
+        rows = varDims.rowHeights.length;
+      } else {
+        // Uniform dimensions: simple division
+        const currentCellSize = renderSettingsRef.current.cellSize;
+        col = Math.floor(x / currentCellSize.width);
+        row = Math.floor(y / currentCellSize.height);
+        cols = Math.ceil(canvas.width / currentCellSize.width);
+        rows = Math.ceil(canvas.height / currentCellSize.height);
+      }
 
       if (col < 0 || col >= cols || row < 0 || row >= rows) {
         return undefined;
@@ -967,6 +1204,7 @@ export default function HeroAscii({
 
   // Handle style toggle - adjust cell size for new style
   const handleStyleToggle = useCallback(() => {
+    const canvas = canvasRef.current;
     const newStyle =
       STYLES.indexOf(style) === STYLES.length - 1
         ? STYLES[0]
@@ -976,15 +1214,30 @@ export default function HeroAscii({
 
     track("ascii_style_changed", { style: newStyle });
 
-    // Adjust cell size for new style
-    const newCellSize = adjustCellSizeForStyle(cellSize, newStyle);
-    if (
-      newCellSize.width !== cellSize.width ||
-      newCellSize.height !== cellSize.height
-    ) {
-      debouncedCellSizeChange(newCellSize);
+    if (newStyle === "Palette" && canvas) {
+      // Initialize variable dimensions for Palette mode
+      const varDims = generateVariableDimensions(
+        canvas.width,
+        canvas.height,
+        cellSizeRange
+      );
+      variableDimensionsRef.current = varDims;
+      generateGridWithVariableDimensions(varDims);
+      renderGrid();
+    } else {
+      // Clear variable dimensions for other modes
+      variableDimensionsRef.current = null;
+
+      // Adjust cell size for new style
+      const newCellSize = adjustCellSizeForStyle(cellSize, newStyle);
+      if (
+        newCellSize.width !== cellSize.width ||
+        newCellSize.height !== cellSize.height
+      ) {
+        debouncedCellSizeChange(newCellSize);
+      }
     }
-  }, [style, cellSize, debouncedCellSizeChange, track]);
+  }, [style, cellSize, cellSizeRange, debouncedCellSizeChange, generateGridWithVariableDimensions, renderGrid, track]);
 
   // Handle download PNG
   const handleDownloadPng = useCallback(async () => {
@@ -1294,6 +1547,9 @@ export default function HeroAscii({
                 cellSize={cellSize}
                 onCellSizeChange={debouncedCellSizeChange}
                 style={style}
+                cellSizeRange={cellSizeRange}
+                onCellSizeRangeChange={debouncedCellSizeRangeChange}
+                onShuffle={handleShuffleDimensions}
               />
               <Divider vertical className="bg-foreground-07/20 mx-2" />
               <ColorModeToggle

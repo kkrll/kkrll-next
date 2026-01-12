@@ -158,6 +158,8 @@ export function renderCell(
   y: number,
   chars: string[],
   colors?: Colors,
+  /** Optional cell size override for variable dimensions (Palette mode) */
+  cellSizeOverride?: CellSize,
 ): void {
   // Transparent pixels don't render anything (show background)
   if (cell.isTransparent) {
@@ -182,16 +184,18 @@ export function renderCell(
   // Set the fill color (only if different to avoid state changes)
   ctx.fillStyle = fillColor;
 
+  // Use override if provided (for variable dimensions), otherwise use settings
+  const cellSize = cellSizeOverride || settings.cellSize;
 
   switch (settings.style) {
     case "Ascii":
       renderChar(ctx, x, y, chars[level]);
       break
     case "Dot":
-      renderDot(ctx, x, y, level, settings.cellSize, maxLevel);
+      renderDot(ctx, x, y, level, cellSize, maxLevel);
       break
     case "Palette":
-      renderPallete(ctx, x, y, level, settings.cellSize, maxLevel)
+      renderPallete(ctx, x, y, level, cellSize, maxLevel)
       break
     default:
       return
