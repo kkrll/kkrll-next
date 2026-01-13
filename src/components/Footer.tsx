@@ -9,6 +9,7 @@ const Footer = () => {
   const social = {
     linkedin: "https://www.linkedin.com/in/kkrll",
     medium: "https://medium.com/@kkrll",
+    twitter: "https://x.com/kkrll_kkrll"
   };
 
   return (
@@ -25,11 +26,11 @@ const Footer = () => {
       <div className="flex w-full md:w-auto justify-between gap-4">
         <div className="flex font-medium gap-4 [&>a]:text-sm [&>a]:no-underline">
           <Link href="/now">Now</Link>
+          <a href={social.twitter} target="_blank" rel="noreferrer">
+            Twitter
+          </a>
           <a href={social.linkedin} target="_blank" rel="noreferrer">
             LinkedIn
-          </a>
-          <a href={social.medium} target="_blank" rel="noreferrer">
-            Medium
           </a>
           {/* <Link href="/rss.xml">RSS</Link> */}
         </div>
