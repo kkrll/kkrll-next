@@ -65,6 +65,7 @@ const ProjectView = ({ project }: { project: ProjectMeta }) => {
           carouselName={project.slug}
           options={carouselOptions}
           nbSlides={project.media.length}
+          buttonsPosition="top"
         >
           {project.media.map((mediaItem) => {
             return (

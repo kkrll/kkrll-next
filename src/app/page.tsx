@@ -8,8 +8,8 @@ import { Suspense } from "react";
 import BioContent from "@/components/BioContent";
 
 export default async function Home() {
-  const writings = getAllWritingsMeta(4);
-  const projects = getAllProjectsMeta(4);
+  const writings = getAllWritingsMeta(5);
+  const projects = getAllProjectsMeta(5);
 
   return (
     <PageLayout>

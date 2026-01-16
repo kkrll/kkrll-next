@@ -24,6 +24,7 @@ type CarouselType = {
   options?: EmblaOptionsType;
   nbSlides: number;
   carouselName?: string;
+  buttonsPosition?: "top" | "bottom";
 };
 
 const Carousel = ({
@@ -31,6 +32,7 @@ const Carousel = ({
   options,
   nbSlides,
   carouselName,
+  buttonsPosition = "bottom",
 }: CarouselType) => {
   const fadePlugin = useMemo(() => [Fade()], []);
   const [emblaRef, emblaApi] = useEmblaCarousel(options, fadePlugin);
@@ -114,11 +116,36 @@ const Carousel = ({
 
   return (
     <section className="embla">
+
+      {nbSlides > 1 && buttonsPosition === "top" && (
+        <div className="embla__controls mb-4 font-mono justify-between flex items-center w-full">
+          <div className="embla__buttons">
+            <CarouselButton
+              onClick={onPrevButtonClick}
+              disabled={prevBtnDisabled}
+              ref={prevButtonRef}
+            >
+              <ArrowLeftIcon size={16} />
+            </CarouselButton>
+            <CarouselButton
+              onClick={onNextButtonClick}
+              disabled={nextBtnDisabled}
+              ref={nextButtonRef}
+            >
+              <ArrowRightIcon size={16} />
+            </CarouselButton>
+          </div>
+          {emblaApi && (
+            <p className="text-right mr-4">{`${currentSlide} / ${nbSlides}`}</p>
+          )}
+        </div>
+      )}
+
       <div className="embla__viewport" ref={emblaRef}>
         <div className="embla__container">{children}</div>
       </div>
 
-      {nbSlides > 1 && (
+      {nbSlides > 1 && buttonsPosition === "bottom" && (
         <div className="embla__controls font-mono justify-between flex items-center w-full">
           <div className="embla__buttons">
             <CarouselButton
