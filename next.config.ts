@@ -6,6 +6,22 @@ const nextConfig: NextConfig = {
   experimental: {
     viewTransition: true,
   },
+  async redirects() {
+    return [
+      {
+        source: "/",
+        has: [
+          {
+            type: "query",
+            key: "draw",
+            value: "true",
+          },
+        ],
+        destination: "https://draw.kkrll.com",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 const withMDX = createMDX({

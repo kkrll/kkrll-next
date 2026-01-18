@@ -91,7 +91,7 @@ The site uses a file-system based content architecture with three content types:
 - **Provider** (`src/providers/posthog-provider.tsx`): Client-side PostHog initialization with GDPR-friendly settings
 - **Hooks**:
   - `useHomeTracking()` - Tracks item selection, navigation, and opens on homepage
-  - `useTracking()` - General tracking utilities (used in ASCII canvas, etc.)
+  - `useTracking()` - General tracking utilities
   - `useDebounce()` - Debounces callbacks (used for resize handling)
 
 ### State Management
@@ -114,14 +114,13 @@ TypeScript is configured with `@/*` path alias mapping to `src/*`
 ```
 src/
 ├── app/                  # Next.js App Router pages
-│   ├── api/ascii/upload/ # ASCII art upload to R2
+│   ├── api/ascii/upload/ # ASCII art upload API (used by draw.kkrll.com)
 │   ├── posters/          # Poster listing and dynamic routes
 │   ├── writings/         # Writing listing and dynamic routes
 │   ├── page.tsx          # Homepage
 │   └── layout.tsx        # Root layout with fonts/metadata
 ├── components/           # React components
-│   ├── Bio/              # Bio component with ASCII art
-│   │   └── HeroAscii/    # Interactive ASCII canvas (see below)
+│   ├── BioContent/       # Bio section content
 │   ├── header/           # Navigation header
 │   ├── homeContent/      # Homepage content components
 │   ├── Divider.tsx
@@ -195,118 +194,8 @@ To customize MDX rendering, edit `mdx-components.tsx` in the root directory. All
 - `trackNavigation(direction)` - Track keyboard navigation
 - `trackOpen(item, method)` - Track when user opens an item
 
-**ASCII Canvas Tracking** - Automatically tracked in `HeroAscii` component:
+### Draw App
 
-- `ascii_drawing_mode_entered` - User enters drawing mode
-- `ascii_drawing_mode_exited` - User exits drawing mode
-- `ascii_symbol_changed` - User changes brush thickness (includes symbol & index)
-- `ascii_canvas_cleared` - User clears canvas
-- `ascii_saved_as_png` - User downloads PNG
-- `ascii_saved_as_txt` - User downloads TXT
-- `ascii_uploaded_to_r2` - ASCII art uploaded to R2 (includes url & source)
+The interactive ASCII drawing canvas has been moved to a separate project at [draw.kkrll.com](https://draw.kkrll.com). Visitors to `/?draw=true` are automatically redirected there.
 
-See `src/components/Bio/HeroAscii/TRACKING.md` for detailed event documentation.
-
-### HeroAscii Component (Interactive ASCII Canvas)
-
-**Location**: `src/components/Bio/HeroAscii/`
-
-**Architecture**:
-
-```
-HeroAscii/
-├── constants.ts              # ASCII chars, dimensions, font config, cell size limits
-├── types.ts                  # TypeScript interfaces (CharCell, ColorCharCell, CellSize, etc.)
-├── renderingUtils.ts         # Pure rendering functions (renderCell, mapLevel, colorMode)
-├── imageToAscii.ts           # Image-to-ASCII conversion (Web Worker + fallback)
-├── imageToAscii.worker.ts    # Web Worker for non-blocking image processing
-├── imageLoader.ts            # Random library image loader
-├── editOverlay.ts            # Pixel-level edit storage for cell size changes
-├── asciiSavingUtils.ts       # TXT generation + R2 upload utilities
-├── ImageUploadButton.tsx     # File picker button component
-├── NavButton.tsx             # Reusable button component
-├── DrawingControls.tsx       # Action buttons (Clear/Save/Exit)
-├── ResizingIndicator.tsx     # Loading overlay during resize
-├── SymbolSelector.tsx        # Brush thickness slider with visual preview
-├── CellSizeSelector.tsx      # Cell size slider (4-32px range)
-├── ColorModeToggle.tsx       # Original colors / monochrome toggle
-├── styles.css                # Custom slider styling
-├── TRACKING.md               # PostHog event documentation
-└── index.tsx                 # Main component (~950 lines)
-```
-
-**Three-Layer Architecture**:
-
-The component uses a non-destructive editing pattern with three layers:
-
-1. **Source Image** (`sourceImageRef`) - GPU-backed ImageBitmap, stored once on upload
-2. **Edit Overlay** (`editOverlayRef`) - Sparse Map storing pixel-level edits
-3. **Rendered Grid** (`gridRef`) - ColorCharCell[] regenerated when cell size changes
-
-This allows zooming (cell size changes) without losing user drawings.
-
-**Rendering Modes**:
-
-- **ASCII mode**: Renders using character set (` • ∗ ※ @ W`), rectangular cells (10×16)
-- **Dot mode**: Renders as circles with radius proportional to level, square cells
-- **Color mode**: Original RGB colors or monochrome (toggle available when image loaded)
-- Toggle between modes preserves drawing
-- Theme changes invert brightness levels (light mode = inverted)
-
-**Dynamic Cell Sizes**:
-
-- Slider control allows cell sizes from 4px to 32px
-- ASCII mode: maintains ~10:16 aspect ratio for character rendering
-- Dot mode: uses square cells (width = height)
-- Grid regenerates from source image when size changes
-- Edits preserved via pixel-level overlay system
-
-**Image-to-ASCII Conversion**:
-
-- Upload images via file picker, drag-drop, or Cmd+V paste
-- Uses Web Worker + OffscreenCanvas for non-blocking conversion
-- Preserves RGB color data per cell (ColorCharCell type)
-- **Fit modes**: "cover" for library images (fills viewport), "contain" for uploads (letterbox)
-- Gamma correction for better contrast
-
-**Save & Share**:
-
-- **Save as PNG**: Downloads PNG locally + uploads TXT to R2 + copies shareable link
-- **Save as TXT**: Downloads TXT locally + uploads to R2 + copies shareable link
-- **TXT Format**: Metadata header (chars, created, theme, dimensions) + ASCII art
-- **Storage**: R2 bucket at `ascii/{timestamp}-{random}.txt`
-
-**Key Features**:
-
-- Interactive fullscreen canvas with multiple rendering modes
-- Dynamic cell size adjustment via slider
-- Color mode toggle (original colors / monochrome)
-- Brush thickness slider with live preview
-- Preserves drawing during window resize and cell size changes
-- Export as PNG or TXT (both upload to R2 for sharing)
-- RAF-throttled drawing for 60fps performance
-- Touch event support for mobile
-
-**Performance Patterns**:
-
-- Uses refs for non-UI state (avoids re-renders)
-- Single `renderSettingsRef` for all rendering params (style, invert, colorMode, cellSize)
-- Web Worker for image processing (non-blocking)
-- Sparse Map for edit overlay (only stores edited pixels)
-- ImageBitmap for source storage (GPU-backed, efficient resampling)
-- `requestAnimationFrame` throttling for mousemove events
-- Color caching via `colorsRef` (avoids expensive `getComputedStyle()` calls)
-- Debounced cell size changes (200ms)
-
-**Resize Behavior**:
-
-- Preserves center content when resizing (center-anchored)
-- Adds/removes columns and rows from edges
-- New cells are blank (respects invert mode for color)
-- Shows "Resizing..." indicator during resize
-
-**Do NOT**:
-
-- Extract logic into custom hooks (not reused anywhere)
-- Over-engineer the component structure
-- Add state that could be refs (causes unnecessary re-renders)
+The `/api/ascii/upload` endpoint remains in this codebase to handle R2 uploads from the draw app (with CORS configured for draw.kkrll.com).
