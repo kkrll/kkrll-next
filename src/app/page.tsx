@@ -6,7 +6,7 @@ import { getAllWritingsMeta } from "@/lib/writings";
 
 export default async function Home() {
   const writings = getAllWritingsMeta(5);
-  const projects = getAllProjectsMeta(5);
+  const projects = getAllProjectsMeta(6);
 
   return (
     <PageLayout>
