@@ -26,7 +26,9 @@ const WorkItem = ({ job }: { job: JobsType }) => {
             <a href={companyLink} target="_blank" rel="noreferrer">
               <h1 className="uppercase font-mono">{company}</h1>
             </a>
-            <p className="font-mono text-foreground-07 text-sm mb-4">{role}</p>
+            <p className="font-mono text-foreground-07 text-sm mb-4 whitespace-pre-line">
+              {role}
+            </p>
             <p className="font-mono text-foreground-07 text-sm">{dates}</p>
           </div>
         </div>

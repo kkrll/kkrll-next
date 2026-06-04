@@ -70,7 +70,7 @@ const jobsList: JobsType[] = [
   },
   {
     dates: "Mar, 2021 – Jun, 2024",
-    role: "Senior Product Designer",
+    role: "Design Engineer /\nSenior Product Designer",
     company: "StarOfService",
     companyLink: "https://www.starofservice.com/",
     description: `Involved in transitioning a professional services marketplace with a 12 million monthly audience to a new business model. Alongside working on transition projects and design system rebuild, I was responsible for the growth track.`,
