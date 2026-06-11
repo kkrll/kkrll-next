@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import PageLayout from "@/components/PageLayout";
+
+export const metadata: Metadata = {
+  title: "Now",
+  description: "What Kiryl Kavalenka is up to right now.",
+  alternates: { canonical: "/now" },
+};
 
 const NowPage = () => {
   return (

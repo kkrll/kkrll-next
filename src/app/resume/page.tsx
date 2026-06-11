@@ -1,11 +1,18 @@
+import type { EmblaOptionsType } from "embla-carousel";
+import type { Metadata } from "next";
+import Image from "next/image";
 import Divider from "@/components/Divider";
 import PageLayout from "@/components/PageLayout";
-
-import jobsList, { JobsType } from "@/components/resume/jobsList";
+import jobsList, { type JobsType } from "@/components/resume/jobsList";
 import Carousel from "@/components/ui/carousel";
 import { getR2Url } from "@/lib/constants";
-import type { EmblaOptionsType } from "embla-carousel";
-import Image from "next/image";
+
+export const metadata: Metadata = {
+  title: "Resume",
+  description:
+    "Kiryl Kavalenka — product designer. Experience, selected projects, and case studies.",
+  alternates: { canonical: "/resume" },
+};
 
 const carouselOptions: EmblaOptionsType = {
   loop: true,
