@@ -298,3 +298,105 @@ export const UploadPicture = ({ size = 16, stroke = 1, className }: IconType) =>
     <path d="M1.5 12L6.5 7.5L12.5 12.5M8 17.5L12.5 12.5M12.5 12.5L15 10L22.5 16.5" stroke="currentColor" strokeWidth={stroke} />
   </svg>
 );
+
+export const PlayIcon = ({
+  size = 24,
+  stroke = 1.5,
+  className,
+  paused,
+}: IconType & { paused?: boolean }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    strokeWidth={stroke}
+    className={cn(
+      "block select-none shrink-0 transition-all duration-100",
+      className,
+    )}
+  >
+    <title>{paused ? "Play" : "Pause"}</title>
+    {paused ? (
+      <path
+        d="M6.5 12.2816V3.71838C6.5 3.37014 6.8471 3.12855 7.17366 3.2495L19.2404 7.71868C19.5015 7.81537 19.5015 8.18463 19.2404 8.28132L7.17366 12.7505C6.8471 12.8714 6.5 12.6299 6.5 12.2816Z"
+        stroke="currentColor"
+      />
+    ) : (
+      <>
+        <path d="M9.5 3V12" stroke="currentColor" />
+        <path d="M14.5 3V12" stroke="currentColor" />
+      </>
+    )}
+  </svg>
+);
+
+export const TrimIcon = ({ size = 24, className }: IconType) => (
+  <svg
+    width={size}
+    height={(size / 3) * 2}
+    viewBox="0 0 24 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={cn(
+      "block select-none shrink-0 transition-all duration-100",
+      className,
+    )}
+  >
+    <title>Trim</title>
+    <g clipPath="url(#clip0_4710_45489)">
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M20.248 10.0166C20.2932 10.0392 20.3395 10.0603 20.3838 10.0859L22.1162 11.0859C23.3117 11.7763 23.7214 13.3054 23.0312 14.501C22.3409 15.6966 20.8119 16.1062 19.6162 15.416L17.8838 14.416C16.8173 13.8002 16.3781 12.518 16.7852 11.3994L14.8965 10.2412L15.8848 9.67383L17.3076 10.5449C17.556 10.2786 17.8548 10.0756 18.1807 9.94141L16.8398 9.1377L17.8105 8.55371L20.248 10.0166ZM19.7471 10.8818C19.0537 10.5703 18.2233 10.8285 17.835 11.501C17.4208 12.2184 17.6664 13.1356 18.3838 13.5498L20.1162 14.5498C20.8336 14.9639 21.7509 14.7184 22.165 14.001C22.5791 13.2837 22.3334 12.3664 21.6162 11.9521L20.25 11.1641L20.2422 11.1787L19.7471 10.8818Z"
+        fill="currentColor"
+      />
+      <path
+        d="M5.75586 1.32129L13.2559 5.82129L12.2256 6.36816L5.36133 2.25H3.77246L11.4111 6.93164L10.373 7.46875L0.226562 1.25H5.6377L5.75586 1.32129Z"
+        fill="currentColor"
+      />
+      <path
+        d="M19.6113 0.565737C20.8069 -0.124549 22.3359 0.285324 23.0264 1.48078C23.7167 2.67651 23.3071 4.20546 22.1113 4.89581L20.7275 5.69464L5.75586 14.678L5.6377 14.7493H0.226562L16.7871 4.59796C16.3703 3.47575 16.8084 2.18436 17.8799 1.56574L19.6113 0.565737ZM3.77148 13.7493H5.36133L18.1963 6.04718C17.8677 5.91503 17.5666 5.71342 17.3154 5.44757L3.77148 13.7493ZM22.1602 1.98078C21.7458 1.26368 20.8286 1.01782 20.1113 1.43195L18.3799 2.43195C17.6626 2.84608 17.4162 3.7634 17.8301 4.48078C18.2443 5.19822 19.1624 5.44479 19.8799 5.03058L21.6113 4.03058C22.3288 3.61637 22.5744 2.69822 22.1602 1.98078Z"
+        fill="currentColor"
+      />
+    </g>
+    <defs>
+      <clipPath id="clip0_4710_45489">
+        <rect width="24" height="16" fill="white" />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
+export const RestoreIcon = ({ size = 24, stroke = 1.5, className }: IconType) => (
+  <svg
+    width={size}
+    height={(size / 3) * 2}
+    viewBox="0 0 24 16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={stroke}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    xmlns="http://www.w3.org/2000/svg"
+    className={cn(
+      "block select-none shrink-0 transition-all duration-100",
+      className,
+    )}
+  >
+    <title>Restore</title>
+    <g clipPath="url(#clip0_3970_45489)">
+      <path d="M2.24787 22.506L21.8003 22.5229" stroke="currentColor" />
+      <path
+        d="M6 3H5C3.34315 3 2 4.34315 2 6V10C2 11.6569 3.34315 13 5 13H19C20.6569 13 22 11.6569 22 10V6C22 4.34315 20.6569 3 19 3H10M10 3L13 0M10 3L13 6"
+        stroke="currentColor"
+      />
+    </g>
+    <defs>
+      <clipPath id="clip0_3970_45489">
+        <rect width="24" height="16" fill="currentColor" />
+      </clipPath>
+    </defs>
+  </svg>
+);

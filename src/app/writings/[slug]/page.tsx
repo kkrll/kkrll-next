@@ -1,9 +1,12 @@
-import { getWritingBySlug, getAllWritings } from "@/lib/writings";
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import Link from "next/link";
-import Image from "next/image";
+import { articleComponents } from "@/components/articles/registry";
 import PageLayout from "@/components/PageLayout";
+import { SITE_NAME, SITE_URL } from "@/lib/constants";
+import { getAllWritings, getWritingBySlug } from "@/lib/writings";
 
 // Generate static paths for all writings at build time
 export async function generateStaticParams() {
@@ -12,6 +15,48 @@ export async function generateStaticParams() {
   return writings.map((writing) => ({
     slug: writing.slug,
   }));
+}
+
+function coverUrl(slug: string, cover?: string) {
+  return cover ? `/writings/${slug}/${cover.replace("./", "")}` : undefined;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const writing = getWritingBySlug(slug);
+
+  if (!writing) {
+    return {};
+  }
+
+  const cover = coverUrl(slug, writing.cover);
+
+  return {
+    title: writing.title,
+    description: writing.description,
+    alternates: {
+      // Republished pieces point to the original; own posts self-canonical
+      canonical: writing.link || `/writings/${slug}`,
+    },
+    openGraph: {
+      type: "article",
+      siteName: SITE_NAME,
+      title: writing.title,
+      description: writing.description,
+      url: `/writings/${slug}`,
+      publishedTime: new Date(writing.date).toISOString(),
+      images: cover ? [{ url: cover }] : undefined,
+    },
+    twitter: {
+      card: cover ? "summary_large_image" : "summary",
+      title: writing.title,
+      description: writing.description,
+    },
+  };
 }
 
 export default async function WritingPage({
@@ -26,9 +71,33 @@ export default async function WritingPage({
     notFound();
   }
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: writing.title,
+    description: writing.description || undefined,
+    datePublished: new Date(writing.date).toISOString(),
+    image: writing.cover
+      ? `${SITE_URL}${coverUrl(slug, writing.cover)}`
+      : undefined,
+    url: `${SITE_URL}/writings/${slug}`,
+    author: {
+      "@type": "Person",
+      name: "Kiryl Kavalenka",
+      url: SITE_URL,
+    },
+  };
+
   return (
     <PageLayout>
-      <article className="max-w-[560px] px-default">
+      <script
+        type="application/ld+json"
+        /** biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD from build-time frontmatter, < escaped */
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+      <article className="max-w-[640px] w-full px-default">
         <header className="mb-8 border-b border-foreground-05 pb-6">
           {writing.cover && (
             <Image
@@ -66,12 +135,13 @@ export default async function WritingPage({
           </p>
         </header>
 
-        <div className="prose prose-invert max-w-none font-serif text-md text-foreground font-regular dark:font-medium [&_*]:!text-inherit [&_li::marker]:!text-foreground-05">
+        <div className="prose prose-invert max-w-none font-serif text-md text-foreground font-regular dark:font-medium [&_*:not(.not-prose):not(.not-prose_*)]:!text-inherit [&_li::marker]:!text-foreground-05">
           <MDXRemote
             source={writing.content}
             components={{
               Link,
               Image,
+              ...articleComponents,
               h2: ({ children }) => (
                 <h2 className="text-xl font-normal">{children}</h2>
               ),
