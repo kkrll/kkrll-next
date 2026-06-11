@@ -40,7 +40,8 @@ The site uses a file-system based content architecture with three content types:
 #### Writings (Blog Posts)
 
 - **Location**: `content/writings/[slug]/index.mdx`
-- **Frontmatter**: title, date, cover, publisher?, link?
+- **Frontmatter**: title, date, cover, publisher?, link?, description?, draft?
+- **Drafts**: `draft: true` hides a writing in production (listings, sitemap, direct URL → 404) but keeps it visible in development for preview
 - **API** (`src/lib/writings.ts`):
   - `getAllWritings()` - Returns all writings sorted by date
   - `getAllWritingsMeta(limit?)` - Returns metadata only, with optional "view all" item
@@ -166,7 +167,8 @@ public/                   # Static files (auto-copied from content/)
 **Writings:**
 Create a new folder in `content/writings/[slug]/` with:
 
-1. `index.mdx` file with frontmatter (title, date, cover, publisher?, link?)
+1. `index.mdx` file with frontmatter (title, date, cover, publisher?, link?, description?, draft?)
+   - Start with `draft: true` and remove it when ready to publish
 2. Images referenced relatively from the MDX file
 3. The slug from the folder name becomes the URL
 
