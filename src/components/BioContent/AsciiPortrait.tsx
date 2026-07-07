@@ -9,11 +9,8 @@ import portraitLevels from "./portraitLevels";
 // (※ % @ W) are swapped for narrow ones that fit the 0.6em cell in Geist Sans.
 const RAMP = [" ", "·", "-", ":", "+", "i", "s", "x", "$", "8", "K", "N"];
 
-// Levels were sampled at 8x16px cells in draw, so cells keep a 1:2 aspect:
-// 0.6em wide, 1.2em tall, glyphs centered in their cell.
 const CHAR_WIDTH_EM = 0.6;
 const LINE_HEIGHT_EM = 1.2;
-// wide glyphs (W, %, @) bleed past the 0.6em cell at full size
 const GLYPH_SCALE = 0.9;
 
 const FLY_MS = 700;
@@ -51,13 +48,19 @@ interface Cell {
 
 interface Flight {
   char: string;
-  /** landing cell, left empty in the grid since the letter stays */
   row: number;
   col: number;
-  /** target cell position (viewport px, left edge) */
+  /**
+   * source geometry (viewport px): the span renders here untransformed, so
+   * the swap with the hero text is pixel-identical. The FLIP's transform
+   * imprecision lives at the landing end, where nothing static sits nearby.
+   */
   x: number;
   y: number;
-  /** offset back to the source position (center-aligned) */
+  w: number;
+  h: number;
+  fs: number;
+  /** offset from the source center to the landing cell center */
   dx: number;
   dy: number;
   scale: number;
@@ -74,7 +77,6 @@ function shuffle<T>(arr: T[]): T[] {
 
 interface AsciiPortraitProps {
   sourceChars: SourceChar[];
-  /** fired when closing begins, before the return flight (caption fades first) */
   onCloseStart: () => void;
   onClose: () => void;
 }
@@ -85,12 +87,10 @@ export default function AsciiPortrait({
   onClose,
 }: AsciiPortraitProps) {
   const theme = useThemeStore((state) => state.theme);
-  // Levels encode brightness for a dark bg; on light bg flip them (draw's mapLevel)
   const invert = theme === "light";
 
   const gridRef = useRef<HTMLDivElement>(null);
   const [flights, setFlights] = useState<Flight[]>([]);
-  const [fontPx, setFontPx] = useState(10);
   // parting = caption fading out, everything else still in place
   const [phase, setPhase] = useState<"gather" | "fly" | "parting" | "return">(
     "gather",
@@ -101,13 +101,15 @@ export default function AsciiPortrait({
     const cells: Cell[] = [];
     for (const c of baseCells) {
       const glyph = RAMP[invert ? max - c.level : c.level] ?? " ";
-      if (glyph !== " ") cells.push({ row: c.row, col: c.col, glyph, level: c.level });
+      if (glyph !== " ")
+        cells.push({ row: c.row, col: c.col, glyph, level: c.level });
     }
     return cells;
   }, [invert]);
 
   // FLIP: measure the rendered grid, assign each hero char a target cell
-  // (same glyph when available), start it translated back at its source.
+  // (same glyph when available). Each char renders untransformed at its
+  // source and flies by transforming toward the cell.
   // biome-ignore lint/correctness/useExhaustiveDependencies: runs once at mount by design
   useLayoutEffect(() => {
     const grid = gridRef.current;
@@ -123,7 +125,7 @@ export default function AsciiPortrait({
     const rect = grid.getBoundingClientRect();
     const cellW = rect.width / portrait.cols;
     const cellH = rect.height / portrait.rows.length;
-    setFontPx(cellH / LINE_HEIGHT_EM);
+    const cellFontPx = cellH / LINE_HEIGHT_EM;
 
     const pool = shuffle([...visibleCells]);
     const byGlyph = new Map<string, Cell[]>();
@@ -153,19 +155,22 @@ export default function AsciiPortrait({
       const cell = takeMatching(s.char) ?? takeAny();
       if (!cell) break;
       taken.add(cell);
-      const x = rect.left + cell.col * cellW;
-      const y = rect.top + cell.row * cellH;
+      const cx = rect.left + cell.col * cellW + cellW / 2;
+      const cy = rect.top + cell.row * cellH + cellH / 2;
       next.push({
         char: s.char,
         row: cell.row,
         col: cell.col,
-        x,
-        y,
+        x: s.x,
+        y: s.y,
+        w: s.w,
+        h: s.h,
+        fs: s.fs,
         // center-to-center so proportional glyph metrics don't skew the path
-        dx: s.x + s.w / 2 - (x + cellW / 2),
-        dy: s.y + s.h / 2 - (y + cellH / 2),
-        // font-size to font-size: line boxes have different proportions
-        scale: s.fs / (cellH / LINE_HEIGHT_EM),
+        dx: cx - (s.x + s.w / 2),
+        dy: cy - (s.y + s.h / 2),
+        // shrink from hero size down to the grid's reduced glyph size
+        scale: (cellFontPx * GLYPH_SCALE) / s.fs,
         delay: 0,
       });
     }
@@ -220,17 +225,32 @@ export default function AsciiPortrait({
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") handleClose();
     };
+    const handleScrollIntent = (e: Event) => {
+      e.preventDefault();
+      handleClose();
+    };
     window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+    window.addEventListener("wheel", handleScrollIntent, { passive: false });
+    window.addEventListener("touchmove", handleScrollIntent, {
+      passive: false,
+    });
+    window.addEventListener("scroll", handleClose, { passive: true });
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      window.removeEventListener("wheel", handleScrollIntent);
+      window.removeEventListener("touchmove", handleScrollIntent);
+      window.removeEventListener("scroll", handleClose);
+    };
   });
 
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: Escape handled globally above
     <div
-      className={`fixed inset-0 z-50 flex items-end justify-end transition-colors duration-500 ${phase === "gather" || phase === "return"
-        ? "bg-transparent"
-        : "bg-background"
-        }`}
+      className={`fixed inset-0 z-50 flex items-end justify-end transition-colors duration-500 ${
+        phase === "gather" || phase === "return"
+          ? "bg-transparent"
+          : "bg-background"
+      }`}
       role="dialog"
       aria-label="ASCII portrait of Kiryl. Press Escape or click to close."
       onClick={handleClose}
@@ -262,7 +282,10 @@ export default function AsciiPortrait({
                 width: `${CHAR_WIDTH_EM / GLYPH_SCALE}em`,
                 lineHeight: `${LINE_HEIGHT_EM / GLYPH_SCALE}em`,
                 fontSize: `${GLYPH_SCALE}em`,
-                opacity: phase === "gather" || phase === "return" ? 0 : 0.03 * c.level + 0.2,
+                opacity:
+                  phase === "gather" || phase === "return"
+                    ? 0
+                    : 0.03 * c.level + 0.2,
                 transition:
                   phase === "return"
                     ? "opacity 400ms ease"
@@ -278,26 +301,30 @@ export default function AsciiPortrait({
         <span
           // biome-ignore lint/suspicious/noArrayIndexKey: static list, never reordered
           key={i}
-          className="fixed text-center text-foreground pointer-events-none"
+          className="fixed text-foreground pointer-events-none"
           style={{
             left: f.x,
             top: f.y,
-            width: fontPx * CHAR_WIDTH_EM,
-            fontSize: fontPx,
-            lineHeight: `${fontPx * LINE_HEIGHT_EM}px`,
+            width: f.w,
+            fontSize: f.fs,
+            // zero leading: the Range rect is the font's content area, so this
+            // reproduces the hero glyph's baseline exactly
+            lineHeight: `${f.h}px`,
             transformOrigin: "center",
             opacity: phase === "gather" || phase === "return" ? 1 : 0.75,
-            // starts at true hero size, lands at GLYPH_SCALE like the grid glyphs
+            // untransformed at takeoff and return so the text swap is
+            // pixel-identical; flies by shrinking toward the cell center
             transform:
               phase === "gather" || phase === "return"
-                ? `translate(${f.dx}px, ${f.dy}px) scale(${f.scale})`
-                : `translate(0, 0) scale(${GLYPH_SCALE})`,
+                ? "none"
+                : `translate(${f.dx}px, ${f.dy}px) scale(${f.scale})`,
             // return staggers last-in-first-out: the far stragglers leave first
             transition:
               phase === "gather"
                 ? "none"
-                : `transform ${FLY_MS}ms cubic-bezier(0.25, 0.1, 0.25, 1) ${phase === "return" ? MAX_STAGGER_MS - f.delay : f.delay
-                }ms`,
+                : `transform ${FLY_MS}ms cubic-bezier(0.25, 0.1, 0.25, 1) ${
+                    phase === "return" ? MAX_STAGGER_MS - f.delay : f.delay
+                  }ms`,
           }}
         >
           {f.char}

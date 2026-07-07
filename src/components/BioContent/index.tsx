@@ -1,13 +1,17 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { useTracking } from "@/hooks/useTracking";
 import { measureHeroChars, type SourceChar } from "./measureHeroChars";
 
-// Easter egg: loaded only when triggered, keeps the levels data out of the main bundle
-const AsciiPortrait = dynamic(() => import("./AsciiPortrait"), { ssr: false });
+let AsciiPortrait: (typeof import("./AsciiPortrait"))["default"] | null = null;
+
+const preloadPortrait = () => {
+  void import("./AsciiPortrait").then((mod) => {
+    AsciiPortrait = mod.default;
+  });
+};
 
 const BioContent = () => {
   const [isCopied, setIsCopied] = useState(false);
@@ -17,12 +21,13 @@ const BioContent = () => {
   const { track } = useTracking();
   const showPortrait = sourceChars !== null;
 
-  const handleKirylClick = () => {
+  const handleKirylClick = async () => {
     // if (!window.matchMedia("(min-width: 768px) and (pointer: fine)").matches)
     //   return;
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
+    AsciiPortrait = (await import("./AsciiPortrait")).default;
     setSourceChars(
       reduceMotion || !sectionRef.current
         ? []
@@ -35,8 +40,9 @@ const BioContent = () => {
     <>
       <section
         ref={sectionRef}
-        className={`relative min-h-hero md:min-h-[70vh] pt-[40vh] md:pt-[50vh] px-default ${showPortrait ? "invisible z-[60]" : "z-10"
-          }`}
+        className={`relative min-h-hero md:min-h-[70vh] pt-[40vh] md:pt-[50vh] px-default ${
+          showPortrait ? "invisible z-[60]" : "z-10"
+        }`}
       >
         <p className="mb-6 bg-background w-fit">Hey. </p>
         <p className=" bg-background w-fit">
@@ -44,30 +50,44 @@ const BioContent = () => {
           <button
             type="button"
             data-keep
-            className={showPortrait ? "visible pointer-events-none" : "cursor-pointer underline"}
+            className={
+              showPortrait
+                ? "visible pointer-events-none"
+                : "cursor-pointer underline"
+            }
+            onMouseEnter={preloadPortrait}
+            onFocus={preloadPortrait}
+            onTouchStart={preloadPortrait}
             onClick={handleKirylClick}
           >
             Kiryl
           </button>
+          {/* absolute keeps the caption out of the closed-state paragraph flow;
+              with no inset it sits at its static position, right after "Kiryl" */}
           <span
             aria-hidden={!showPortrait}
-            className={`absolute pointer-events-none transition-opacity ${showPortrait ? "visible" : ""
-              } ${showPortrait && !isClosing
-                ? "opacity-100 duration-500 delay-500"
-                : "opacity-0 duration-300 delay-0"
-              }`}
+            className={`absolute pointer-events-none ${
+              showPortrait ? "visible" : ""
+            }`}
           >
-            {" looks like this"}
-          </span>
-          <span
-            aria-hidden={!showPortrait}
-            className={`absolute left-[180px] pointer-events-none transition-opacity ${showPortrait ? "visible" : ""
-              } ${showPortrait && !isClosing
-                ? "opacity-100 duration-500 delay-2000"
-                : "opacity-0 duration-300 delay-0"
+            <span
+              className={`transition-opacity ${
+                showPortrait && !isClosing
+                  ? "opacity-100 duration-500 delay-1000"
+                  : "opacity-0 duration-300 delay-0"
               }`}
-          >
-            {", if you wondered"}
+            >
+              {" looks like this"}
+            </span>
+            <span
+              className={`transition-opacity ${
+                showPortrait && !isClosing
+                  ? "opacity-100 duration-500 delay-2000"
+                  : "opacity-0 duration-300 delay-0"
+              }`}
+            >
+              {", if you wondered"}
+            </span>
           </span>
           , a product designer at{" "}
           <a
@@ -119,7 +139,7 @@ const BioContent = () => {
           </button>
         </div>
       </section>
-      {showPortrait && (
+      {showPortrait && AsciiPortrait && (
         <AsciiPortrait
           sourceChars={sourceChars}
           onCloseStart={() => setIsClosing(true)}
