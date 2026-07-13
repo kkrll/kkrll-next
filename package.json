@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npm run copy-content",
+    "prebuild": "npm run copy-content && bun scripts/build-agent-md.mjs",
     "copy-content": "rm -f public/writings public/projects public/posters && cp -r content/writings public/ && cp -r content/projects public/ && cp -r content/posters public/",
     "build": "next build",
     "start": "next start",

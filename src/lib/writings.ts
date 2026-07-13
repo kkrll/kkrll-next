@@ -1,6 +1,7 @@
 import fs from "fs";
 import matter from "gray-matter";
 import path from "path";
+import { extractExcerpt } from "./excerpt";
 
 const writingsDirectory = path.join(process.cwd(), "content/writings");
 
@@ -45,72 +46,6 @@ export type WritingMetaWithViewAll =
       globalId: string;
     };
 
-function extractExcerpt(content: string, maxLength = 500): string {
-  const lines = content.split("\n");
-  const paragraphs: string[] = [];
-  let currentParagraph = "";
-  let paragraphCount = 0;
-  let hitParagraphLimit = false;
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-
-    // Skip non-content lines
-    if (
-      trimmed.startsWith("import ") ||
-      trimmed.startsWith("export ") ||
-      trimmed.startsWith("<") ||
-      trimmed.startsWith("```") ||
-      trimmed.startsWith("#")
-    ) {
-      continue;
-    }
-
-    // Empty line = paragraph break
-    if (!trimmed) {
-      if (currentParagraph) {
-        paragraphs.push(currentParagraph);
-        paragraphCount++;
-        currentParagraph = "";
-        if (paragraphCount >= 3) {
-          hitParagraphLimit = true;
-          break;
-        }
-      }
-      continue;
-    }
-
-    const cleaned = trimmed
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // Links
-      .replace(/[*_]{1,2}([^*_]+)[*_]{1,2}/g, "$1") // Bold/italic
-      .replace(/`([^`]+)`/g, "$1"); // Inline code
-
-    currentParagraph += (currentParagraph ? " " : "") + cleaned;
-  }
-
-  // Don't forget the last paragraph if we didn't hit a blank line
-  if (currentParagraph && paragraphCount < 3) {
-    paragraphs.push(currentParagraph);
-  }
-
-  // Check if there's more content after what we captured
-  let excerpt = paragraphs.join("\n\n");
-
-  if (excerpt.length > maxLength) {
-    excerpt = excerpt.substring(0, maxLength);
-    // Try to cut at a word boundary
-    const lastSpace = excerpt.lastIndexOf(" ");
-    if (lastSpace > maxLength * 0.8) {
-      excerpt = excerpt.substring(0, lastSpace);
-    }
-    excerpt += "...";
-  } else if (hitParagraphLimit) {
-    excerpt += "...";
-  }
-
-  return excerpt;
-}
-
 export function getAllWritings(): Writing[] {
   const folders = fs.readdirSync(writingsDirectory);
   const writings = folders
@@ -126,7 +61,8 @@ export function getAllWritings(): Writing[] {
         publisher: data.publisher || null,
         description: data.description || null,
         link: data.link || null,
-        draft: data.draft === true,
+        // no title = frontmatter-less WIP; treat like a draft
+        draft: data.draft === true || !data.title,
         content,
       } as Writing;
     })
@@ -158,7 +94,7 @@ export function getAllWritingsMeta(limit?: number): WritingMetaWithViewAll[] {
         type: "writings",
         globalId: `writings-${folder}`,
         excerpt: excerpt,
-        draft: data.draft === true,
+        draft: data.draft === true || !data.title,
       } as WritingMeta;
     })
     .filter((writing) => showDrafts || !writing.draft);
@@ -188,8 +124,8 @@ export function getWritingBySlug(slug: string): Writing | null {
     const fileContents = fs.readFileSync(fullPath, "utf8");
     const { data, content } = matter(fileContents);
 
-    // Drafts 404 in production even when the URL is known
-    if (data.draft === true && !showDrafts) {
+    // Drafts (and untitled WIP) 404 in production even when the URL is known
+    if ((data.draft === true || !data.title) && !showDrafts) {
       return null;
     }
 
