@@ -90,6 +90,7 @@ export default function AsciiPortrait({
   const invert = theme === "light";
 
   const gridRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [flights, setFlights] = useState<Flight[]>([]);
   // parting = caption fading out, everything else still in place
   const [phase, setPhase] = useState<"gather" | "fly" | "parting" | "return">(
@@ -199,6 +200,42 @@ export default function AsciiPortrait({
     [flights],
   );
 
+  // The grid paints to a single canvas instead of one span per cell —
+  // mounting ~2,200 positioned spans was the bulk of the click's INP cost.
+  // Per-level alpha is baked into the drawing; the fade animates the
+  // canvas element's opacity, which scales every cell identically.
+  useLayoutEffect(() => {
+    const canvas = canvasRef.current;
+    const grid = gridRef.current;
+    if (!canvas || !grid) return;
+
+    const draw = () => {
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      const rect = grid.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      const cellW = (rect.width / portrait.cols) * dpr;
+      const cellH = (rect.height / portrait.rows.length) * dpr;
+      const style = window.getComputedStyle(canvas);
+      ctx.fillStyle = style.color;
+      ctx.font = `${(cellH / LINE_HEIGHT_EM) * GLYPH_SCALE}px ${style.fontFamily}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (const c of visibleCells) {
+        if (holes.has(c.row * portrait.cols + c.col)) continue;
+        ctx.globalAlpha = 0.03 * c.level + 0.2;
+        ctx.fillText(c.glyph, (c.col + 0.5) * cellW, (c.row + 0.5) * cellH);
+      }
+    };
+
+    draw();
+    const observer = new ResizeObserver(draw);
+    observer.observe(grid);
+    return () => observer.disconnect();
+  }, [visibleCells, holes]);
+
   // Close sequence: caption fades (parting) -> letters fly home (return) -> unmount
   const handleClose = () => {
     if (phase === "parting" || phase === "return") return;
@@ -263,39 +300,23 @@ export default function AsciiPortrait({
           fontSize: `min(10px, calc(96vw / ${portrait.cols * CHAR_WIDTH_EM}), calc(96vh / ${portrait.rows.length * LINE_HEIGHT_EM}))`,
           width: `${portrait.cols * CHAR_WIDTH_EM}em`,
           height: `${portrait.rows.length * LINE_HEIGHT_EM}em`,
-          // portrait glyphs sit back at half strength; the landed letters stay full
-
-          // in: fades alongside the flight, finishing as the last chars land
-          // out: drops quickly so the returning letters fly over a clearing screen
         }}
       >
-        {visibleCells.map((c) =>
-          holes.has(c.row * portrait.cols + c.col) ? null : (
-            <span
-              key={c.row * portrait.cols + c.col}
-              className="absolute text-center"
-              style={{
-                // em values are relative to the span's own reduced font-size,
-                // so divide by GLYPH_SCALE to keep the grid geometry intact
-                left: `${(c.col * CHAR_WIDTH_EM) / GLYPH_SCALE}em`,
-                top: `${(c.row * LINE_HEIGHT_EM) / GLYPH_SCALE}em`,
-                width: `${CHAR_WIDTH_EM / GLYPH_SCALE}em`,
-                lineHeight: `${LINE_HEIGHT_EM / GLYPH_SCALE}em`,
-                fontSize: `${GLYPH_SCALE}em`,
-                opacity:
-                  phase === "gather" || phase === "return"
-                    ? 0
-                    : 0.03 * c.level + 0.2,
-                transition:
-                  phase === "return"
-                    ? "opacity 400ms ease"
-                    : `opacity ${FLY_MS + MAX_STAGGER_MS - 100}ms ease 200ms`,
-              }}
-            >
-              {c.glyph}
-            </span>
-          ),
-        )}
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 h-full w-full"
+          style={{
+            // portrait glyphs sit back at half strength; the landed letters stay full
+
+            // in: fades alongside the flight, finishing as the last chars land
+            // out: drops quickly so the returning letters fly over a clearing screen
+            opacity: phase === "gather" || phase === "return" ? 0 : 1,
+            transition:
+              phase === "return"
+                ? "opacity 400ms ease"
+                : `opacity ${FLY_MS + MAX_STAGGER_MS - 100}ms ease 200ms`,
+          }}
+        />
       </div>
       {flights.map((f, i) => (
         <span

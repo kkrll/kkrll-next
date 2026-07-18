@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTracking } from "@/hooks/useTracking";
 import { measureHeroChars, type SourceChar } from "./measureHeroChars";
 
@@ -18,8 +18,31 @@ const BioContent = () => {
   const [sourceChars, setSourceChars] = useState<SourceChar[] | null>(null);
   const [isClosing, setIsClosing] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  // measured ahead of the click on hover/focus; scroll or resize invalidates
+  const heroChars = useRef<SourceChar[] | null>(null);
   const { track } = useTracking();
   const showPortrait = sourceChars !== null;
+
+  // hover/focus only — touchstart also fires on scroll intent, where
+  // measuring ~230 char rects would be wasted work
+  const prime = () => {
+    preloadPortrait();
+    if (!heroChars.current && sectionRef.current) {
+      heroChars.current = measureHeroChars(sectionRef.current);
+    }
+  };
+
+  useEffect(() => {
+    const invalidate = () => {
+      heroChars.current = null;
+    };
+    window.addEventListener("scroll", invalidate, { passive: true });
+    window.addEventListener("resize", invalidate);
+    return () => {
+      window.removeEventListener("scroll", invalidate);
+      window.removeEventListener("resize", invalidate);
+    };
+  }, []);
 
   const handleKirylClick = async () => {
     // if (!window.matchMedia("(min-width: 768px) and (pointer: fine)").matches)
@@ -31,7 +54,7 @@ const BioContent = () => {
     setSourceChars(
       reduceMotion || !sectionRef.current
         ? []
-        : measureHeroChars(sectionRef.current),
+        : (heroChars.current ?? measureHeroChars(sectionRef.current)),
     );
     track("portrait_open", { page: "home" });
   };
@@ -55,8 +78,8 @@ const BioContent = () => {
                   ? "visible pointer-events-none text-foreground"
                   : "cursor-pointer underline text-foreground"
               }
-              onMouseEnter={preloadPortrait}
-              onFocus={preloadPortrait}
+              onMouseEnter={prime}
+              onFocus={prime}
               onTouchStart={preloadPortrait}
               onClick={handleKirylClick}
             >
