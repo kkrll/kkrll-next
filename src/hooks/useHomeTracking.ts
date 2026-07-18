@@ -1,12 +1,18 @@
 "use client";
 
-import { usePostHog } from "posthog-js/react";
+import { useTracking } from "@/hooks/useTracking";
+
+type TrackedItem = {
+  globalId: string;
+  title?: string;
+  category?: string;
+};
 
 export function useHomeTracking() {
-  const posthog = usePostHog();
+  const { track } = useTracking();
 
-  const trackSelection = (item: any, source: "click" | "keyboard") => {
-    posthog?.capture("Item Selected", {
+  const trackSelection = (item: TrackedItem, source: "click" | "keyboard") => {
+    track("Item Selected", {
       item_id: item.globalId,
       item_title: item.title,
       category: item.category,
@@ -15,14 +21,14 @@ export function useHomeTracking() {
   };
 
   const trackNavigation = (direction: "up" | "down") => {
-    posthog?.capture("Navigation", {
+    track("Navigation", {
       direction,
       method: "keyboard",
     });
   };
 
-  const trackOpen = (item: any, method: "click" | "keyboard") => {
-    posthog?.capture("Item Opened", {
+  const trackOpen = (item: TrackedItem, method: "click" | "keyboard") => {
+    track("Item Opened", {
       item_id: item.globalId,
       item_title: item.title,
       category: item.category,
