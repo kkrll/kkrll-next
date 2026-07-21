@@ -13,6 +13,7 @@ export type Project = {
   description?: string;
   projectType?: string;
   link: string;
+  pinned?: boolean;
   content: string;
 };
 
@@ -24,6 +25,7 @@ export type ProjectMeta = {
   description?: string;
   projectType?: string;
   link: string;
+  pinned?: boolean;
   isExternal?: boolean;
   type: "projects";
   globalId: string;
@@ -74,10 +76,12 @@ export function getAllProjects(): Project[] {
         description: data.description || null,
         projectType: data.projectType,
         link: data.link || null,
+        pinned: data.pinned || false,
         content,
       } as Project;
     });
   return projects.sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
 }
@@ -102,6 +106,7 @@ export function getAllProjectsMeta(limit?: number): ProjectMetaWithViewAll[] {
         description: data.description || null,
         projectType: data.projectType,
         link: data.link,
+        pinned: data.pinned || false,
         isExternal: data.isExternal,
         type: "projects",
         globalId: `projects-${folder}`,
@@ -109,6 +114,7 @@ export function getAllProjectsMeta(limit?: number): ProjectMetaWithViewAll[] {
     });
 
   const sorted = projectsMeta.sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
 
@@ -141,6 +147,7 @@ export function getProjectBySlug(slug: string): Project | null {
       publisher: data.publisher,
       projectType: data.projectType,
       link: data.link,
+      pinned: data.pinned || false,
       content,
     };
   } catch (error) {

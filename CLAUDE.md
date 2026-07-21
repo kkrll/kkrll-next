@@ -60,7 +60,7 @@ The site uses a file-system based content architecture with three content types:
 #### Projects
 
 - **Location**: `content/projects/[slug]/index.mdx`
-- **Frontmatter**: title, date, cover?, publisher?, description?, projectType?, link?, isExternal?
+- **Frontmatter**: title, date, cover?, publisher?, description?, projectType?, link?, isExternal?, pinned?
 - **API** (`src/lib/projects.ts`):
   - `getAllProjects()` - Returns all projects sorted by date
   - `getAllProjectsMeta(limit?)` - Returns metadata with optional "view all" item
@@ -181,7 +181,7 @@ Create a new folder in `content/posters/[slug]/` with:
 **Projects:**
 Create a new folder in `content/projects/[slug]/` with:
 
-1. `index.mdx` file with frontmatter (title, date, cover?, publisher?, description?, projectType?, link?, isExternal?)
+1. `index.mdx` file with frontmatter (title, date, cover?, publisher?, description?, projectType?, link?, isExternal?, pinned?)
 2. Images referenced relatively from the MDX file
 
 ### MDX Component Customization

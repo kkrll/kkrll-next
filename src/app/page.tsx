@@ -26,7 +26,7 @@ const personJsonLd = {
 
 export default async function Home() {
   const writings = getAllWritingsMeta(5);
-  const projects = getAllProjectsMeta(6);
+  const projects = getAllProjectsMeta();
 
   return (
     <PageLayout>
