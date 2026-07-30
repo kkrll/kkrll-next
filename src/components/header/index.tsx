@@ -1,16 +1,15 @@
 "use client";
 
-import HeaderLink from "./headerLink";
 import ThemeSwitcher from "../ThemeSwitcher";
 import Modal, { useModalState } from "../ui/modal";
+import HeaderLink from "./headerLink";
 
-const Header = () => {
+const Header = ({ hide }: { hide?: boolean }) => {
   const { isOpen, open, close } = useModalState();
 
   return (
     <header
-      className="w-full flex z-10 items-center justify-between mb-8 py-8 px-4 md:px-2
-  md:p-4"
+      className={`w-full flex z-10 items-center justify-between mb-8 py-8 px-4 md:px-2 lg:px-4 ${hide ? "lg:hidden" : ""}`}
     >
       <HeaderLink to="/">kkrll</HeaderLink>
       <nav className="flex gap-0 md:gap-2">

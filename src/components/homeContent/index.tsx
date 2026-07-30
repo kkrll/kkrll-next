@@ -1,17 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
-
-import { useNavigationStore } from "@/stores/useNavigationStore";
-import { useHomeTracking } from "@/hooks/useHomeTracking";
-
 import List from "@/components/homeContent/List";
-import ContentWindow from "./ContentWindow";
-import Divider from "../Divider";
-
-import type { ListItemProps, SelectedItemType } from "./types";
-import type { WritingMetaWithViewAll } from "@/lib/writings";
+import { useHomeTracking } from "@/hooks/useHomeTracking";
 import type { ProjectMetaWithViewAll } from "@/lib/projects";
+import type { WritingMetaWithViewAll } from "@/lib/writings";
+import { useNavigationStore } from "@/stores/useNavigationStore";
+import BioContent from "../BioContent";
+import ContentWindow from "./ContentWindow";
+import type { ListItemProps, SelectedItemType } from "./types";
 
 const HomeContent = ({
   writings,
@@ -29,8 +26,13 @@ const HomeContent = ({
 
   const { trackSelection, trackNavigation, trackOpen } = useHomeTracking();
 
+  // A persisted id can point at an item that no longer exists (e.g. the
+  // "view all" entry disappears once the list is unlimited) — fall back to the
+  // first item so the preview never ends up empty.
   const currentSelectedId =
-    selectedItemId || (allItemsIds.length > 0 ? allItemsIds[0] : null);
+    (selectedItemId && allItemsIds.includes(selectedItemId)
+      ? selectedItemId
+      : allItemsIds[0]) ?? null;
 
   const handleSelect = (id: string, source: "click" | "keyboard") => {
     const item = allItems.find((item) => item.globalId === id);
@@ -91,10 +93,13 @@ const HomeContent = ({
     (item) => item.globalId === currentSelectedId,
   );
 
+  // the page stays the only scroll container; items-start keeps the grid items
+  // at their own height so the bio column can stick
   return (
-    <section className="min-h-[720px] mt-24">
-      <div className="flex h-full gap-12">
-        <div className="flex-1 flex flex-col gap-20 my-8">
+    <section className="min-h-[720px] mt-24 lg:m-0 lg:grid lg:grid-cols-[1fr_3fr] lg:items-start">
+      <BioContent />
+      <div className="flex h-full gap-12 lg:gap-0">
+        <div className="flex-1 flex flex-col gap-20 py-10 lg:border-r border-background-07">
           {projects && (
             <List
               key={"projects"}
@@ -125,9 +130,8 @@ const HomeContent = ({
         </div>
       </div>
       {/* footer */}
-      <div className="sticky bottom-0 bg-background hidden sm:block text-foreground-07">
-        <Divider className="bg-foreground-07" />
-        <p className="font-mono text-sm py-2 px-default">
+      <div className="sticky bottom-0 bg-background hidden sm:block text-foreground-07 lg:col-span-2">
+        <p className="font-mono text-sm py-2 px-default border-t border-background-07 lg:pl-[calc(25%_+_16px)]">
           Use ↓ | ↑ or mouse to navigate and ⏎ or click to open
         </p>
       </div>

@@ -1,11 +1,14 @@
 "use client";
 
+import { useEffect, useId, useRef } from "react";
 import { flushSync } from "react-dom";
 import { useThemeStore } from "@/stores/useThemeStore";
-import { useRef, useEffect } from "react";
 
 export default function ThemeSwitcher() {
   const { theme, setTheme } = useThemeStore();
+  // rendered in both the header and the bio column — a shared id would make
+  // url(#…) resolve to whichever instance comes first in the DOM
+  const maskId = `moon-mask-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const cxAnimRef = useRef<SVGAnimateElement>(null);
   const cyAnimRef = useRef<SVGAnimateElement>(null);
   const rAnimRef = useRef<SVGAnimateElement>(null);
@@ -56,7 +59,7 @@ export default function ThemeSwitcher() {
       >
         <title>Theme toggle icon</title>
         <defs>
-          <mask id="moon-mask">
+          <mask id={maskId}>
             <circle
               fill="none"
               stroke="white"
@@ -140,7 +143,7 @@ export default function ThemeSwitcher() {
           cy="12"
           r="14"
           fill="currentColor"
-          mask="url(#moon-mask)"
+          mask={`url(#${maskId})`}
         />
       </svg>
     </button>

@@ -1,8 +1,7 @@
 @import "../../app/globals.css";
 
 .embla {
-    max-width: 48rem;
-    margin: auto;
+    max-width: 64rem;
     --slide-size: 100%;
 }
 

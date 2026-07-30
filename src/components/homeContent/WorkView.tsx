@@ -4,7 +4,7 @@ const WorkView = ({ work }: { work: WorkMeta }) => {
   return (
     <div className="mb-8">
       <h2 className="mb-4">{work.title}</h2>
-      <p>{work.description}</p>
+      <p className="max-w-xl text-pretty">{work.description}</p>
     </div>
   );
 };

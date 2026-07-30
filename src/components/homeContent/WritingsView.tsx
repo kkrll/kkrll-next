@@ -6,9 +6,9 @@ const WritingsView = ({ writing }: { writing: WritingMeta }) => {
   const router = useRouter();
 
   return (
-    <div className="mb-8">
-      <h2 className="mb-4">{writing.title}</h2>
-      {displayText && <p className="whitespace-pre-line">{displayText}</p>}
+    <div className="mb-8 py-2">
+      <h2 className="mb-12">{writing.title}</h2>
+      {displayText && <p className="whitespace-pre-line max-w-2xl text-pretty">{displayText}</p>}
       {writing.link && (
         <button
           className="nice-button mt-6"

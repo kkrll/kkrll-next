@@ -108,7 +108,7 @@ export default async function WritingPage({
               className="w-full rounded-lg mb-6"
             />
           )}
-          <h1 className="text-4xl font-normal font-serif mt-10 mb-4">
+          <h1 className="text-4xl tracking-tight font-normal font-mono uppercase mt-10 mb-3">
             {writing.title}
           </h1>
           <p className="text-sm mt-2 text-foreground-07">

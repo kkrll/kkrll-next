@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const Footer = () => {
+const Footer = ({ hide, brief }: { hide?: boolean; brief?: boolean }) => {
   const author = {
     name: "Kiryl Kavalenka",
     summary: "Product Designer",
@@ -9,22 +9,30 @@ const Footer = () => {
   const social = {
     linkedin: "https://www.linkedin.com/in/kkrll",
     medium: "https://medium.com/@kkrll",
-    twitter: "https://x.com/kkrll_kkrll"
+    twitter: "https://x.com/kkrll_kkrll",
   };
 
   return (
     <footer
-      className={`flex flex-col md:flex-row p-8 md:p-6 gap-8 justify-between mt-24 mb-4 w-full mx-auto box-border`}
+      className={`flex flex-col md:flex-row p-8 md:p-6 gap-8 justify-between mb-4 w-full mx-auto box-border ${hide ? "lg:hidden" : ""} ${brief ? "lg:p-0" : "mt-24"}`}
     >
-      <Link href="/" className="no-underline">
-        <h4 className="mb-2 text-sm font-sans font-semibold">{author.name}</h4>
-        <p className="font-sans mt-0 text-foreground-07 text-sm">
-          {author.summary}
-        </p>
-      </Link>
+      {!brief && (
+        <Link href="/" className="no-underline">
+          <h4 className="mb-2 text-sm font-sans font-semibold">
+            {author.name}
+          </h4>
+          <p className="font-sans mt-0 text-foreground-07 text-sm">
+            {author.summary}
+          </p>
+        </Link>
+      )}
 
-      <div className="flex w-full md:w-auto justify-between gap-4">
-        <div className="flex font-medium gap-4 [&>a]:text-sm [&>a]:no-underline">
+      <div
+        className={`flex w-full md:w-auto justify-between gap-4 uppercase ${brief ? "lg:w-full lg:items-end" : ""}`}
+      >
+        <div
+          className={`flex font-medium gap-4 [&>a]:text-sm [&>a]:no-underline ${brief ? "lg:flex-col" : ""}`}
+        >
           <Link href="/now">Now</Link>
           <a href={social.twitter} target="_blank" rel="noreferrer">
             Twitter

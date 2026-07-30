@@ -1,5 +1,5 @@
-import { Button } from "../ui/button";
 import Link from "next/link";
+import { Button } from "../ui/button";
 
 const HeaderLink = ({
   to,
@@ -12,7 +12,10 @@ const HeaderLink = ({
 }) => {
   if (to)
     return (
-      <Link href={to} className="font-mono uppercase text-sm  p-2 ">
+      <Link
+        href={to}
+        className="font-mono uppercase text-sm lg:text-base p-2 cursor-pointer"
+      >
         {children}
       </Link>
     );
@@ -21,7 +24,7 @@ const HeaderLink = ({
       <Button
         variant={"link"}
         onClick={onClick}
-        className="font-mono font-normal uppercase text-sm p-2"
+        className="font-mono font-normal uppercase text-sm lg:text-base p-2 cursor-pointer"
       >
         {children}
       </Button>

@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useTracking } from "@/hooks/useTracking";
+import Footer from "../Footer";
+import ThemeSwitcher from "../ThemeSwitcher";
 import { measureHeroChars, type SourceChar } from "./measureHeroChars";
 
-let AsciiPortrait: (typeof import("./AsciiPortrait"))["default"] | null = null;
+let AsciiPortrait: typeof import("./AsciiPortrait")["default"] | null = null;
 
 const preloadPortrait = () => {
   void import("./AsciiPortrait").then((mod) => {
@@ -63,101 +65,119 @@ const BioContent = () => {
     <>
       <section
         ref={sectionRef}
-        className={`relative min-h-hero md:min-h-[70vh] pt-[40vh] md:pt-[50vh] px-default ${showPortrait ? "invisible z-[60]" : "z-10"
-          }`}
+        className={`relative flex flex-col justify-between min-h-hero md:min-h-[70vh] pt-[40vh] md:pt-[50vh] px-default lg:sticky lg:top-0 lg:min-h-0 lg:h-svh lg:pt-8 lg:pb-12 lg:border-r border-background-07 ${showPortrait ? "invisible z-[60]" : "z-10"}`}
       >
-        <div className="text-foreground hover:text-foreground/60 transition-colors duration-1000">
-          <p className="mb-6 bg-background w-fit">Hey. </p>
-          <p className=" bg-background w-fit">
-            I'm{" "}
-            <button
-              type="button"
-              data-keep
-              className={
-                showPortrait
-                  ? "visible pointer-events-none text-foreground"
-                  : "cursor-pointer underline text-foreground"
-              }
-              onMouseEnter={prime}
-              onFocus={prime}
-              onTouchStart={preloadPortrait}
-              onClick={handleKirylClick}
-            >
-              Kiryl
-            </button>
-            {/* absolute keeps the caption out of the closed-state paragraph flow;
+        <div>
+          <div className="hidden lg:flex w-full justify-between">
+            <h2 className="mb-11 mt-2">KKRLL</h2>
+            <ThemeSwitcher />
+          </div>
+
+          <div className="text-foreground hover:text-foreground/60 transition-colors duration-1000">
+            <p className="mb-6 bg-background w-fit">Hey. </p>
+            <p className="bg-background w-fit lg:mb-2">
+              I'm{" "}
+              <button
+                type="button"
+                data-keep
+                className={
+                  showPortrait
+                    ? "visible pointer-events-none text-foreground"
+                    : "cursor-pointer underline text-foreground"
+                }
+                onMouseEnter={prime}
+                onFocus={prime}
+                onTouchStart={preloadPortrait}
+                onClick={handleKirylClick}
+              >
+                Kiryl
+              </button>
+              {/* absolute keeps the caption out of the closed-state paragraph flow;
               with no inset it sits at its static position, right after "Kiryl" */}
-            <span
-              aria-hidden={!showPortrait}
-              className={`absolute pointer-events-none ${showPortrait ? "visible" : ""
+              <span
+                aria-hidden={!showPortrait}
+                className={`absolute pointer-events-none ${
+                  showPortrait ? "visible" : ""
                 }`}
-            >
-              <span
-                className={`transition-opacity ${showPortrait && !isClosing
-                  ? "opacity-100 duration-500 delay-1000"
-                  : "opacity-0 duration-300 delay-0"
-                  }`}
               >
-                {" looks like this"}
-              </span>
-              <span
-                className={`transition-opacity ${showPortrait && !isClosing
-                  ? "opacity-100 duration-500 delay-2000"
-                  : "opacity-0 duration-300 delay-0"
+                <span
+                  className={`transition-opacity ${
+                    showPortrait && !isClosing
+                      ? "opacity-100 duration-500 delay-1000"
+                      : "opacity-0 duration-300 delay-0"
                   }`}
-              >
-                {", if you wondered"}
+                >
+                  {" looks like this"}
+                </span>
+                <span
+                  className={`transition-opacity ${
+                    showPortrait && !isClosing
+                      ? "opacity-100 duration-500 delay-2000"
+                      : "opacity-0 duration-300 delay-0"
+                  }`}
+                >
+                  {", if you wondered"}
+                </span>
               </span>
-            </span>
-            , a product designer at{" "}
-            <a
-              className="underline text-foreground"
-              href="https://www.zing.coach/"
-              target="_blank"
-              rel="noopener"
-            >
-              Zing Coach.
-            </a>{" "}
-          </p>
-          <p className=" bg-background w-fit">
-            You can find here some of my{" "}
-            <Link className="underline text-foreground" href={"/writings"}>
-              articles
-            </Link>
-            ,{" "}
-            <Link className="underline text-foreground" href={"/posters"}>
-              prints
-            </Link>
-            ,{" "}
-            <Link className="underline text-foreground" href={"/resume"}>
-              resume
-            </Link>
-            , and something else, occasionally.
-          </p>
-          <p className=" bg-background w-fit">Welcome.</p>
-          <div className="group flex py-6 gap-4 items-baseline ">
-            <a
-              className="bg-background w-fit nice-button"
-              // className="underline bg-background w-fit"
-              href="mailto:k_kov@hotmail.com?subject=Hey%20Kiryl!%20Big%20fan%20of%20yours..."
-            >
-              <span>Email me</span>
-            </a>
-            <button
-              className="opacity-0 group-hover:opacity-100 cursor-pointer uppercase text-sm font-mono text-background-05 hover:text-foreground-07 transition-[colors_opacity] duration-200"
-              type="button"
-              onTouchStart={() => navigator.vibrate(10)}
-              onTouchEnd={() => navigator.vibrate(10)}
-              onClick={() => {
-                navigator.clipboard.writeText("k_kov@hotmail.com");
-                setIsCopied(true);
-                track("copy_email", { page: "home" });
-                setTimeout(() => setIsCopied(false), 2000);
-              }}
-            >
-              {isCopied ? "Copied" : "Copy address"}
-            </button>
-          </div></div>
+              , a product designer at{" "}
+              <a
+                className="underline text-foreground text-nowrap"
+                href="https://www.zing.coach/"
+                target="_blank"
+                rel="noopener"
+              >
+                Zing Coach.
+              </a>{" "}
+            </p>
+            <p className=" bg-background w-fit">
+              You can find here some of my{" "}
+              <Link className="underline text-foreground" href={"/writings"}>
+                articles
+              </Link>
+              ,{" "}
+              <Link className="underline text-foreground" href={"/posters"}>
+                prints
+              </Link>
+              ,{" "}
+              <Link className="underline text-foreground" href={"/resume"}>
+                resume
+              </Link>
+              ,{` `}
+              <span className="text-nowrap">and something</span> else,
+              occasionally.
+            </p>
+            <p className=" bg-background w-fit">Welcome.</p>
+            <div className="group flex py-6 gap-4 items-baseline ">
+              <a
+                className="bg-background w-fit nice-button"
+                // className="underline bg-background w-fit"
+                href="mailto:k_kov@hotmail.com?subject=Hey%20Kiryl!%20Big%20fan%20of%20yours..."
+              >
+                <span>Email me</span>
+              </a>
+              <button
+                className="opacity-0 group-hover:opacity-100 cursor-pointer uppercase text-sm font-mono text-background-05 hover:text-foreground-07 transition-[colors_opacity] duration-200"
+                type="button"
+                onTouchStart={() => navigator.vibrate(10)}
+                onTouchEnd={() => navigator.vibrate(10)}
+                onClick={() => {
+                  navigator.clipboard.writeText("k_kov@hotmail.com");
+                  setIsCopied(true);
+                  track("copy_email", { page: "home" });
+                  setTimeout(() => setIsCopied(false), 2000);
+                }}
+              >
+                {isCopied ? "Copied" : "Copy address"}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="hidden lg:flex flex-col justify-end gap-4">
+          <Link href={"/resume"} className="uppercase text-sm">
+            Resume
+          </Link>
+          <Footer brief />
+        </div>
       </section>
       {showPortrait && AsciiPortrait && (
         <AsciiPortrait

@@ -1,13 +1,13 @@
 "use client";
 
+import type { EmblaOptionsType } from "embla-carousel";
 import Image from "next/image";
-import Carousel from "../ui/carousel";
-import ImgPlaceholder from "../ui/imgPlaceholder";
+import { useTracking } from "@/hooks/useTracking";
 
 import type { ProjectMeta } from "@/lib/projects";
-import type { EmblaOptionsType } from "embla-carousel";
+import Carousel from "../ui/carousel";
 import { LinkIcon } from "../ui/icons";
-import { useTracking } from "@/hooks/useTracking";
+import ImgPlaceholder from "../ui/imgPlaceholder";
 
 const carouselOptions: EmblaOptionsType = {
   loop: true,
@@ -17,7 +17,6 @@ const carouselOptions: EmblaOptionsType = {
 };
 
 const MediaItem = ({ src, title }: { src: string; title: string }) => {
-
   const isVideo = (src: string): boolean => {
     return /\.(mp4|webm|mov|avi)$/i.test(src);
   };
@@ -45,20 +44,29 @@ const MediaItem = ({ src, title }: { src: string; title: string }) => {
 };
 
 const ProjectView = ({ project }: { project: ProjectMeta }) => {
-  const { track } = useTracking()
+  const { track } = useTracking();
   return (
     <>
       <div className="mb-8">
-        <div className="flex pb-4 mb-6 border-b border-background-07 justify-between items-center">
+        <div className="flex pb-4 lg:pb-8 mb-6 border-b border-background-07 justify-between items-center">
           <h2>{project.title}</h2>
           <a
-            href={project.link} onClick={() => track("open project", { page: "home", project: project.title })}
-            className="flex font-mono text-sm uppercase gap-2 justify-center items-center w-32 py-2 px-4 rounded-2xl transition-colors duration-100 ease-in bg-background-07 hover:bg-background-05 no-underline cursor-pointer"
+            href={project.link}
+            onClick={() =>
+              track("open project", { page: "home", project: project.title })
+            }
+            className="flex font-mono text-sm uppercase gap-2 justify-center items-center w-32 py-2.5 px-4 rounded-2xl transition-colors duration-100 ease-in bg-background-07 hover:bg-background-05 no-underline cursor-pointer"
           >
-            {project.isExternal ? <>Visit <LinkIcon /></> : "View more"}
+            {project.isExternal ? (
+              <>
+                Visit <LinkIcon />
+              </>
+            ) : (
+              "View more"
+            )}
           </a>
         </div>
-        <p>{project.description}</p>
+        <p className="max-w-2xl  text-pretty">{project.description}</p>
       </div>
       {project.media && (
         <Carousel
