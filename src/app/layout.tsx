@@ -53,7 +53,8 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
             try {
-              const theme = JSON.parse(localStorage.getItem("theme") || '{}').state?.theme || 'dark';
+              const stored = JSON.parse(localStorage.getItem("theme") || '{}').state?.theme;
+              const theme = stored || (window.matchMedia("(prefers-color-scheme: light)").matches ? 'light' : 'dark');
               if (theme === "dark") {
                 document.documentElement.classList.add("dark")
               }
