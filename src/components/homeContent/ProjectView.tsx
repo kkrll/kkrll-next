@@ -79,7 +79,7 @@ const ProjectView = ({ project }: { project: ProjectMeta }) => {
             return (
               <div key={mediaItem} className="embla__slide">
                 <div className="relative overflow-hidden w-full min-h-[240px]">
-                  <ImgPlaceholder />
+                  <ImgPlaceholder className="pt-16" />
                   <MediaItem src={mediaItem} title={project.title} />
                 </div>
               </div>

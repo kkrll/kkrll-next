@@ -14,10 +14,10 @@
 
     --overlay: #0a0a0ab3;
 
-    --font-geist-sans:
-        "Geist Sans", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-    --font-geist-mono:
-        "Geist Mono", "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+    /* --font-geist-sans and --font-geist-mono are defined by next/font, via the
+       classes layout.tsx puts on <body>. Don't redeclare them here — a hardcoded
+       family shadows the real hashed one and fails silently. Recia belongs here
+       because it loads from the Fontshare <link>, not next/font. */
     --font-recia-serif: "Recia", Georgia, serif;
 }
 
@@ -61,7 +61,7 @@
         padding: 0.25rem 0.25rem;
         border-radius: 0.5rem;
         border: 1px solid black;
-        font-family: var(--font-mono);
+        font-family: var(--font-geist-mono);
         font-size: 0.75rem;
         color: var(--foreground);
         text-transform: uppercase;
@@ -122,7 +122,8 @@
 body {
     background: var(--background);
     color: var(--foreground);
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-geist-sans);
+    font-size: 14px;
 }
 
 section {
@@ -137,7 +138,7 @@ section {
     padding: 0.25rem 0.25rem;
     border-radius: 8px;
     border: 1px solid var(--background-07-semi);
-    font-family: var(--font-mono);
+    font-family: var(--font-geist-mono);
     font-size: 0.75rem;
     color: var(--foreground);
     text-transform: uppercase;
@@ -209,7 +210,7 @@ section {
 
     h2 {
         text-transform: uppercase;
-        font-family: var(--font-mono);
+        font-family: var(--font-geist-mono);
     }
 
     p {
@@ -262,7 +263,7 @@ section {
 }
 
 .text-secondary {
-    font-family: var(--font-mono);
+    font-family: var(--font-geist-mono);
     color: var(--foreground-07);
     text-transform: uppercase;
     font-size: 0.875rem;
@@ -289,24 +290,20 @@ section {
 @keyframes fadeIn {
     0% {
         opacity: 0;
-        transform: scale(0.98);
     }
 
     100% {
         opacity: 1;
-        transform: scale(1);
     }
 }
 
 @keyframes fadeOut {
     from {
         opacity: 1;
-        transform: scale(1);
     }
 
     to {
         opacity: 0;
-        transform: scale(0.99);
     }
 }
 
@@ -417,6 +414,16 @@ section {
 
         ::view-transition-old(fade-in-out) {
             animation: fadeOut 0.15s ease-in-out forwards;
+        }
+
+        /* route navigation crossfade (PageLayout's <ViewTransition>).
+           leading dot = view-transition-class, not a name. */
+        ::view-transition-old(.page-fade) {
+            animation: fadeOut 0.15s ease-in forwards;
+        }
+
+        ::view-transition-new(.page-fade) {
+            animation: fadeIn 0.25s ease-out forwards;
         }
     }
 }

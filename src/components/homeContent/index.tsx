@@ -5,7 +5,10 @@ import List from "@/components/homeContent/List";
 import { useHomeTracking } from "@/hooks/useHomeTracking";
 import type { ProjectMetaWithViewAll } from "@/lib/projects";
 import type { WritingMetaWithViewAll } from "@/lib/writings";
-import { useNavigationStore } from "@/stores/useNavigationStore";
+import {
+  useNavigationHydrated,
+  useNavigationStore,
+} from "@/stores/useNavigationStore";
 import BioContent from "../BioContent";
 import ContentWindow from "./ContentWindow";
 import type { ListItemProps, SelectedItemType } from "./types";
@@ -20,6 +23,7 @@ const HomeContent = ({
 }) => {
   const { selectedItemId, setSelectedItemId, selectNext, selectPrevious } =
     useNavigationStore();
+  const hydrated = useNavigationHydrated();
 
   const allItems = [...projects, ...writings];
   const allItemsIds = allItems.map((item) => item.globalId);
@@ -29,10 +33,14 @@ const HomeContent = ({
   // A persisted id can point at an item that no longer exists (e.g. the
   // "view all" entry disappears once the list is unlimited) — fall back to the
   // first item so the preview never ends up empty.
-  const currentSelectedId =
-    (selectedItemId && allItemsIds.includes(selectedItemId)
-      ? selectedItemId
-      : allItemsIds[0]) ?? null;
+  // Held at null until the persisted store is safe to read, so the server and
+  // the first client render agree on "nothing selected yet" — otherwise the
+  // list highlight and the preview both mismatch on hydration.
+  const currentSelectedId = !hydrated
+    ? null
+    : ((selectedItemId && allItemsIds.includes(selectedItemId)
+        ? selectedItemId
+        : allItemsIds[0]) ?? null);
 
   const handleSelect = (id: string, source: "click" | "keyboard") => {
     const item = allItems.find((item) => item.globalId === id);
@@ -122,16 +130,17 @@ const HomeContent = ({
           )}
         </div>
         <div className="flex-2 motion-safe:animate-[fadeIn_200ms_ease-in-out] hidden md:flex">
-          {selectedItem ? (
-            <ContentWindow selectedItem={selectedItem as SelectedItemType} />
-          ) : (
-            "select from the list"
-          )}
+          {hydrated &&
+            (selectedItem ? (
+              <ContentWindow selectedItem={selectedItem as SelectedItemType} />
+            ) : (
+              "select from the list"
+            ))}
         </div>
       </div>
       {/* footer */}
       <div className="sticky bottom-0 bg-background hidden sm:block text-foreground-07 lg:col-span-2">
-        <p className="font-mono text-sm py-2 px-default border-t border-background-07 lg:pl-[calc(25%_+_16px)]">
+        <p className="font-mono text-sm py-2 px-default border-t border-background-07 lg:pl-[calc(25%_+_24px)]">
           Use ↓ | ↑ or mouse to navigate and ⏎ or click to open
         </p>
       </div>

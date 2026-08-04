@@ -33,11 +33,11 @@ const Footer = ({ hide, brief }: { hide?: boolean; brief?: boolean }) => {
         <div
           className={`flex font-medium gap-4 [&>a]:text-sm [&>a]:no-underline ${brief ? "lg:flex-col" : ""}`}
         >
-          <Link href="/now">Now</Link>
-          <a href={social.twitter} target="_blank" rel="noreferrer">
+          <Link href="/now" className="hover:underline font-mono">Now</Link>
+          <a href={social.twitter} target="_blank" rel="noreferrer" className="hover:underline font-mono">
             Twitter
           </a>
-          <a href={social.linkedin} target="_blank" rel="noreferrer">
+          <a href={social.linkedin} target="_blank" rel="noreferrer" className="hover:underline font-mono">
             LinkedIn
           </a>
           {/* <Link href="/rss.xml">RSS</Link> */}
@@ -46,7 +46,7 @@ const Footer = ({ hide, brief }: { hide?: boolean; brief?: boolean }) => {
           href={`https://internetphonebook.net/?call=626&issue=1#dial-a-site`}
           target="blank"
           rel="external"
-          className="z-0"
+          className="z-0 font-mono"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -34,3 +35,18 @@ export const useNavigationStore = create<NavigationStore>()(
     },
   ),
 );
+
+/**
+ * persist() reads localStorage synchronously when the store is created, so on
+ * the client `selectedItemId` already holds the stored value during the very
+ * first render — while the server rendered it as null. Reading the store
+ * directly at that point is a hydration mismatch.
+ *
+ * This starts false on the server and on the first client render so the two
+ * agree, then flips after mount, by which point rehydration has long finished.
+ */
+export const useNavigationHydrated = () => {
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  return hydrated;
+};

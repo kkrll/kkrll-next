@@ -3,9 +3,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   pageExtensions: ["ts", "tsx", "md", "mdx", "js", "jsx"],
-  experimental: {
-    viewTransition: true,
-  },
   async rewrites() {
     return {
       // beforeFiles: must outrank the app router's "/" match

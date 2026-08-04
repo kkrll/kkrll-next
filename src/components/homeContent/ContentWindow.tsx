@@ -14,26 +14,35 @@ const ContentWindow = ({
   const [newValue, setNewValue] = useState(selectedItem);
   const lastChangeRef = useRef(Date.now());
   const decbouceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // what's actually on screen right now, seeded from the first render
+  const displayedIdRef = useRef(selectedItem.globalId);
 
   useEffect(() => {
+    // whatever was queued is stale the moment the selection moves again
+    if (decbouceTimerRef.current) {
+      clearTimeout(decbouceTimerRef.current);
+      decbouceTimerRef.current = null;
+    }
+
+    // Already showing this item, so there's nothing to animate between. Skips
+    // the no-op transition on mount (and StrictMode's second effect pass), and
+    // the case where a debounced hop lands back on the current item.
+    if (selectedItem.globalId === displayedIdRef.current) return;
+
     const now = Date.now();
     const timeSinceLastChange = now - lastChangeRef.current;
     lastChangeRef.current = now;
 
-    if (decbouceTimerRef.current) {
-      clearTimeout(decbouceTimerRef.current);
-    }
-
     // Debounce: if navigating quickly, wait for pause
     if (timeSinceLastChange < 150) {
-      decbouceTimerRef.current = setTimeout(() => {
-        updateWithTransition();
-      }, 200);
+      decbouceTimerRef.current = setTimeout(updateWithTransition, 200);
     } else {
       updateWithTransition();
     }
 
     function updateWithTransition() {
+      displayedIdRef.current = selectedItem.globalId;
+
       if (document.startViewTransition) {
         document.startViewTransition(() => {
           flushSync(() => {
@@ -43,13 +52,13 @@ const ContentWindow = ({
       } else {
         setNewValue(selectedItem);
       }
-
-      return () => {
-        if (decbouceTimerRef.current) {
-          clearTimeout(decbouceTimerRef.current);
-        }
-      };
     }
+
+    return () => {
+      if (decbouceTimerRef.current) {
+        clearTimeout(decbouceTimerRef.current);
+      }
+    };
   }, [selectedItem]);
 
   const GetContent = () => {
