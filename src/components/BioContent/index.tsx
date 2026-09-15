@@ -156,7 +156,7 @@ const BioContent = () => {
                 <span>Email me</span>
               </a>
               <button
-                className="opacity-0 group-hover:opacity-100 cursor-pointer uppercase text-sm font-mono text-background-05 hover:text-foreground-07 transition-[colors_opacity] duration-200"
+                className="opacity-0 group-hover:opacity-100 cursor-pointer uppercase text-sm font-mono text-background-05 hover:text-foreground-07 transition-[colors_opacity] duration-(--duration-enter)"
                 type="button"
                 onTouchStart={() => navigator.vibrate(10)}
                 onTouchEnd={() => navigator.vibrate(10)}

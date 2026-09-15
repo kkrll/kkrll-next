@@ -16,7 +16,7 @@ const ListItemSelector = ({
   itemId: string;
   category: CategoriesTypes;
 }) => {
-  const { track } = useTracking()
+  const { track } = useTracking();
 
   const getSecondLine = () => {
     switch (category) {
@@ -44,14 +44,22 @@ const ListItemSelector = ({
             oneMonthAgo.setHours(0, 0, 0, 0);
 
             if (itemDate >= oneMonthAgo) {
-              badge = <span className="bg-foreground text-background text-[10px] font-semibold font-mono uppercase px-1 rounded-full">New</span>;
+              badge = (
+                <span className="bg-foreground text-background text-[10px] font-semibold font-mono uppercase px-1 rounded-full">
+                  New
+                </span>
+              );
             }
           } catch (e) {
             console.error("Invalid date format:", item.date);
           }
         }
 
-        return <span className="flex items-center gap-2">{copy} {badge}</span>
+        return (
+          <span className="flex items-center gap-2">
+            {copy} {badge}
+          </span>
+        );
       case "work":
         return `${item.projectType}, ${item.period}`;
       default:
@@ -68,7 +76,7 @@ const ListItemSelector = ({
       onClick={(e) => {
         e.preventDefault();
         const isMobile = window.matchMedia("(max-width: 768px)").matches;
-        track("open project", { page: "home", project: item.title })
+        track("open project", { page: "home", project: item.title });
 
         if (isMobile || isSelected) {
           // Mobile: always navigate, Desktop: navigate when already selected
@@ -78,18 +86,20 @@ const ListItemSelector = ({
           onSelect();
         }
       }}
-      className={`py-2 px-default no-underline hover:pointer text-left block bg-background text-foreground ${isSelected
-        ? "md:bg-foreground md:text-background"
-        : "hover:bg-background-07"
-        }`}
+      className={`py-2 px-default no-underline hover:pointer text-left block bg-background text-foreground ${
+        isSelected
+          ? "md:bg-foreground md:text-background"
+          : "hover:bg-background-07"
+      }`}
     >
       {item.title}
       {secondLine && (
         <p
-          className={`${isSelected
-            ? "text-foreground-07 md:text-background-07"
-            : "text-foreground-07"
-            }  text-sm`}
+          className={`${
+            isSelected
+              ? "text-foreground-07 md:text-background-07"
+              : "text-foreground-07"
+          }  text-sm tabular-nums`}
         >
           {secondLine}
         </p>
@@ -125,10 +135,11 @@ const List = ({
                   key={globalId}
                   href={`/${category}`}
                   data-item-id={globalId}
-                  className={`py-2 px-default hover:pointer text-left block ${isSelected
-                    ? "md:bg-foreground md:text-background"
-                    : "hover:bg-background-07 text-foreground-07"
-                    }`}
+                  className={`py-2 px-default hover:pointer text-left block ${
+                    isSelected
+                      ? "md:bg-foreground md:text-background"
+                      : "hover:bg-background-07 text-foreground-07"
+                  }`}
                 >
                   View all {category} →
                 </a>

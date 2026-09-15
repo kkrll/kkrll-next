@@ -1,134 +1,107 @@
 /** biome-ignore-all lint/correctness/noUnknownTypeSelector: <explanation> */
 @import "tailwindcss";
+/* Ramps, type roles, base elements and motion. See @kkrll/design/design.md. */
+@import "@kkrll/design/theme.css";
+
 @plugin "@tailwindcss/typography";
 
+/*
+ * Palette override: none. kkrll-next's warm palette IS the library default,
+ * so only the font families are assigned here.
+ *
+ * --font-geist-sans and --font-geist-mono are defined by next/font, via the
+ * classes layout.tsx puts on <body>. Don't redeclare them — a hardcoded
+ * family shadows the real hashed one and fails silently. Recia is assigned
+ * directly because it loads from the Fontshare <link>, not next/font.
+ */
 :root {
-    --background: #f1eadf;
-    --background-07: #c8c1bb;
-    --background-05: #a6a29e;
-    --background-05-semi: #a6a29e4d;
-
-    --foreground: #171717;
-    --foreground-07: #1f1f20;
-    --foreground-05: #323235;
-
-    --overlay: #0a0a0ab3;
-
-    /* --font-geist-sans and --font-geist-mono are defined by next/font, via the
-       classes layout.tsx puts on <body>. Don't redeclare them here — a hardcoded
-       family shadows the real hashed one and fails silently. Recia belongs here
-       because it loads from the Fontshare <link>, not next/font. */
     --font-recia-serif: "Recia", Georgia, serif;
-}
 
-@theme inline {
-    --color-background: var(--background);
-    --color-background-07: var(--background-07);
-    --color-background-05: var(--background-05);
-
-    --color-foreground: var(--foreground);
-    --color-foreground-07: var(--foreground-07);
-    --color-foreground-05: var(--foreground-05);
-
-    --color-overlay: var(--overlay);
-
-    --font-sans: var(--font-geist-sans);
-    --font-mono: var(--font-geist-mono);
-    --font-serif: var(--font-recia-serif);
-}
-
-@utility no-scrollbar {
-    @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
-}
-
-/* @media (prefers-color-scheme: dark) {
-  :root {
-*/
-.dark {
-    --background: #0a0a0a;
-    --background-07: #1f1f20;
-    --background-05: #3d3d3f;
-
-    --foreground: #ededed;
-    --foreground-07: #6b6a69;
-    --foreground-05: #4b4a49;
-
-    .nice-button {
-        position: relative;
-        background: linear-gradient(to bottom,
-                var(--background-05) 0%,
-                var(--background-07) 100%);
-        padding: 0.25rem 0.25rem;
-        border-radius: 0.5rem;
-        border: 1px solid black;
-        font-family: var(--font-geist-mono);
-        font-size: 0.75rem;
-        color: var(--foreground);
-        text-transform: uppercase;
-        box-shadow: inset 0 0 16px 1px var(--background-07);
-        transition:
-            box-shadow 0.08s ease-in-out,
-            color 0.08s ease-in-out;
-        overflow: hidden;
-        filter: none;
-    }
-
-    .nice-button::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to bottom,
-                var(--background-07) 0%,
-                var(--background-05) 10%,
-                var(--background-07) 50%,
-                var(--background-07) 80%,
-                var(--background) 100%);
-        opacity: 0;
-        transition: opacity 0.08s ease-in-out;
-        pointer-events: none;
-        box-shadow: inset 0 0 1rem 2px var(--background);
-    }
-
-    .nice-button:active::before,
-    .nice-button.active-pressed::before {
-        opacity: 1;
-    }
-
-    .nice-button:active,
-    .nice-button.active-pressed {
-        color: var(--foreground-07);
-        box-shadow: inset 0 0 1rem 2px var(--background);
-        filter: none;
-    }
-
-    .nice-button span {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        background: linear-gradient(to bottom,
-                var(--background-07) 0%,
-                var(--background-05) 100%);
-        padding: 0.5rem 1rem;
-        border-radius: 100rem;
-        transition: box-shadow 0.08s ease-in-out;
-    }
-
-    .nice-button:active span,
-    .nice-button.active-pressed span {
-        box-shadow: inset 0 0 1rem 6px var(--background-07);
-    }
+    --font-sans-stack: var(--font-geist-sans);
+    --font-mono-stack: var(--font-geist-mono);
+    --font-serif-stack: var(--font-recia-serif);
 }
 
 body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: var(--font-geist-sans);
     font-size: 14px;
 }
 
 section {
     width: 100%;
 }
+
+@layer base {
+
+    h2 {
+        text-transform: uppercase;
+        font-family: var(--font-mono-stack);
+    }
+
+    figcaption {
+        color: var(--foreground-07);
+        font-size: 0.75rem;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .px-default {
+        padding-left: 32px;
+        padding-right: 32px;
+    }
+
+    @media (width >=48rem
+
+        /* 768px */
+    ) {
+        .px-default {
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+    }
+}
+
+/* ── Layout helpers ─────────────────────────────────────────────────────── */
+
+.h-hero {
+    height: calc(100vh - 120px);
+}
+
+.min-h-hero {
+    min-height: calc(100vh - 120px);
+}
+
+.grid-1-to-3 {
+    display: grid;
+    grid-template-columns: 1fr;
+    column-gap: 24px;
+}
+
+.text-secondary {
+    font-family: var(--font-mono-stack);
+    color: var(--foreground-07);
+    text-transform: uppercase;
+    font-size: 0.875rem;
+}
+
+@media (width >=48rem
+    /* 768px */
+) {
+    .h-hero {
+        height: calc(100vh - 88px);
+    }
+
+    .min-h-hero {
+        min-height: calc(100vh - 88px);
+    }
+
+    .grid-1-to-3 {
+        display: grid;
+        grid-template-columns: 1fr 3fr;
+        column-gap: 24px;
+    }
+}
+
+/* ── nice-button ────────────────────────────────────────────────────────── */
 
 .nice-button {
     position: relative;
@@ -138,14 +111,14 @@ section {
     padding: 0.25rem 0.25rem;
     border-radius: 8px;
     border: 1px solid var(--background-07-semi);
-    font-family: var(--font-geist-mono);
+    font-family: var(--font-mono-stack);
     font-size: 0.75rem;
     color: var(--foreground);
     text-transform: uppercase;
     box-shadow: inset 0 0 16px 0px var(--background-07-semi);
     transition:
-        box-shadow 0.08s ease-in-out,
-        color 0.2s ease-in-out;
+        box-shadow var(--duration-micro) var(--ease-micro),
+        color var(--duration-enter) var(--ease-micro);
     overflow: hidden;
     filter: drop-shadow(0px 2px 4px var(--background-07));
 }
@@ -161,7 +134,7 @@ section {
             var(--background-07) 80%,
             var(--background-05) 100%);
     opacity: 0;
-    transition: opacity 0.08s ease-in-out;
+    transition: opacity var(--duration-micro) var(--ease-micro);
     pointer-events: none;
     box-shadow: inset 0 0 0.5rem 2px var(--background-05-semi);
 }
@@ -187,7 +160,7 @@ section {
             var(--background) 60%);
     padding: 0.5rem 1rem;
     border-radius: 100rem;
-    transition: box-shadow 0.08s ease-in-out;
+    transition: box-shadow var(--duration-micro) var(--ease-micro);
 }
 
 .nice-button:active span,
@@ -195,302 +168,115 @@ section {
     box-shadow: inset 0 0 0.5rem 6px var(--background-05-semi);
 }
 
-@layer base {
-    * {
-        /* biome-ignore lint/correctness/noUnknownProperty: experimental support */
-        /* biome-ignore lint/correctness/noUnknownFunction: experimental support */
-        corner-shape: superellipse(1.333);
+/* Dark mode reshapes the button's lighting: the gradient inverts and the
+   drop-shadow is dropped entirely, since a shadow on a dark ground reads as
+   mud. Palette tokens themselves come from @kkrll/design. */
+.dark {
+    .nice-button {
+        background: linear-gradient(to bottom,
+                var(--background-05) 0%,
+                var(--background-07) 100%);
+        border: 1px solid black;
+        box-shadow: inset 0 0 16px 1px var(--background-07);
+        filter: none;
     }
 
-    h1,
-    h2,
-    h3 {
-        text-wrap: balance;
+    .nice-button::before {
+        background: linear-gradient(to bottom,
+                var(--background-07) 0%,
+                var(--background-05) 10%,
+                var(--background-07) 50%,
+                var(--background-07) 80%,
+                var(--background) 100%);
+        box-shadow: inset 0 0 1rem 2px var(--background);
     }
 
-    h2 {
-        text-transform: uppercase;
-        font-family: var(--font-geist-mono);
+    .nice-button:active,
+    .nice-button.active-pressed {
+        box-shadow: inset 0 0 1rem 2px var(--background);
+        filter: none;
     }
 
-    p {
-        line-height: 1.5;
+    .nice-button span {
+        background: linear-gradient(to bottom,
+                var(--background-07) 0%,
+                var(--background-05) 100%);
     }
 
-    a {
-        text-underline-offset: 4px;
-    }
-
-    a:hover {
-        text-decoration: underline;
-    }
-
-    figcaption {
-        color: var(--foreground-07);
-        size: 0.75rem;
-        width: 100%;
-        margin-top: 0.5rem;
-    }
-
-    .px-default {
-        padding-left: 32px;
-        padding-right: 32px;
-    }
-
-    @media (width >=48rem
-
-        /* 768px */
-    ) {
-        .px-default {
-            padding-left: 24px;
-            padding-right: 24px;
-        }
+    .nice-button:active span,
+    .nice-button.active-pressed span {
+        box-shadow: inset 0 0 1rem 6px var(--background-07);
     }
 }
 
-.h-hero {
-    height: calc(100vh - 120px);
-}
-
-.min-h-hero {
-    min-height: calc(100vh - 120px);
-}
-
-.grid-1-to-3 {
-    display: grid;
-    grid-template-columns: 1fr;
-    column-gap: 24px;
-}
-
-.text-secondary {
-    font-family: var(--font-geist-mono);
-    color: var(--foreground-07);
-    text-transform: uppercase;
-    font-size: 0.875rem;
-}
-
-@media (width >=48rem
-    /* 768px */
-) {
-    .h-hero {
-        height: calc(100vh - 88px);
-    }
-
-    .min-h-hero {
-        min-height: calc(100vh - 88px);
-    }
-
-    .grid-1-to-3 {
-        display: grid;
-        grid-template-columns: 1fr 3fr;
-        column-gap: 24px;
-    }
-}
-
-@keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-    }
-
-    to {
-        opacity: 0;
-    }
-}
-
-@keyframes fadeInToLeft {
-    0% {
-        opacity: 0;
-        transform: translateX(24px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateX(0px);
-    }
-}
-
-@keyframes fadeOutToLeft {
-    from {
-        opacity: 1;
-        transform: translateX(0px);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateX(-24px);
-    }
-}
-
-@keyframes fadeInToRight {
-    0% {
-        opacity: 0;
-        transform: translateX(-24px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateX(0px);
-    }
-}
-
-@keyframes fadeOutToRight {
-    from {
-        opacity: 1;
-        transform: translateX(0px);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateX(24px);
-    }
-}
-
-@keyframes fadeInFromBottom {
-    from {
-        opacity: 0;
-        transform: translateY(24px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0px);
-    }
-}
-
-@keyframes fadeOutToBottom {
-    from {
-        opacity: 1;
-        transform: translateY(0px);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateY(24px);
-    }
-}
-
-@keyframes fadeOutToTop {
-    0% {
-        opacity: 1;
-        transform: translateY(0px);
-    }
-
-    100% {
-        opacity: 0;
-        transform: translateY(-24px);
-    }
-}
+/* ── View transitions ───────────────────────────────────────────────────── */
+/* Keyframes come from @kkrll/design/motion.css; the NAMES are app-specific,
+   which is why this mapping lives here rather than in the library. */
 
 @media (prefers-reduced-motion: no-preference) {
 
     ::view-transition-old(root),
     ::view-transition-new(root) {
-        animation-duration: 0.3s;
+        animation-duration: var(--duration-slow);
     }
 
     @supports (view-transition-name: none) {
         ::view-transition-new(fade-from-bottom) {
-            animation: fadeInFromBottom 0.2s ease-out forwards;
+            animation: fadeInFromBottom var(--duration-enter) var(--ease-entrance) forwards;
         }
 
         ::view-transition-old(fade-from-bottom) {
-            animation: fadeOutToBottom 0.2s ease-in forwards;
+            animation: fadeOutToBottom var(--duration-exit) var(--ease-exit) forwards;
         }
 
         ::view-transition-new(fade-in-out) {
-            animation: fadeIn 0.3s ease-in-out forwards;
-            /* animation-delay: 0.2s; */
+            animation: fadeIn var(--duration-slow) var(--ease-entrance) forwards;
         }
 
         ::view-transition-old(fade-in-out) {
-            animation: fadeOut 0.15s ease-in-out forwards;
+            animation: fadeOut var(--duration-exit) var(--ease-exit) forwards;
         }
 
         /* route navigation crossfade (PageLayout's <ViewTransition>).
            leading dot = view-transition-class, not a name. */
         ::view-transition-old(.page-fade) {
-            animation: fadeOut 0.15s ease-in forwards;
+            animation: fadeOut var(--duration-exit) var(--ease-exit) forwards;
         }
 
         ::view-transition-new(.page-fade) {
-            animation: fadeIn 0.25s ease-out forwards;
+            animation: fadeIn var(--duration-enter) var(--ease-entrance) forwards;
         }
     }
 }
 
-/* Modal animations */
-@keyframes modalOverlayOpen {
-    from {
-        background-color: transparent;
-    }
+/* ── Modal ──────────────────────────────────────────────────────────────── */
+/* Native <dialog>, so the UA supplies the top layer, the focus trap and the
+   ::backdrop. Only the resets and the backdrop animation belong to us; the
+   panel's own enter/exit comes from animate-modal-* in @kkrll/design. */
 
-    to {
-        background-color: var(--overlay);
+.app-modal {
+    /* UA defaults: the panel styling lives on the child, not here. */
+    padding: 0;
+    border: none;
+    background: transparent;
+    overflow: visible;
+    max-width: 100%;
+    max-height: 100dvh;
+
+    /* Bottom sheet on small screens, centred once there is room. */
+    margin: auto auto 0;
+}
+
+@media (width >=48rem /* 768px */) {
+    .app-modal {
+        margin: auto;
     }
 }
 
-@keyframes modalOverlayClose {
-    from {
-        background-color: var(--overlay);
-    }
-
-    to {
-        background-color: transparent;
-    }
+.app-modal::backdrop {
+    animation: modalOverlayOpen var(--duration-enter) var(--ease-entrance) forwards;
 }
 
-@keyframes modalOpen {
-    from {
-        opacity: 0;
-        transform: translateY(24px);
-        backdrop-filter: blur(0px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-        backdrop-filter: blur(24px);
-    }
-}
-
-@keyframes modalClose {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-        backdrop-filter: blur(24px);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateY(24px);
-        backdrop-filter: blur(0px);
-    }
-}
-
-@layer utilities {
-    .animate-modal-overlay-open {
-        animation: modalOverlayOpen 0.2s ease-out forwards;
-    }
-
-    .animate-modal-overlay-close {
-        animation: modalOverlayClose 0.2s ease-out forwards;
-    }
-
-    .animate-modal-open {
-        animation: modalOpen 0.2s ease-out forwards;
-    }
-
-    .animate-modal-close {
-        animation: modalClose 0.2s ease-out forwards;
-    }
+.app-modal[data-closing]::backdrop {
+    animation: modalOverlayClose var(--duration-exit) var(--ease-exit) forwards;
 }

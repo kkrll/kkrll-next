@@ -13,7 +13,7 @@ const PostersContent = ({ posters }: { posters: Poster[] }) => {
 
   const posterIds = useMemo(
     () => posters.map((p) => `posters-${p.slug}`),
-    [posters]
+    [posters],
   );
 
   const currentSelectedId =
@@ -47,7 +47,7 @@ const PostersContent = ({ posters }: { posters: Poster[] }) => {
   useEffect(() => {
     if (currentSelectedId) {
       const element = document.querySelector(
-        `[data-item-id="${currentSelectedId}"]`
+        `[data-item-id="${currentSelectedId}"]`,
       );
       element?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
@@ -77,14 +77,17 @@ const PostersContent = ({ posters }: { posters: Poster[] }) => {
                   height={512}
                   src={`/posters/${poster.slug}/1-full.jpg`}
                   alt={poster.title}
-                  className="relative object-cover z-10 w-full h-full group-hover:scale-105 transition-transform duration-300"
+                  className="relative object-cover z-10 w-full h-full group-hover:scale-105 transition-transform duration-(--duration-enter)"
                 />
               </div>
               <h2 className="group-hover:underline font-semibold text-sm">
                 {isSelected && <span className="px-2">{`>`}</span>}
                 {poster.title}
-                <span className={`text-sm ${isSelected ? "text-background/60" : "text-foreground/60"
-                  }`}>
+                <span
+                  className={`text-sm tabular-nums ${
+                    isSelected ? "text-background/60" : "text-foreground/60"
+                  }`}
+                >
                   {`, ${poster.date}`}
                 </span>
               </h2>

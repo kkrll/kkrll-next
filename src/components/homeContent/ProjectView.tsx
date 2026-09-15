@@ -55,7 +55,7 @@ const ProjectView = ({ project }: { project: ProjectMeta }) => {
             onClick={() =>
               track("open project", { page: "home", project: project.title })
             }
-            className="flex font-mono text-sm uppercase gap-2 justify-center items-center w-32 py-2.5 px-4 rounded-2xl transition-colors duration-100 ease-in bg-background-07 hover:bg-background-05 no-underline cursor-pointer"
+            className="flex font-mono text-sm uppercase gap-2 justify-center items-center w-32 py-2.5 px-4 rounded-2xl transition-colors duration-(--duration-micro) ease-micro bg-background-07 hover:bg-background-05 no-underline cursor-pointer"
           >
             {project.isExternal ? (
               <>

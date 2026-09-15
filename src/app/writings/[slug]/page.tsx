@@ -112,7 +112,7 @@ export default async function WritingPage({
             {writing.title}
           </h1>
           <p className="text-sm mt-2 text-foreground-07">
-            <time className="text-sm text-foreground-07">
+            <time className="text-sm tabular-nums text-foreground-07">
               {new Date(writing.date).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
