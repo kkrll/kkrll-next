@@ -30,6 +30,10 @@ export type ListProps = {
   title: string;
   list: (ListItemProps | ViewAllItem)[];
   selectedItemId: string | null;
+  /** The explicitly picked item, without the first-item fallback */
+  expandedItemId: string | null;
+  /** Whether the desktop preview panel is on screen */
+  hasSidePanel: boolean;
   onSelect: (id: string) => void;
   category: CategoriesTypes;
 };

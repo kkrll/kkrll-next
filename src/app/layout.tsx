@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
@@ -33,6 +33,16 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
   },
+};
+
+// Status bar / browser chrome color, matched to --background from
+// @kkrll/design/tokens.css. These follow the OS scheme; useThemeInitializer
+// overwrites both when the user picks a theme with the toggle.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f1eadf" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
 };
 
 export default function RootLayout({
@@ -71,10 +81,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body
-        className="antialiased"
-        suppressHydrationWarning
-      >
+      <body className="antialiased" suppressHydrationWarning>
         <ThemeProvider>
           <PHProvider>
             {children}

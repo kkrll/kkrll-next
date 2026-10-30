@@ -1,18 +1,24 @@
 "use client";
 
-import type { CategoriesTypes, ListItemProps, ListProps } from "./types";
 import { useTracking } from "@/hooks/useTracking";
+import type { ProjectMeta } from "@/lib/projects";
+import ProjectView from "./ProjectView";
+import type { CategoriesTypes, ListItemProps, ListProps } from "./types";
 
 const ListItemSelector = ({
   item,
   onSelect,
   isSelected,
+  isExpanded,
+  hasSidePanel,
   itemId,
   category,
 }: {
   item: ListItemProps;
   onSelect: () => void;
   isSelected: boolean;
+  isExpanded: boolean;
+  hasSidePanel: boolean;
   itemId: string;
   category: CategoriesTypes;
 }) => {
@@ -69,47 +75,60 @@ const ListItemSelector = ({
 
   const secondLine = getSecondLine();
 
-  return (
-    <a
-      href={isSelected ? item.link : ""}
-      data-item-id={itemId}
-      onClick={(e) => {
-        e.preventDefault();
-        const isMobile = window.matchMedia("(max-width: 768px)").matches;
-        track("open project", { page: "home", project: item.title });
+  // Phones have no side panel, so projects preview inline under the item
+  // instead. Same two steps either way: first tap shows, second tap opens.
+  // Writings still open straight away — their preview is just the intro.
+  const showsInline = !hasSidePanel && category === "projects";
+  const opensOnTap = hasSidePanel ? isSelected : !showsInline || isExpanded;
 
-        if (isMobile || isSelected) {
-          // Mobile: always navigate, Desktop: navigate when already selected
-          window.open(item.link, item.link[0] === "/" ? "_self" : "_blank");
-        } else {
-          // Desktop: select on first click
-          onSelect();
-        }
-      }}
-      className={`py-2 px-default no-underline hover:pointer text-left block bg-background text-foreground ${
-        isSelected
-          ? "md:bg-foreground md:text-background"
-          : "hover:bg-background-07"
-      }`}
-    >
-      {item.title}
-      {secondLine && (
-        <p
-          className={`${
-            isSelected
-              ? "text-foreground-07 md:text-background-07"
-              : "text-foreground-07"
-          }  text-sm tabular-nums`}
-        >
-          {secondLine}
-        </p>
+  return (
+    <>
+      <a
+        href={isSelected ? item.link : ""}
+        data-item-id={itemId}
+        onClick={(e) => {
+          e.preventDefault();
+
+          if (opensOnTap) {
+            track("open project", { page: "home", project: item.title });
+            window.open(item.link, item.link[0] === "/" ? "_self" : "_blank");
+          } else {
+            onSelect();
+          }
+        }}
+        className={`py-2 px-default no-underline hover:pointer text-left block bg-background text-foreground active:opacity-70 transition-opacity duration-(--duration-micro) ${
+          isSelected
+            ? "md:bg-foreground md:text-background"
+            : "hover:bg-background-07"
+        }`}
+      >
+        {item.title}
+        {secondLine && (
+          <p
+            className={`${
+              isSelected
+                ? "text-foreground-07 md:text-background-07"
+                : "text-foreground-07"
+            }  text-sm tabular-nums`}
+          >
+            {secondLine}
+          </p>
+        )}
+        {isSelected && (
+          <p className="hidden md:block text-background-07 text-sm mt-2">
+            Open link →
+          </p>
+        )}
+        {showsInline && isExpanded && (
+          <p className="text-foreground-07 text-sm mt-2">Tap again to open →</p>
+        )}
+      </a>
+      {showsInline && isExpanded && (
+        <div className="px-default pt-2 pb-6 motion-safe:animate-[fadeIn_200ms_ease-in-out]">
+          <ProjectView project={item as unknown as ProjectMeta} inline />
+        </div>
       )}
-      {isSelected && (
-        <p className="hidden md:block text-background-07 text-sm mt-2">
-          Open link →
-        </p>
-      )}
-    </a>
+    </>
   );
 };
 
@@ -117,6 +136,8 @@ const List = ({
   title,
   list,
   selectedItemId,
+  expandedItemId,
+  hasSidePanel,
   onSelect,
   category,
 }: ListProps) => {
@@ -155,6 +176,8 @@ const List = ({
                 itemId={globalId}
                 category={category}
                 isSelected={selectedItemId === globalId}
+                isExpanded={expandedItemId === globalId}
+                hasSidePanel={hasSidePanel}
                 onSelect={() => onSelect(globalId)}
               />
             );

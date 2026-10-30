@@ -14,6 +14,20 @@ export function useThemeInitializer() {
     } else {
       root.classList.add("dark");
     }
+
+    // The theme-color tags from layout.tsx's viewport export pick by OS
+    // scheme; a toggled theme can disagree with it, so point both at the
+    // background we're actually painting.
+    const background = getComputedStyle(root)
+      .getPropertyValue("--background")
+      .trim();
+    if (background) {
+      for (const meta of document.querySelectorAll<HTMLMetaElement>(
+        'meta[name="theme-color"]',
+      )) {
+        meta.content = background;
+      }
+    }
   }, [theme]);
 
   useEffect(() => {

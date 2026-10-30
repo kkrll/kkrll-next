@@ -13,7 +13,7 @@ const PageLayout = ({
 }) => {
   return (
     <main
-      className={`flex min-h-screen flex-col items-center justify-between mx-auto ${className ?? ""}`}
+      className={`flex min-h-svh flex-col items-center justify-between mx-auto ${className ?? ""}`}
     >
       <Header hide={hideNav} />
       {/* only the content crossfades on navigation — header and footer sit

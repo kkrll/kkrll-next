@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import List from "@/components/homeContent/List";
 import { useHomeTracking } from "@/hooks/useHomeTracking";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { ProjectMetaWithViewAll } from "@/lib/projects";
 import type { WritingMetaWithViewAll } from "@/lib/writings";
 import {
@@ -24,6 +25,9 @@ const HomeContent = ({
   const { selectedItemId, setSelectedItemId, selectNext, selectPrevious } =
     useNavigationStore();
   const hydrated = useNavigationHydrated();
+  // Mirrors the panel's `hidden md:flex`. Gating the mount (not just the
+  // display) keeps phones from downloading the hidden panel's media.
+  const hasSidePanel = useMediaQuery("(min-width: 48rem)");
 
   const allItems = [...projects, ...writings];
   const allItemsIds = allItems.map((item) => item.globalId);
@@ -41,6 +45,9 @@ const HomeContent = ({
     : ((selectedItemId && allItemsIds.includes(selectedItemId)
         ? selectedItemId
         : allItemsIds[0]) ?? null);
+  // The phone's inline preview only opens on a real pick — the first-item
+  // fallback above would otherwise unfold a project nobody tapped.
+  const expandedItemId = hydrated ? selectedItemId : null;
 
   const handleSelect = (id: string, source: "click" | "keyboard") => {
     const item = allItems.find((item) => item.globalId === id);
@@ -114,6 +121,8 @@ const HomeContent = ({
               title={"projects"}
               list={projects as ListItemProps[]}
               selectedItemId={currentSelectedId}
+              expandedItemId={expandedItemId}
+              hasSidePanel={hasSidePanel}
               category="projects"
               onSelect={(id) => handleSelect(id, "click")}
             />
@@ -124,6 +133,8 @@ const HomeContent = ({
               title="writings"
               list={writings as ListItemProps[]}
               selectedItemId={currentSelectedId}
+              expandedItemId={expandedItemId}
+              hasSidePanel={hasSidePanel}
               category="writings"
               onSelect={(id) => handleSelect(id, "click")}
             />
@@ -131,6 +142,7 @@ const HomeContent = ({
         </div>
         <div className="flex-2 motion-safe:animate-[fadeIn_200ms_ease-in-out] hidden md:flex">
           {hydrated &&
+            hasSidePanel &&
             (selectedItem ? (
               <ContentWindow selectedItem={selectedItem as SelectedItemType} />
             ) : (

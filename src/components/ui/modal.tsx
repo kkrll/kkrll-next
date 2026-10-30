@@ -58,7 +58,7 @@ const Modal = ({
       }}
     >
       <div className="p-4 rounded-3xl bg-foreground/10 border border-foreground/20">
-        <div className="flex no-scrollbar flex-col gap-6 [&_p]:max-w-[540px] bg-background/95 p-8 md:p-24 rounded-lg w-full max-w-[960px] max-h-[calc(100dvh-48px)] md:max-h-[75vh] overflow-y-scroll">
+        <div className="flex no-scrollbar flex-col gap-6 [&_p]:max-w-[540px] bg-background/95 p-8 md:p-24 rounded-lg w-full max-w-[960px] max-h-[calc(100dvh-48px)] md:max-h-[75vh] overflow-y-scroll overscroll-contain">
           {children}
           <Button onClick={requestClose} className="w-fit">
             Close

@@ -23,6 +23,27 @@
     --font-serif-stack: var(--font-recia-serif);
 }
 
+/* Mobile platform layer. The tap highlight fights our own :active feedback;
+   touch-action skips the double-tap-zoom wait on controls. No overscroll
+   override — this is a document, pull-to-refresh is welcome. */
+html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+}
+
+a,
+button,
+[role="button"] {
+    touch-action: manipulation;
+}
+
+/* Long-press shouldn't select a control's label. Links stay selectable —
+   they're mostly inline in prose. */
+button {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
 body {
     font-size: 14px;
 }
@@ -64,11 +85,11 @@ section {
 /* ── Layout helpers ─────────────────────────────────────────────────────── */
 
 .h-hero {
-    height: calc(100vh - 120px);
+    height: calc(100svh - 120px);
 }
 
 .min-h-hero {
-    min-height: calc(100vh - 120px);
+    min-height: calc(100svh - 120px);
 }
 
 .grid-1-to-3 {
@@ -88,11 +109,11 @@ section {
     /* 768px */
 ) {
     .h-hero {
-        height: calc(100vh - 88px);
+        height: calc(100svh - 88px);
     }
 
     .min-h-hero {
-        min-height: calc(100vh - 88px);
+        min-height: calc(100svh - 88px);
     }
 
     .grid-1-to-3 {

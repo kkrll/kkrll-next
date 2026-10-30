@@ -46,29 +46,39 @@ const MediaItem = ({ src, title }: { src: string; title: string }) => {
   );
 };
 
-const ProjectView = ({ project }: { project: ProjectMeta }) => {
+// `inline` is the phone version, expanded under its list item: the item
+// already carries the title and opens the project, so only the body shows.
+const ProjectView = ({
+  project,
+  inline,
+}: {
+  project: ProjectMeta;
+  inline?: boolean;
+}) => {
   const { track } = useTracking();
   return (
     <>
-      <div className="mb-8">
-        <div className="flex pb-4 lg:pb-8 mb-6 border-b border-background-07 justify-between items-center">
-          <h2>{project.title}</h2>
-          <a
-            href={project.link}
-            onClick={() =>
-              track("open project", { page: "home", project: project.title })
-            }
-            className="flex font-mono text-sm uppercase gap-2 justify-center items-center w-32 py-2.5 px-4 rounded-2xl transition-colors duration-(--duration-micro) ease-micro bg-background-07 hover:bg-background-05 no-underline cursor-pointer"
-          >
-            {project.isExternal ? (
-              <>
-                Visit <LinkIcon />
-              </>
-            ) : (
-              "View more"
-            )}
-          </a>
-        </div>
+      <div className={inline ? "mb-6" : "mb-8"}>
+        {!inline && (
+          <div className="flex pb-4 lg:pb-8 mb-6 border-b border-background-07 justify-between items-center">
+            <h2>{project.title}</h2>
+            <a
+              href={project.link}
+              onClick={() =>
+                track("open project", { page: "home", project: project.title })
+              }
+              className="flex font-mono text-sm uppercase gap-2 justify-center items-center w-32 py-2.5 px-4 rounded-2xl transition-colors duration-(--duration-micro) ease-micro bg-background-07 hover:bg-background-05 no-underline cursor-pointer"
+            >
+              {project.isExternal ? (
+                <>
+                  Visit <LinkIcon />
+                </>
+              ) : (
+                "View more"
+              )}
+            </a>
+          </div>
+        )}
         <p className="max-w-2xl  text-pretty">{project.description}</p>
       </div>
       {project.media && (
