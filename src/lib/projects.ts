@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { getR2Url } from "./constants";
 
 const projectsDirectory = path.join(process.cwd(), "content/projects");
 
@@ -40,20 +41,23 @@ export type ProjectMetaWithViewAll =
     globalId: string;
   };
 
-export function getProjectMedia(slug: string): string[] {
+// Videos live in R2 and are listed in frontmatter (`videos: [projects/x.mp4]`);
+// images live next to index.mdx and are picked up from the folder.
+export function getProjectMedia(slug: string, videos: string[] = []): string[] {
   const projectDir = path.join(projectsDirectory, slug);
+  const videoUrls = videos.map(getR2Url);
 
   try {
     const files = fs.readdirSync(projectDir);
 
-    // Filter image and video files and sort them
-    return files
-      .filter((file) => /\.(jpg|jpeg|png|webp|mp4|webm|mov|avi)$/i.test(file))
-      .filter((file) => file !== "index.mdx")
+    const images = files
+      .filter((file) => /\.(jpg|jpeg|png|webp)$/i.test(file))
       .sort()
       .map((file) => `/projects/${slug}/${file}`);
+
+    return [...videoUrls, ...images];
   } catch {
-    return [];
+    return videoUrls;
   }
 }
 
@@ -72,7 +76,7 @@ export function getAllProjects(): Project[] {
         slug: folder,
         title: data.title || "Untitled",
         date: data.date || "Unknown date",
-        media: getProjectMedia(folder),
+        media: getProjectMedia(folder, data.videos),
         description: data.description || null,
         projectType: data.projectType,
         link: data.link || null,
@@ -102,7 +106,7 @@ export function getAllProjectsMeta(limit?: number): ProjectMetaWithViewAll[] {
         slug: folder,
         title: data.title || "Untitled",
         date: data.date || "Unknown date",
-        media: getProjectMedia(folder),
+        media: getProjectMedia(folder, data.videos),
         description: data.description || null,
         projectType: data.projectType,
         link: data.link,
@@ -143,7 +147,7 @@ export function getProjectBySlug(slug: string): Project | null {
       slug,
       title: data.title,
       date: data.date,
-      media: getProjectMedia(slug),
+      media: getProjectMedia(slug, data.videos),
       publisher: data.publisher,
       projectType: data.projectType,
       link: data.link,

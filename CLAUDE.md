@@ -60,7 +60,8 @@ The site uses a file-system based content architecture with three content types:
 #### Projects
 
 - **Location**: `content/projects/[slug]/index.mdx`
-- **Frontmatter**: title, date, cover?, publisher?, description?, projectType?, link?, isExternal?, pinned?
+- **Frontmatter**: title, date, cover?, publisher?, description?, projectType?, link?, isExternal?, pinned?, videos?
+- **Media**: images in the project folder are auto-discovered (`getProjectMedia`); videos are NOT read from the folder — upload them to R2 under `projects/` and list the keys in `videos:` (e.g. `- projects/b42.mp4`). Videos are shown first in the carousel.
 - **API** (`src/lib/projects.ts`):
   - `getAllProjects()` - Returns all projects sorted by date
   - `getAllProjectsMeta(limit?)` - Returns metadata with optional "view all" item
@@ -70,8 +71,9 @@ The site uses a file-system based content architecture with three content types:
 
 ### Media Storage
 
-- **Small media** (<5MB, <10 files): Store in `public/` and commit to git
-- **Large media/videos**: Use Cloudflare R2 (S3-compatible storage, zero egress fees)
+- **Images**: commit to git, but compress first — JPEG (q≈84) for opaque images, max 2400px long edge (pages render at ≤800px wide, 2× DPR); keep PNG only when transparency is needed
+- **Videos**: always Cloudflare R2, never git
+- **Large media**: Use Cloudflare R2 (S3-compatible storage, zero egress fees)
 - **R2 Configuration**:
   - Uses `@aws-sdk/client-s3` for uploads
   - Utility: `src/lib/r2.ts` (`uploadToR2()` function)
@@ -181,8 +183,9 @@ Create a new folder in `content/posters/[slug]/` with:
 **Projects:**
 Create a new folder in `content/projects/[slug]/` with:
 
-1. `index.mdx` file with frontmatter (title, date, cover?, publisher?, description?, projectType?, link?, isExternal?, pinned?)
+1. `index.mdx` file with frontmatter (title, date, cover?, publisher?, description?, projectType?, link?, isExternal?, pinned?, videos?)
 2. Images referenced relatively from the MDX file
+3. Videos uploaded to R2 at `projects/<file>.mp4` and listed under `videos:`
 
 ### MDX Component Customization
 
