@@ -14,7 +14,7 @@ export type Project = {
   description?: string;
   projectType?: string;
   link: string;
-  pinned?: boolean;
+  pinned?: boolean | number;
   content: string;
 };
 
@@ -26,7 +26,7 @@ export type ProjectMeta = {
   description?: string;
   projectType?: string;
   link: string;
-  pinned?: boolean;
+  pinned?: boolean | number;
   isExternal?: boolean;
   type: "projects";
   globalId: string;
@@ -40,6 +40,18 @@ export type ProjectMetaWithViewAll =
     type: "projects";
     globalId: string;
   };
+
+// `pinned: true` or a position number (1, 2, 3…) floats a project to the top
+// in that order; everything else follows, newest first.
+const pinRank = (pinned?: boolean | number) =>
+  typeof pinned === "number" ? pinned : pinned ? 0 : Number.POSITIVE_INFINITY;
+
+const byPinThenDate = (
+  a: { pinned?: boolean | number; date: string },
+  b: { pinned?: boolean | number; date: string },
+) =>
+  pinRank(a.pinned) - pinRank(b.pinned) ||
+  new Date(b.date).getTime() - new Date(a.date).getTime();
 
 // Videos live in R2 and are listed in frontmatter (`videos: [projects/x.mp4]`);
 // images live next to index.mdx and are picked up from the folder.
@@ -84,10 +96,7 @@ export function getAllProjects(): Project[] {
         content,
       } as Project;
     });
-  return projects.sort((a, b) => {
-    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
-  });
+  return projects.sort(byPinThenDate);
 }
 
 export function getAllProjectsMeta(limit?: number): ProjectMetaWithViewAll[] {
@@ -117,10 +126,7 @@ export function getAllProjectsMeta(limit?: number): ProjectMetaWithViewAll[] {
       } as ProjectMeta;
     });
 
-  const sorted = projectsMeta.sort((a, b) => {
-    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
-  });
+  const sorted = projectsMeta.sort(byPinThenDate);
 
   if (limit && sorted.length > limit) {
     return [

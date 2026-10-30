@@ -61,6 +61,7 @@ The site uses a file-system based content architecture with three content types:
 
 - **Location**: `content/projects/[slug]/index.mdx`
 - **Frontmatter**: title, date, cover?, publisher?, description?, projectType?, link?, isExternal?, pinned?, videos?
+- **Ordering**: `pinned: 1`, `pinned: 2`… puts projects at the top in that order (`pinned: true` = before all numbered ones); the rest follow newest first
 - **Media**: images in the project folder are auto-discovered (`getProjectMedia`); videos are NOT read from the folder — upload them to R2 under `projects/` and list the keys in `videos:` (e.g. `- projects/b42.mp4`). Videos are shown first in the carousel.
 - **API** (`src/lib/projects.ts`):
   - `getAllProjects()` - Returns all projects sorted by date

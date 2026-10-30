@@ -37,6 +37,9 @@ const MediaItem = ({ src, title }: { src: string; title: string }) => {
       src={src}
       width={800}
       height={0}
+      // rendered w-full in the content column (~45–57vw on desktop) — without
+      // sizes, srcset is only 1x=828w/2x=1920w and wide 1x screens upscale
+      sizes="(min-width: 768px) 60vw, 100vw"
       alt={`${title} - Image`}
       className="relative w-full h-auto z-10 object-contain"
     />
