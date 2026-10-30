@@ -10,7 +10,8 @@
  * so only the font families are assigned here.
  *
  * --font-geist-sans and --font-geist-mono are defined by next/font, via the
- * classes layout.tsx puts on <body>. Don't redeclare them — a hardcoded
+ * classes layout.tsx puts on <html>. They must be on <html>, not <body>: the
+ * stacks below resolve their var() on :root. Don't redeclare them — a hardcoded
  * family shadows the real hashed one and fails silently. Recia is assigned
  * directly because it loads from the Fontshare <link>, not next/font.
  */

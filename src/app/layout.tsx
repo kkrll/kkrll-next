@@ -41,7 +41,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    // next/font's --font-geist-* vars go on <html>: globals.css derives
+    // --font-*-stack from them on :root, and a var() resolves where it's
+    // declared — on <body> they'd be undefined at :root and every font
+    // family would silently fall back to the system stack.
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <link rel="preconnect" href="https://api.fontshare.com" />
         <link
@@ -64,7 +72,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className="antialiased"
         suppressHydrationWarning
       >
         <ThemeProvider>

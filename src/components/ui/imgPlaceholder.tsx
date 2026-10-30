@@ -2,12 +2,14 @@ import { cn } from "@/lib/utils";
 import { cva } from "class-variance-authority";
 
 const placeholderVariants = cva(
-  "font-mono leading-[0.9] text-foreground whitespace-pre select-none",
+  "font-mono text-foreground whitespace-pre select-none",
   {
     variants: {
+      // leading must come after the text-* size: cn()'s tailwind-merge treats
+      // font-size as also setting line-height and drops an earlier leading-*
       size: {
-        sm: "text-[4px] md:text-[4px]",
-        md: "text-[6px] md:text-[8px]",
+        sm: "text-[4px] md:text-[4px] leading-[1.14]",
+        md: "text-[6px] md:text-[8px] leading-[1.14]",
       },
     },
     defaultVariants: {
