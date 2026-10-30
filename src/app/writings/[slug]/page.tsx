@@ -8,6 +8,10 @@ import PageLayout from "@/components/PageLayout";
 import { SITE_NAME, SITE_URL } from "@/lib/constants";
 import { getAllWritings, getWritingBySlug } from "@/lib/writings";
 
+// Images fill the 640px article (minus padding) or the viewport on mobile.
+// Without sizes, srcset is 1x=828w/2x=1920w, so phones download 1920w.
+const IMAGE_SIZES = "(min-width: 640px) 640px, 100vw";
+
 // Generate static paths for all writings at build time
 export async function generateStaticParams() {
   const writings = getAllWritings();
@@ -107,6 +111,7 @@ export default async function WritingPage({
               alt={writing.title}
               width={800}
               height={400}
+              sizes={IMAGE_SIZES}
               className="w-full rounded-lg mb-6"
             />
           )}
@@ -174,6 +179,7 @@ export default async function WritingPage({
                     src={src}
                     width={800}
                     height={0}
+                    sizes={IMAGE_SIZES}
                     className="rounded-lg my-6"
                     alt={props.alt || ""}
                   />

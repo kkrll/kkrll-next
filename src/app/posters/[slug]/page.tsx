@@ -80,6 +80,8 @@ export default async function PosterPage({
               key={image}
               width={800}
               height={0}
+              // 2/3 of the 960px layout on desktop, full width on mobile
+              sizes="(min-width: 960px) 640px, (min-width: 768px) 67vw, 100vw"
               src={image}
               alt={`${poster.title} - image ${index + 1}`}
               className="w-full"

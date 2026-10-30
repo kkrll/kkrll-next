@@ -75,6 +75,8 @@ const PostersContent = ({ posters }: { posters: Poster[] }) => {
                 <Image
                   width={512}
                   height={512}
+                  // grid is 1 / 2 / 3 columns inside the 960px layout
+                  sizes="(min-width: 1024px) 320px, (min-width: 768px) 50vw, 100vw"
                   src={`/posters/${poster.slug}/1-full.jpg`}
                   alt={poster.title}
                   className="relative object-cover z-10 w-full h-full group-hover:scale-105 transition-transform duration-(--duration-enter)"
