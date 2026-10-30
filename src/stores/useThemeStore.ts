@@ -31,6 +31,12 @@ export const useThemeStore = create<ThemeStore>()(
       // falls back to matchMedia on the absent key
       partialize: (state): Partial<ThemeStore> =>
         state.isSystem ? {} : { theme: state.theme },
+      // a stored theme *is* a deliberate choice — without this, isSystem
+      // rehydrates as true and the matchMedia sync overwrites it on reload
+      merge: (persisted, current) => {
+        const stored = (persisted as Partial<ThemeStore> | undefined)?.theme;
+        return stored ? { ...current, theme: stored, isSystem: false } : current;
+      },
     },
   ),
 );

@@ -1,11 +1,22 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
 import { useThemeStore } from "@/stores/useThemeStore";
 
+const noopSubscribe = () => () => {};
+
 export default function ThemeSwitcher() {
-  const { theme, setTheme } = useThemeStore();
+  const { theme: storeTheme, setTheme } = useThemeStore();
+  // The store reads matchMedia/localStorage at module load, so on the client
+  // it can already be "light" while the server rendered "dark". Render the
+  // server's value until hydration is done, then switch to the real one.
+  const hydrated = useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
+  const theme = hydrated ? storeTheme : "dark";
   // rendered in both the header and the bio column — a shared id would make
   // url(#…) resolve to whichever instance comes first in the DOM
   const maskId = `moon-mask-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
@@ -14,19 +25,21 @@ export default function ThemeSwitcher() {
   const rAnimRef = useRef<SVGAnimateElement>(null);
   const rAnimRef2 = useRef<SVGAnimateElement>(null);
   const rAnimRefStrokes = useRef<SVGAnimateElement>(null);
-  const prevThemeRef = useRef(theme);
+  const prevThemeRef = useRef<typeof theme | null>(null);
 
   useEffect(() => {
-    if (prevThemeRef.current !== theme) {
+    if (!hydrated) return;
+    // first hydrated pass only records the theme — the "dark" → real-theme
+    // correction after hydration isn't a user toggle, so don't animate it
+    if (prevThemeRef.current !== null && prevThemeRef.current !== theme) {
       cxAnimRef.current?.beginElement();
       cyAnimRef.current?.beginElement();
       rAnimRef.current?.beginElement();
       rAnimRef2.current?.beginElement();
       rAnimRefStrokes.current?.beginElement();
-
-      prevThemeRef.current = theme;
     }
-  }, [theme]);
+    prevThemeRef.current = theme;
+  }, [theme, hydrated]);
 
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
