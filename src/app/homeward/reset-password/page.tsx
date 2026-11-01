@@ -1,64 +1,101 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import type React from "react";
+import { useEffect, useState } from "react";
 import PageLayout from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 
+// Expired or reused reset links arrive as #error=…&error_description=…
+// Read it before the Supabase client initialises and rewrites the URL.
+const linkHash = typeof window !== "undefined" ? window.location.hash : "";
+
+// The reset link signs the user in through the URL. Keep that session in
+// memory only, so nothing stays signed in on kkrll.com afterwards.
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+  { auth: { persistSession: false, autoRefreshToken: false } },
+);
+
+const MIN_PASSWORD_LENGTH = 6;
+
+type Status = "checking" | "ready" | "invalid" | "done";
+
+const getLinkError = () => {
+  const description = new URLSearchParams(linkHash.slice(1)).get(
+    "error_description",
+  );
+  return description ? description.replace(/\+/g, " ") : null;
+};
+
+const ResetLayout = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => (
+  <PageLayout>
+    <section className="px-default w-full max-w-md py-16 md:py-24 text-left text-foreground">
+      <p className="font-mono text-xs uppercase">Homeward</p>
+      <h1 className="mt-2 mb-6 text-2xl font-medium">{title}</h1>
+      {children}
+    </section>
+  </PageLayout>
+);
+
+const PasswordField = ({
+  label,
+  value,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  disabled: boolean;
+}) => (
+  <label className="block">
+    <span className="font-mono text-xs uppercase">{label}</span>
+    {/* text-base: anything under 16px makes iOS Safari zoom in on focus */}
+    <input
+      type="password"
+      autoComplete="new-password"
+      required
+      minLength={MIN_PASSWORD_LENGTH}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+      className="mt-2 block h-10 w-full rounded-md border border-foreground-07 bg-background px-3 text-base text-foreground outline-none focus-visible:ring-[3px] focus-visible:ring-foreground/50 disabled:opacity-50"
+    />
+  </label>
 );
 
 const PasswordResetPage = () => {
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<Status>("checking");
+  const [linkProblem, setLinkProblem] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-
-  const [sessionReady, setSessionReady] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const handleAuthSession = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-
-        if (error) {
-          console.error("Error getting session:", error);
-          setError("Invalid or expired reset link");
-          return;
-        }
-
-        if (!data.session) {
-          setError("No active session found");
-          return;
-        }
-
-        console.log("Session established for user:", data.session.user?.email);
-        setSessionReady(true);
-      } catch (err) {
-        console.error("Session error:", err);
-        setError(
-          "Failed to establish session. Please try the reset link again.",
-        );
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (data.session) {
+        setStatus("ready");
+        return;
       }
-    };
-
-    // Only run on client-side (Gatsby SSR protection)
-    if (typeof window !== "undefined") {
-      handleAuthSession();
-    }
+      setLinkProblem(
+        getLinkError() ??
+          error?.message ??
+          "This page only works from the link in a password reset email.",
+      );
+      setStatus("invalid");
+    });
   }, []);
 
-  const handlePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!sessionReady) {
-      setError("Session not ready. Please refresh the page.");
-      return;
-    }
-
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
@@ -66,123 +103,84 @@ const PasswordResetPage = () => {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    setSaving(true);
+    setError("");
+
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) {
+      setError(error.message);
+      setSaving(false);
       return;
     }
 
-    setLoading(true);
-    setError("");
-
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: password,
-      });
-
-      if (error) throw error;
-
-      setSuccess(true);
-    } catch (err: any) {
-      setError(err.message || "Failed to reset password");
-    } finally {
-      setLoading(false);
-    }
+    // Revoke just this reset session; "local" keeps the extension signed in
+    await supabase.auth.signOut({ scope: "local" });
+    setStatus("done");
   };
 
-  // Show loading state while establishing session
-  if (!sessionReady && !error) {
+  if (status === "checking") {
     return (
-      <PageLayout>
-        <div
-          style={{ maxWidth: "400px", margin: "100px auto", padding: "20px" }}
-        >
-          <h1>Homeward</h1>
-          <p>Establishing secure session...</p>
-        </div>
-      </PageLayout>
+      <ResetLayout title="Reset your password">
+        <p>Checking your reset link…</p>
+      </ResetLayout>
     );
   }
 
-  // Show error if session failed
-  if (error && !sessionReady) {
+  if (status === "invalid") {
     return (
-      <div style={{ maxWidth: "400px", margin: "100px auto", padding: "20px" }}>
-        <h1>Homeward</h1>
-        <h2>Reset Your Password</h2>
-        <div>ERROR: {error}</div>
-        <p>Please request a new password reset email from the extension.</p>
-      </div>
+      <ResetLayout title="This link doesn't work">
+        <p role="alert">{linkProblem}</p>
+        <p className="mt-4">
+          Request a new one from the extension: Sign in → Sign in with email →
+          Forgot password.
+        </p>
+      </ResetLayout>
     );
   }
 
-  if (success) {
+  if (status === "done") {
     return (
-      <div style={{ maxWidth: "400px", margin: "100px auto", padding: "20px" }}>
-        <h1>Password Reset Successful!</h1>
-        <p>Your password has been updated successfully.</p>
+      <ResetLayout title="Password updated">
         <p>
-          <strong>Next steps:</strong>
+          Go back to the Homeward tab and sign in with your email and the new
+          password. You can close this page.
         </p>
-        <ol>
-          <li>Return to the Homeward Chrome extension</li>
-          <li>Sign in with your email and new password</li>
-        </ol>
-        <p
-          style={{
-            marginTop: "20px",
-            padding: "10px",
-            backgroundColor: "#f0f9ff",
-            border: "1px solid #0ea5e9",
-          }}
-        >
-          You can close this tab and return to the extension now.
-        </p>
-      </div>
+      </ResetLayout>
     );
   }
 
   return (
-    <PageLayout>
-      <div style={{ maxWidth: "400px", margin: "100px auto", padding: "20px" }}>
-        <h1>Homeward</h1>
-        <h2>Reset Your Password</h2>
-        <p>Be reasonable, use a complex password</p>
+    <ResetLayout title="Reset your password">
+      <p className="mb-8">
+        Be reasonable, use a complex password. At least {MIN_PASSWORD_LENGTH}{" "}
+        characters.
+      </p>
 
-        <form onSubmit={handlePasswordReset}>
-          <div style={{ marginBottom: "15px" }}>
-            <label>New password:</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              style={{ width: "100%", padding: "8px", margin: "5px 0" }}
-            />
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <PasswordField
+          label="New password"
+          value={password}
+          onChange={setPassword}
+          disabled={saving}
+        />
+        <PasswordField
+          label="Confirm password"
+          value={confirmPassword}
+          onChange={setConfirmPassword}
+          disabled={saving}
+        />
 
-          <div style={{ marginBottom: "15px" }}>
-            <label>Confirm password:</label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              minLength={6}
-              style={{ width: "100%", padding: "8px", margin: "5px 0" }}
-            />
-          </div>
+        {error && (
+          <p role="alert" className="font-mono text-xs uppercase">
+            Error: {error}
+          </p>
+        )}
 
-          {error && (
-            <div style={{ color: "red", marginBottom: "15px" }}>{error}</div>
-          )}
-
-          <Button type="submit" color="primary" size="lg" disabled={loading}>
-            {loading ? "Updating..." : "Update Password"}
-          </Button>
-        </form>
-      </div>
-    </PageLayout>
+        <Button type="submit" size="lg" disabled={saving}>
+          {saving ? "Updating…" : "Update password"}
+        </Button>
+      </form>
+    </ResetLayout>
   );
 };
 
