@@ -166,7 +166,7 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@kkrll/design": ["@kkrll/design@github:kkrll/kkrll-design#c2664ee", {}, "kkrll-kkrll-design-c2664ee", "sha512-YswM9nQr/7pSTDNu/VMjrF8oA2Dm1IcVTHdGo/eWy+ULezRaHXJ1bO6wWx6zRcSzq9Zp+L0a3P0zCT2WyO0AmQ=="],
+    "@kkrll/design": ["@kkrll/design@github:kkrll/kkrll-design#490e09a", { "bin": { "kkrll-check": "./bin/check.js" } }, "kkrll-kkrll-design-490e09a", "sha512-j+r+jMoi3SzQhojeU9sG+9iILF3b/qIHUt1Fag5XmKahlFn2oOpj2MIkvuO4uArSDsAK9FYekejMRqEXYVZXUQ=="],
 
     "@mdx-js/loader": ["@mdx-js/loader@3.1.1", "", { "dependencies": { "@mdx-js/mdx": "^3.0.0", "source-map": "^0.7.0" }, "peerDependencies": { "webpack": ">=5" }, "optionalPeers": ["webpack"] }, "sha512-0TTacJyZ9mDmY+VefuthVshaNIyCGZHJG2fMnGaDttCt8HmjUF7SizlHJpaCDoGnN635nK1wpzfpx/Xx5S4WnQ=="],
 
