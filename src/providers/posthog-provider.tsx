@@ -12,16 +12,15 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-      const host =
-        process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
 
       if (key) {
         try {
           posthog.init(key, {
-            api_host: host,
+            api_host: "https://e.kkrll.com",
+            ui_host: "https://eu.posthog.com",
+            defaults: "2026-05-30", // pageviews on client-side navigation too
             person_profiles: "identified_only", // Recommended for GDPR compliance
             autocapture: false, // Disable automatic click tracking
-            capture_pageview: true, // Keep pageview tracking
             capture_pageleave: false, // Disable page leave tracking
             disable_session_recording: true, // Disable session recordings
             loaded: (posthog) => {
