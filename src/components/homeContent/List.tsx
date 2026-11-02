@@ -80,18 +80,27 @@ const ListItemSelector = ({
   // Writings still open straight away — their preview is just the intro.
   const showsInline = !hasSidePanel && category === "projects";
   const opensOnTap = hasSidePanel ? isSelected : !showsInline || isExpanded;
+  const isExternal = item.link[0] !== "/";
 
   return (
     <>
+      {/* Always a real href, so crawlers and cmd/ctrl/middle-click see the
+          destination; only a plain click is intercepted for select-then-open. */}
       <a
-        href={isSelected ? item.link : ""}
+        href={item.link}
+        target={isExternal ? "_blank" : undefined}
+        rel={isExternal ? "noopener" : undefined}
         data-item-id={itemId}
         onClick={(e) => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+            track("open project", { page: "home", project: item.title });
+            return;
+          }
           e.preventDefault();
 
           if (opensOnTap) {
             track("open project", { page: "home", project: item.title });
-            window.open(item.link, item.link[0] === "/" ? "_self" : "_blank");
+            window.open(item.link, isExternal ? "_blank" : "_self");
           } else {
             onSelect();
           }
