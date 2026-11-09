@@ -1,4 +1,3 @@
-import type { EmblaOptionsType } from "embla-carousel";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Divider from "@/components/Divider";
@@ -12,13 +11,6 @@ export const metadata: Metadata = {
   description:
     "Kiryl Kavalenka — product designer. Experience, selected projects, and case studies.",
   alternates: { canonical: "/resume" },
-};
-
-const carouselOptions: EmblaOptionsType = {
-  loop: true,
-  align: "center",
-  containScroll: "trimSnaps",
-  startIndex: 0,
 };
 
 const WorkItem = ({ job }: { job: JobsType }) => {
@@ -42,18 +34,14 @@ const WorkItem = ({ job }: { job: JobsType }) => {
         <div className="px-default flex flex-col gap-16">
           <p className="max-w-[512px]">{description}</p>
           {projects && (
-            <Carousel
-              nbSlides={projects.length}
-              options={carouselOptions}
-              carouselName={company + "projects"}
-            >
+            <Carousel>
               {projects.map((project) => {
                 switch (project.type) {
                   case "video":
                     return (
                       <div
                         key={project.name}
-                        className="flex flex-col md:flex-row gap-8 mb-4 embla__slide"
+                        className="flex flex-col md:flex-row gap-8 mb-4"
                       >
                         {project.file && (
                           <>
@@ -92,7 +80,7 @@ const WorkItem = ({ job }: { job: JobsType }) => {
                     return (
                       <a
                         key={project.name}
-                        className="flex flex-col md:flex-row mb-4 embla__slide rounded-4xl border-8 border-background-07 overflow-hidden transition-colors duration-100 hover:bg-background-07 hover:no-underline"
+                        className="flex flex-col md:flex-row mb-4 rounded-4xl border-8 border-background-07 overflow-hidden transition-colors duration-100 hover:bg-background-07 hover:no-underline"
                         href="/resume/cases/sos-project-overview"
                       >
                         {project.file && (

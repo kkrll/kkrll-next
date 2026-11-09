@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import HomeContent from "@/components/homeContent";
 import PageLayout from "@/components/PageLayout";
-import { SITE_URL } from "@/lib/constants";
+import { SITE_URL, SOCIAL_LINKS } from "@/lib/constants";
 import { getAllProjectsMeta } from "@/lib/projects";
 import { getAllWritingsMeta } from "@/lib/writings";
 
@@ -16,6 +16,7 @@ const personJsonLd = {
   alternateName: "kkrll",
   jobTitle: "Product Designer",
   url: SITE_URL,
+  sameAs: Object.values(SOCIAL_LINKS),
   worksFor: {
     "@type": "Organization",
     name: "Zing Coach",

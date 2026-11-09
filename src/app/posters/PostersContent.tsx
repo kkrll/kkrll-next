@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useNavigationStore } from "@/stores/useNavigationStore";
+import { useEffect, useMemo, useRef } from "react";
 import ImgPlaceholder from "@/components/ui/imgPlaceholder";
 import type { Poster } from "@/lib/posters";
+import { useNavigationStore } from "@/stores/useNavigationStore";
 
 const PostersContent = ({ posters }: { posters: Poster[] }) => {
-  const { selectedItemId, setSelectedItemId, selectNext, selectPrevious } =
-    useNavigationStore();
+  const { selectedItemId, setSelectedItemId } = useNavigationStore();
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const posterIds = useMemo(
     () => posters.map((p) => `posters-${p.slug}`),
@@ -22,13 +22,33 @@ const PostersContent = ({ posters }: { posters: Poster[] }) => {
       : posterIds[0] || null;
 
   useEffect(() => {
+    // Columns as actually laid out (1 / 2 / 3 by breakpoint), read from the
+    // grid itself so this never drifts from the Tailwind classes.
+    const columnCount = () => {
+      const grid = gridRef.current;
+      if (!grid) return 1;
+      return getComputedStyle(grid).gridTemplateColumns.split(" ").length;
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
-        e.preventDefault();
-        selectNext(posterIds);
-      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-        e.preventDefault();
-        selectPrevious(posterIds);
+      const count = posterIds.length;
+      // fall back to the first poster when the stored selection is from
+      // another page, so the first key press moves instead of re-selecting it
+      const index = Math.max(0, posterIds.indexOf(currentSelectedId ?? ""));
+      const cols = columnCount();
+      const lastRow = Math.floor((count - 1) / cols);
+      let next: number | null = null;
+
+      if (e.key === "ArrowRight") next = (index + 1) % count;
+      else if (e.key === "ArrowLeft") next = (index - 1 + count) % count;
+      else if (e.key === "ArrowDown") {
+        // the last row can be short: drop to its last poster rather than
+        // stopping a row early
+        if (Math.floor(index / cols) < lastRow) {
+          next = Math.min(index + cols, count - 1);
+        }
+      } else if (e.key === "ArrowUp") {
+        if (index - cols >= 0) next = index - cols;
       } else if (e.key === "Enter" && currentSelectedId) {
         e.preventDefault();
         const link = document
@@ -37,11 +57,18 @@ const PostersContent = ({ posters }: { posters: Poster[] }) => {
         if (link) {
           window.location.href = link;
         }
+        return;
+      } else {
+        return;
       }
+
+      // arrows never scroll the page here — the selection does that below
+      e.preventDefault();
+      if (next !== null) setSelectedItemId(posterIds[next]);
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectNext, selectPrevious, posterIds, currentSelectedId]);
+  }, [setSelectedItemId, posterIds, currentSelectedId]);
 
   // Scroll selected item into view when it changes
   useEffect(() => {
@@ -57,7 +84,10 @@ const PostersContent = ({ posters }: { posters: Poster[] }) => {
     <section className="px-default mb-24">
       <h2 className="mb-8">Posters</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div
+        ref={gridRef}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+      >
         {posters.map((poster) => {
           const itemId = `posters-${poster.slug}`;
           const isSelected = currentSelectedId === itemId;

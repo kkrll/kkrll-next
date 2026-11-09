@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import PageLayout from "@/components/PageLayout";
 import PosterInfo from "@/components/PosterInfo";
 import { SITE_NAME } from "@/lib/constants";
 import { getAllPosters, getPosterBySlug, getPosterImages } from "@/lib/posters";
+import PosterGallery from "./PosterGallery";
 
 // Generate static paths for all posters at build time
 
@@ -73,21 +73,8 @@ export default async function PosterPage({
   return (
     <PageLayout>
       <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-12">
-        {/* Images column */}
-        <div className="rounded-4xl overflow-hidden space-y-1 px-default ">
-          {images.map((image, index) => (
-            <Image
-              key={image}
-              width={800}
-              height={0}
-              // 2/3 of the 960px layout on desktop, full width on mobile
-              sizes="(min-width: 960px) 640px, (min-width: 768px) 67vw, 100vw"
-              src={image}
-              alt={`${poster.title} - image ${index + 1}`}
-              className="w-full"
-            />
-          ))}
-        </div>
+        {/* Images column — click to zoom on desktop */}
+        <PosterGallery images={images} title={poster.title} />
 
         {/* Info column - sticky */}
         <PosterInfo

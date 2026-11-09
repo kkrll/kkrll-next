@@ -12,10 +12,9 @@ const HeaderLink = ({
 }) => {
   if (to)
     return (
-      <Link
-        href={to}
-        className="font-mono uppercase text-sm lg:text-base p-2 cursor-pointer"
-      >
+      // No text size: inherits body type (14/21), the same as the home
+      // page's KKRLL heading — home is the reference for this label.
+      <Link href={to} className="font-mono uppercase p-2 cursor-pointer">
         {children}
       </Link>
     );
@@ -24,7 +23,7 @@ const HeaderLink = ({
       <Button
         variant={"link"}
         onClick={onClick}
-        className="font-mono font-normal uppercase text-sm lg:text-base p-2 cursor-pointer"
+        className="font-mono font-normal uppercase p-2 cursor-pointer"
       >
         {children}
       </Button>

@@ -1,15 +1,10 @@
 import Link from "next/link";
+import { SOCIAL_LINKS } from "@/lib/constants";
 
 const Footer = ({ hide, brief }: { hide?: boolean; brief?: boolean }) => {
   const author = {
     name: "Kiryl Kavalenka",
     summary: "Product Designer",
-  };
-
-  const social = {
-    linkedin: "https://www.linkedin.com/in/kkrll",
-    medium: "https://medium.com/@kkrll",
-    twitter: "https://x.com/kkrll_kkrll",
   };
 
   return (
@@ -33,12 +28,19 @@ const Footer = ({ hide, brief }: { hide?: boolean; brief?: boolean }) => {
         <div
           className={`flex font-medium gap-4 [&>a]:text-sm [&>a]:no-underline ${brief ? "lg:flex-col" : ""}`}
         >
-          <Link href="/now" className="hover:underline font-mono">Now</Link>
-          <a href={social.twitter} target="_blank" rel="noreferrer" className="hover:underline font-mono">
+          <Link href="/now" className="hover:underline font-mono">
+            Now
+          </Link>
+          <Link href="/posters" className="hover:underline font-mono">
+            Prints
+          </Link>
+          <a
+            href={SOCIAL_LINKS.twitter}
+            target="_blank"
+            rel="noreferrer"
+            className="hover:underline font-mono"
+          >
             Twitter
-          </a>
-          <a href={social.linkedin} target="_blank" rel="noreferrer" className="hover:underline font-mono">
-            LinkedIn
           </a>
           {/* <Link href="/rss.xml">RSS</Link> */}
         </div>
