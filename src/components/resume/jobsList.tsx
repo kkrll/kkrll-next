@@ -22,7 +22,7 @@ export type JobsType = {
 const jobsList: JobsType[] = [
   {
     dates: "Jun, 2024 – Present",
-    role: "Senior Product Designer",
+    role: "Design Engineer /\nSenior Product Designer",
     company: "Zing Coach",
     companyLink: "https://www.zing.coach",
     description: (
@@ -36,10 +36,8 @@ const jobsList: JobsType[] = [
         >
           top-rated
         </a>{" "}
-        fitness apps, available on iOS and Android. Working across mobile
-        features like interactive workouts, body scan, and strength score —
-        combining design, user feedback, and AI-powered technologies to support
-        long-term training at home.
+        fitness apps, an AI-driven B2B platform for gym chains, and projects with partners like PSG,
+        NYSC, and Fitactive.
       </>
     ),
     tags: [
