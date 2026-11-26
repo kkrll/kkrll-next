@@ -26,7 +26,11 @@ const personJsonLd = {
 
 export default async function Home() {
   const writings = getAllWritingsMeta(5);
-  const projects = getAllProjectsMeta();
+  const allProjects = getAllProjectsMeta();
+  const isPrint = (p: (typeof allProjects)[number]) =>
+    "projectType" in p && p.projectType === "Series of prints";
+  const projects = allProjects.filter((p) => !isPrint(p));
+  const prints = allProjects.filter(isPrint);
 
   return (
     <PageLayout hideNav>
@@ -39,7 +43,7 @@ export default async function Home() {
       />
       <h1 className="sr-only">Kiryl Kavalenka — product designer</h1>
       <div className="absolute lg:hidden z-[5] left-0 right-0 top-0 h-16 bg-gradient-to-b from-background to-transparent opacity-80" />
-      <HomeContent projects={projects} writings={writings} />
+      <HomeContent projects={projects} prints={prints} writings={writings} />
     </PageLayout>
   );
 }

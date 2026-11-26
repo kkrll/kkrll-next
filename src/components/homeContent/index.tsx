@@ -17,9 +17,11 @@ import type { ListItemProps, SelectedItemType } from "./types";
 const HomeContent = ({
   writings,
   projects,
+  prints,
 }: {
   writings: WritingMetaWithViewAll[];
   projects: ProjectMetaWithViewAll[];
+  prints: ProjectMetaWithViewAll[];
   // posters: PosterMetaWithViewAll[];
 }) => {
   const { selectedItemId, setSelectedItemId, selectNext, selectPrevious } =
@@ -29,7 +31,7 @@ const HomeContent = ({
   // display) keeps phones from downloading the hidden panel's media.
   const hasSidePanel = useMediaQuery("(min-width: 48rem)");
 
-  const allItems = [...projects, ...writings];
+  const allItems = [...projects, ...prints, ...writings];
   const allItemsIds = allItems.map((item) => item.globalId);
 
   const { trackSelection, trackNavigation, trackOpen } = useHomeTracking();
@@ -120,6 +122,18 @@ const HomeContent = ({
               key={"projects"}
               title={"projects"}
               list={projects as ListItemProps[]}
+              selectedItemId={currentSelectedId}
+              expandedItemId={expandedItemId}
+              hasSidePanel={hasSidePanel}
+              category="projects"
+              onSelect={(id) => handleSelect(id, "click")}
+            />
+          )}
+          {prints.length > 0 && (
+            <List
+              key="prints"
+              title="prints"
+              list={prints as ListItemProps[]}
               selectedItemId={currentSelectedId}
               expandedItemId={expandedItemId}
               hasSidePanel={hasSidePanel}
